@@ -1,0 +1,305 @@
+import React, { useState, useEffect } from 'react';
+
+interface UserProfile {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  joinDate: string;
+  level: number;
+  experience: number;
+  nextLevelExp: number;
+  achievements: Achievement[];
+  stats: UserStats;
+}
+
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  unlockedDate?: string;
+}
+
+interface UserStats {
+  totalSessions: number;
+  totalMessages: number;
+  favoriteBots: number;
+  referralEarnings: number;
+  daysActive: number;
+}
+
+const UserProfile: React.FC = () => {
+  const [profile, setProfile] = useState<UserProfile>({
+    id: '123456789',
+    name: 'Демо Пользователь',
+    username: '@demo_user',
+    avatar: 'https://via.placeholder.com/100x100/4F46E5/FFFFFF?text=DU',
+    joinDate: '2024-01-15',
+    level: 7,
+    experience: 1250,
+    nextLevelExp: 2000,
+    achievements: [
+      {
+        id: '1',
+        title: 'Первые шаги',
+        description: 'Завершите первую сессию с ботом',
+        icon: '🎯',
+        unlocked: true,
+        unlockedDate: '2024-01-15'
+      },
+      {
+        id: '2',
+        title: 'Общительный',
+        description: 'Отправьте 100 сообщений',
+        icon: '💬',
+        unlocked: true,
+        unlockedDate: '2024-01-20'
+      },
+      {
+        id: '3',
+        title: 'Исследователь',
+        description: 'Попробуйте 5 разных ботов',
+        icon: '🔍',
+        unlocked: true,
+        unlockedDate: '2024-02-01'
+      },
+      {
+        id: '4',
+        title: 'Реферал',
+        description: 'Пригласите первого друга',
+        icon: '👥',
+        unlocked: true,
+        unlockedDate: '2024-02-10'
+      },
+      {
+        id: '5',
+        title: 'Эксперт',
+        description: 'Достигните 10 уровня',
+        icon: '🏆',
+        unlocked: false
+      },
+      {
+        id: '6',
+        title: 'Мастер',
+        description: 'Отправьте 1000 сообщений',
+        icon: '👑',
+        unlocked: false
+      }
+    ],
+    stats: {
+      totalSessions: 45,
+      totalMessages: 342,
+      favoriteBots: 3,
+      referralEarnings: 2400,
+      daysActive: 28
+    }
+  });
+
+  const [activeTab, setActiveTab] = useState<'profile' | 'achievements' | 'stats'>('profile');
+
+  const progressPercentage = (profile.experience / profile.nextLevelExp) * 100;
+
+  const getLevelTitle = (level: number) => {
+    if (level < 5) return 'Новичок';
+    if (level < 10) return 'Опытный';
+    if (level < 15) return 'Эксперт';
+    return 'Мастер';
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">Личный кабинет</h1>
+          <p className="text-lg text-gray-600">Ваш профиль, достижения и статистика</p>
+        </div>
+
+        {/* Profile Card */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex items-center space-x-6 mb-6">
+            <img
+              src={profile.avatar}
+              alt={profile.name}
+              className="w-20 h-20 rounded-full border-4 border-purple-200"
+            />
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-gray-800">{profile.name}</h2>
+              <p className="text-gray-600">{profile.username}</p>
+              <p className="text-sm text-gray-500">Участник с {new Date(profile.joinDate).toLocaleDateString()}</p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-purple-600">Уровень {profile.level}</div>
+              <div className="text-sm text-gray-600">{getLevelTitle(profile.level)}</div>
+            </div>
+          </div>
+
+          {/* Experience Bar */}
+          <div className="mb-6">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Опыт: {profile.experience} / {profile.nextLevelExp}</span>
+              <span>{Math.round(progressPercentage)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{profile.stats.totalSessions}</div>
+              <div className="text-sm text-gray-600">Сессий</div>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{profile.stats.totalMessages}</div>
+              <div className="text-sm text-gray-600">Сообщений</div>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">{profile.stats.favoriteBots}</div>
+              <div className="text-sm text-gray-600">Любимых ботов</div>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">₽{profile.stats.referralEarnings}</div>
+              <div className="text-sm text-gray-600">Заработано</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-xl shadow-lg mb-8">
+          <div className="border-b">
+            <nav className="flex space-x-8 px-6">
+              {[
+                { id: 'profile', label: 'Профиль', icon: '👤' },
+                { id: 'achievements', label: 'Достижения', icon: '🏆' },
+                { id: 'stats', label: 'Статистика', icon: '📊' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                    activeTab === tab.id
+                      ? 'border-purple-500 text-purple-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {activeTab === 'profile' && (
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Настройки профиля</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Имя</label>
+                    <input
+                      type="text"
+                      value={profile.name}
+                      onChange={(e) => setProfile({...profile, name: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input
+                      type="text"
+                      value={profile.username}
+                      onChange={(e) => setProfile({...profile, username: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <button className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                    Сохранить изменения
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'achievements' && (
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Достижения</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {profile.achievements.map(achievement => (
+                    <div
+                      key={achievement.id}
+                      className={`p-4 rounded-lg border-2 ${
+                        achievement.unlocked
+                          ? 'border-green-200 bg-green-50'
+                          : 'border-gray-200 bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">{achievement.icon}</div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-800">{achievement.title}</h4>
+                          <p className="text-sm text-gray-600">{achievement.description}</p>
+                          {achievement.unlocked && achievement.unlockedDate && (
+                            <p className="text-xs text-green-600 mt-1">
+                              Получено {new Date(achievement.unlockedDate).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                        {achievement.unlocked && (
+                          <div className="text-green-500">✓</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'stats' && (
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Подробная статистика</h3>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-blue-800 mb-2">Активность</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-blue-600">Дней активен:</span>
+                          <span className="font-semibold">{profile.stats.daysActive}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-blue-600">Среднее сообщений/день:</span>
+                          <span className="font-semibold">{Math.round(profile.stats.totalMessages / profile.stats.daysActive)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-green-800 mb-2">Реферальная программа</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-green-600">Заработано:</span>
+                          <span className="font-semibold">₽{profile.stats.referralEarnings}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-green-600">Средний доход/день:</span>
+                          <span className="font-semibold">₽{Math.round(profile.stats.referralEarnings / profile.stats.daysActive)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UserProfile; 

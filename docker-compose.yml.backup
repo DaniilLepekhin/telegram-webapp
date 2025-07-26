@@ -1,0 +1,384 @@
+version: "3.8"
+
+services:
+  # Traefik - реверс-прокси с автоматическими SSL сертификатами
+  traefik:
+    image: "traefik:v3.0"
+    restart: always
+    command:
+      - "--api=true"
+      - "--api.insecure=false"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
+      - "--certificatesresolvers.mytlschallenge.acme.email=${SSL_EMAIL}"
+      - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    ports:
+      - "80:80"
+      - "443:443"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN_NAME}`)
+      - traefik.http.routers.traefik.tls=true
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls.certresolver=mytlschallenge
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_AUTH}
+      - traefik.http.routers.traefik.middlewares=auth
+    volumes:
+      - ./traefik_data:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - webapp-network
+    environment:
+      - TRAEFIK_AUTH=${TRAEFIK_AUTH}
+
+  # PostgreSQL - основная база данных
+  postgres:
+    image: postgres:16-alpine
+    container_name: telegram-webapp-postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-telegram_webapp}
+      - POSTGRES_USER=${POSTGRES_USER:-webapp_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - webapp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-webapp_user} -d ${POSTGRES_DB:-telegram_webapp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - кэширование и сессии
+  redis:
+    image: redis:7-alpine
+    container_name: telegram-webapp-redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - ./redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - webapp-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # WebApp Backend API
+  webapp-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: telegram-webapp-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-telegram_webapp}
+      - POSTGRES_USER=${POSTGRES_USER:-webapp_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - WEBAPP_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}
+      - CORS_ORIGIN=https://${SUBDOMAIN}.${DOMAIN_NAME}
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/logs:/app/logs
+    networks:
+      - webapp-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.webapp-api.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/api`)
+      - traefik.http.routers.webapp-api.tls=true
+      - traefik.http.routers.webapp-api.entrypoints=websecure
+      - traefik.http.routers.webapp-api.tls.certresolver=mytlschallenge
+      - traefik.http.services.webapp-api.loadbalancer.server.port=4000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WebApp Frontend
+  webapp-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: telegram-webapp-frontend
+    restart: always
+    volumes:
+      - ./nginx/webapp.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - webapp-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.webapp.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.webapp.tls=true
+      - traefik.http.routers.webapp.entrypoints=websecure
+      - traefik.http.routers.webapp.tls.certresolver=mytlschallenge
+      - traefik.http.services.webapp.loadbalancer.server.port=80
+      # Security headers
+      - traefik.http.middlewares.webapp-headers.headers.SSLRedirect=true
+      - traefik.http.middlewares.webapp-headers.headers.STSSeconds=315360000
+      - traefik.http.middlewares.webapp-headers.headers.browserXSSFilter=true
+      - traefik.http.middlewares.webapp-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.webapp-headers.headers.forceSTSHeader=true
+      - traefik.http.middlewares.webapp-headers.headers.SSLHost=${DOMAIN_NAME}
+      - traefik.http.middlewares.webapp-headers.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.webapp-headers.headers.STSPreload=true
+      - traefik.http.middlewares.webapp-headers.headers.customFrameOptionsValue=SAMEORIGIN
+      - traefik.http.routers.webapp.middlewares=webapp-headers
+
+  # Telegram Bot
+  telegram-bot:
+    build:
+      context: ./telegram-bot
+      dockerfile: Dockerfile
+    container_name: telegram-webapp-bot
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      webapp-backend:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-telegram_webapp}
+      - POSTGRES_USER=${POSTGRES_USER:-webapp_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - WEBAPP_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}
+      - API_URL=http://webapp-backend:4000
+      - WEBHOOK_URL=https://bot.${DOMAIN_NAME}
+    volumes:
+      - ./telegram-bot/logs:/app/logs
+    networks:
+      - webapp-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.telegram-bot.rule=Host(`bot.${DOMAIN_NAME}`)
+      - traefik.http.routers.telegram-bot.tls=true
+      - traefik.http.routers.telegram-bot.entrypoints=websecure
+      - traefik.http.routers.telegram-bot.tls.certresolver=mytlschallenge
+      - traefik.http.services.telegram-bot.loadbalancer.server.port=3000
+
+  # pgAdmin - управление PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: telegram-webapp-pgadmin
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@example.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      - SCRIPT_NAME=/_admin/pgadmin
+      - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=True
+      - PGADMIN_CONFIG_LOGIN_BANNER="Telegram WebApp Database Admin"
+    networks:
+      - webapp-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.pgadmin.entrypoints=websecure
+      - traefik.http.routers.pgadmin.tls=true
+      - traefik.http.routers.pgadmin.rule=(Host(`${SUBDOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/_admin/pgadmin`))
+      - traefik.http.routers.pgadmin.tls.certresolver=mytlschallenge
+      - traefik.http.services.pgadmin.loadbalancer.server.port=80
+
+  # Metabase - аналитика и дашборды
+  metabase:
+    image: metabase/metabase:latest
+    container_name: telegram-webapp-metabase
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=${POSTGRES_DB:-telegram_webapp}
+      - MB_DB_PORT=5432
+      - MB_DB_USER=${POSTGRES_USER:-webapp_user}
+      - MB_DB_PASS=${POSTGRES_PASSWORD}
+      - MB_DB_HOST=postgres
+      - JAVA_OPTS=-Xmx2g
+      - MB_SITE_NAME=Telegram WebApp Analytics
+      - MB_SITE_URL=https://analytics.${DOMAIN_NAME}
+    volumes:
+      - ./metabase_data:/metabase-data
+    networks:
+      - webapp-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.metabase.rule=Host(`analytics.${DOMAIN_NAME}`)
+      - traefik.http.routers.metabase.tls=true
+      - traefik.http.routers.metabase.entrypoints=websecure
+      - traefik.http.routers.metabase.tls.certresolver=mytlschallenge
+      - traefik.http.services.metabase.loadbalancer.server.port=3000
+      # Security headers для Metabase
+      - traefik.http.middlewares.metabase-headers.headers.SSLRedirect=true
+      - traefik.http.middlewares.metabase-headers.headers.STSSeconds=315360000
+      - traefik.http.middlewares.metabase-headers.headers.browserXSSFilter=true
+      - traefik.http.middlewares.metabase-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.metabase-headers.headers.forceSTSHeader=true
+      - traefik.http.middlewares.metabase-headers.headers.SSLHost=${DOMAIN_NAME}
+      - traefik.http.middlewares.metabase-headers.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.metabase-headers.headers.STSPreload=true
+      - traefik.http.routers.metabase.middlewares=metabase-headers
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: telegram-webapp-prometheus
+    restart: always
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - webapp-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prometheus.rule=Host(`metrics.${DOMAIN_NAME}`)
+      - traefik.http.routers.prometheus.tls=true
+      - traefik.http.routers.prometheus.entrypoints=websecure
+      - traefik.http.routers.prometheus.tls.certresolver=mytlschallenge
+      - traefik.http.services.prometheus.loadbalancer.server.port=9090
+      - traefik.http.middlewares.prometheus-auth.basicauth.users=${METRICS_AUTH}
+      - traefik.http.routers.prometheus.middlewares=prometheus-auth
+
+  # Grafana - визуализация метрик
+  grafana:
+    image: grafana/grafana:latest
+    container_name: telegram-webapp-grafana
+    restart: always
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SERVER_DOMAIN=grafana.${DOMAIN_NAME}
+      - GF_SERVER_ROOT_URL=https://grafana.${DOMAIN_NAME}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - webapp-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN_NAME}`)
+      - traefik.http.routers.grafana.tls=true
+      - traefik.http.routers.grafana.entrypoints=websecure
+      - traefik.http.routers.grafana.tls.certresolver=mytlschallenge
+      - traefik.http.services.grafana.loadbalancer.server.port=3000
+
+  # Backup service
+  backup:
+    image: alpine:latest
+    container_name: telegram-webapp-backup
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=${POSTGRES_DB:-telegram_webapp}
+      - POSTGRES_USER=${POSTGRES_USER:-webapp_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    networks:
+      - webapp-network
+    entrypoint: ["/bin/sh", "/backup.sh"]
+
+networks:
+  webapp-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  metabase_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  traefik_data:
+    driver: local   n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - N8N_HOST=n8n_personal.daniillepekhin.ru
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - DB_TYPE=postgresdb
+      - DB_TABLE_PREFIX=n8n_
+      - DB_POSTGRESDB_DATABASE=telegram_webapp
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=webapp_user
+      - DB_POSTGRESDB_PASSWORD=U3SfZ2cru
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.n8n.rule=Host(`n8n_personal.daniillepekhin.ru`)
+      - traefik.http.routers.n8n.tls=true
+      - traefik.http.routers.n8n.entrypoints=web,websecure
+      - traefik.http.routers.n8n.tls.certresolver=mytlschallenge
+    networks:
+      - webapp-network

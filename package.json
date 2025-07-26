@@ -1,0 +1,5 @@
+{
+  "name": "my-webapp",
+  "private": true,
+  "workspaces": ["frontend", "backend"]
+} 

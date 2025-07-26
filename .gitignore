@@ -1,0 +1,16 @@
+# Node
+node_modules/
+dist/
+.env
+
+# React
+build/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+.DS_Store 
