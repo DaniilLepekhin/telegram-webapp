@@ -118,9 +118,10 @@ const DemoChat: React.FC = () => {
               }
             }}
             className="text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
