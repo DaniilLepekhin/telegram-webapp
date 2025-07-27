@@ -3,14 +3,12 @@ import React, { useState, useEffect } from 'react';
 const FullscreenButton: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(0);
 
   useEffect(() => {
     // Проверяем Telegram WebApp API
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       setIsExpanded(webApp.isExpanded);
-      setViewportHeight(webApp.viewportHeight);
     }
 
     // Слушаем изменения полноэкранного режима
@@ -18,7 +16,6 @@ const FullscreenButton: React.FC = () => {
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
         setIsExpanded(webApp.isExpanded);
-        setViewportHeight(webApp.viewportHeight);
       }
     };
 
