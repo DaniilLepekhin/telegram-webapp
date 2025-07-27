@@ -15,6 +15,7 @@ import DetailedDiagnostics from './components/DetailedDiagnostics';
 import ScreenshotHelper from './components/ScreenshotHelper';
 import FullscreenControls from './components/FullscreenControls';
 import FullscreenButton from './components/FullscreenButton';
+import FullscreenTest from './components/FullscreenTest';
 import LogsCopy from './components/LogsCopy';
 import { LogsProvider, useLogs } from './contexts/LogsContext';
 
@@ -173,7 +174,7 @@ declare global {
 
 const tg = window.Telegram?.WebApp;
 
-type Page = 'main' | 'showcase' | 'chat' | 'referral' | 'profile' | 'analytics' | 'channel-analytics' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'test-back';
+type Page = 'main' | 'showcase' | 'chat' | 'referral' | 'profile' | 'analytics' | 'channel-analytics' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'test-back' | 'fullscreen-test';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('main');
@@ -336,7 +337,7 @@ function AppContent() {
         
         // Обработчики событий
         webApp.onEvent('viewportChanged', () => {
-          addLog('📱 Viewport изменился: ' + webApp.viewportHeight);
+          addLog('📱 Viewport изменился: ' + webApp.viewportHeight + ', isExpanded: ' + webApp.isExpanded);
           setViewportHeight(webApp.viewportHeight);
         });
         
@@ -565,29 +566,53 @@ function AppContent() {
                     </div>
                   </div>
 
-                  {/* Channel Analytics Card */}
-                  <div 
-                    onClick={() => navigateTo('channel-analytics')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer sm:col-span-2"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📈</span>
+                                      {/* Channel Analytics Card */}
+                    <div
+                      onClick={() => navigateTo('channel-analytics')}
+                      className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-xl">📈</span>
+                          </div>
+                          <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Аналитика каналов</h3>
+                        <p className="text-white/70 text-sm leading-relaxed">
+                          Продвинутая аналитика и отслеживание эффективности ваших Telegram каналов
+                        </p>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Аналитика каналов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Продвинутая аналитика и отслеживание эффективности ваших Telegram каналов
-                      </p>
                     </div>
-                  </div>
+
+                    {/* Fullscreen Test Card */}
+                    <div
+                      onClick={() => navigateTo('fullscreen-test')}
+                      className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-xl">🖼️</span>
+                          </div>
+                          <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Тест полноэкранного режима</h3>
+                        <p className="text-white/70 text-sm leading-relaxed">
+                          Проверьте работу полноэкранного режима и WebApp API
+                        </p>
+                      </div>
+                    </div>
                 </div>
 
                 {/* Quick Stats */}
@@ -633,6 +658,8 @@ function AppContent() {
         return <PostTracking />;
       case 'test-back':
         return <TestBackButton />;
+      case 'fullscreen-test':
+        return <FullscreenTest />;
       default:
         return (
           <div 

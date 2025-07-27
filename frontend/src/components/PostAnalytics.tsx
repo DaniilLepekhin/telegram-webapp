@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import BackButton from './BackButton';
+import FullscreenButton from './FullscreenButton';
 
 interface PostData {
   id: string;
@@ -158,426 +160,101 @@ const PostAnalytics: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      {/* Красивая кнопка "Назад" */}
+      <BackButton onClick={() => {
+        if ((window as any).handleGoBack) {
+          (window as any).handleGoBack();
+        } else {
+          window.location.reload();
+        }
+      }} />
+      
+      {/* Кнопка полноэкранного режима */}
+      <FullscreenButton />
+      
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Аналитика постов</h1>
-          <p className="text-lg text-gray-600">Отслеживайте эффективность каждого поста</p>
+        <div className="text-center mb-8 fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl mb-4 shadow-2xl">
+            <span className="text-2xl sm:text-3xl">📝</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
+            Аналитика постов
+          </h1>
+          <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
+            Подробная статистика и аналитика ваших постов
+          </p>
         </div>
 
-        {/* Posts List */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">Ваши посты</h2>
+        {/* Content */}
+        <div className="space-y-6">
+          {/* Add Post Button */}
+          <div className="flex justify-end">
             <button
-              onClick={() => setShowAddPost(true)}
-              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+              onClick={addPost}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 transform hover:scale-105"
             >
-              + Добавить пост
+              ➕ Добавить пост
             </button>
           </div>
-          
-          <div className="space-y-4">
-            {posts.map(post => (
-              <div
-                key={post.id}
-                onClick={() => setSelectedPost(post)}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                  selectedPost?.id === post.id
-                    ? 'border-purple-500 bg-purple-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex justify-between items-start">
+
+          {/* Posts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {posts.map((post) => (
+              <div key={post.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 mb-1">{post.title}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{post.publishDate}</p>
-                    <div className="flex space-x-4 text-sm">
-                      <span className="text-blue-600">👁 {post.views.toLocaleString()}</span>
-                      <span className="text-red-600">❤️ {post.likes}</span>
-                      <span className="text-green-600">💬 {post.comments}</span>
-                      <span className="text-purple-600">📤 {post.shares}</span>
-                      <span className="text-orange-600">🔗 {post.clicks}</span>
-                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">{post.title}</h3>
+                    <p className="text-white/60 text-sm mb-2">{post.publishDate}</p>
+                    <p className="text-white/80 text-sm line-clamp-2">{post.content}</p>
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-purple-600">{post.engagementRate}%</div>
-                    <div className="text-xs text-gray-500">Engagement</div>
+                  <div className="ml-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {post.engagementRate}% вовлеченность
+                    </span>
                   </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">{post.views.toLocaleString()}</div>
+                    <div className="text-white/60 text-sm">Просмотры</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-400">{post.likes.toLocaleString()}</div>
+                    <div className="text-white/60 text-sm">Лайки</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-400">{post.comments.toLocaleString()}</div>
+                    <div className="text-white/60 text-sm">Комментарии</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">{post.clicks.toLocaleString()}</div>
+                    <div className="text-white/60 text-sm">Клики</div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => generateTrackingLink(post)}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all duration-300"
+                  >
+                    🔗 Создать ссылку
+                  </button>
+                  <button
+                    onClick={() => {/* View details */}}
+                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-2 px-4 rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
+                  >
+                    📊 Детали
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
-        {selectedPost && (
-          <div className="bg-white rounded-xl shadow-lg">
-            {/* Post Header */}
-            <div className="p-6 border-b">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedPost.title}</h2>
-                  <p className="text-gray-600 mb-2">{selectedPost.publishDate}</p>
-                  <a 
-                    href={selectedPost.postUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-purple-600 hover:text-purple-700 text-sm"
-                  >
-                    {selectedPost.postUrl}
-                  </a>
-                </div>
-                <button
-                  onClick={() => generateTrackingLink(selectedPost)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  🔗 Создать ссылку отслеживания
-                </button>
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="border-b">
-              <nav className="flex space-x-8 px-6">
-                {[
-                  { id: 'overview', label: 'Обзор', icon: '📊' },
-                  { id: 'traffic', label: 'Источники трафика', icon: '🌐' },
-                  { id: 'daily', label: 'Ежедневная статистика', icon: '📈' },
-                  { id: 'engagement', label: 'Вовлечённость', icon: '💬' }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                      activeTab === tab.id
-                        ? 'border-purple-500 text-purple-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <span>{tab.icon}</span>
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-
-            {/* Tab Content */}
-            <div className="p-6">
-              {activeTab === 'overview' && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Общая статистика поста</h3>
-                  
-                  {/* Key Metrics */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl">
-                      <div className="text-3xl font-bold mb-2">{selectedPost.views.toLocaleString()}</div>
-                      <div className="text-blue-100">Просмотров</div>
-                    </div>
-                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-xl">
-                      <div className="text-3xl font-bold mb-2">{selectedPost.likes}</div>
-                      <div className="text-red-100">Лайков</div>
-                    </div>
-                    <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
-                      <div className="text-3xl font-bold mb-2">{selectedPost.comments}</div>
-                      <div className="text-green-100">Комментариев</div>
-                    </div>
-                    <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl">
-                      <div className="text-3xl font-bold mb-2">{selectedPost.shares}</div>
-                      <div className="text-purple-100">Репостов</div>
-                    </div>
-                  </div>
-
-                  {/* Engagement Metrics */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-gray-50 p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-2">Вовлечённость</h4>
-                      <div className="text-3xl font-bold text-purple-600 mb-2">{selectedPost.engagementRate}%</div>
-                      <div className="text-sm text-gray-600">Лайки + комментарии / просмотры</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-2">CTR</h4>
-                      <div className="text-3xl font-bold text-blue-600 mb-2">{selectedPost.ctr}%</div>
-                      <div className="text-sm text-gray-600">Клики / просмотры</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-2">Конверсия</h4>
-                      <div className="text-3xl font-bold text-green-600 mb-2">{selectedPost.conversionRate}%</div>
-                      <div className="text-sm text-gray-600">Конверсии / клики</div>
-                    </div>
-                  </div>
-
-                  {/* Additional Stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-gray-50 p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Дополнительная статистика</h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Клики по ссылкам</span>
-                          <span className="font-semibold">{selectedPost.clicks}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Сохранения</span>
-                          <span className="font-semibold">{selectedPost.saves}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Конверсии</span>
-                          <span className="font-semibold">{selectedPost.conversions}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Средние показатели</h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Просмотров в день</span>
-                          <span className="font-semibold">{Math.round(selectedPost.views / 7)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Лайков в день</span>
-                          <span className="font-semibold">{Math.round(selectedPost.likes / 7)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Комментариев в день</span>
-                          <span className="font-semibold">{Math.round(selectedPost.comments / 7)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'traffic' && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Источники трафика поста</h3>
-                  
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Traffic Sources Chart */}
-                    <div className="bg-gray-50 p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Распределение по источникам</h4>
-                      <div className="space-y-4">
-                        {selectedPost.trafficSources.map((source, index) => (
-                          <div key={index} className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div
-                                className="w-4 h-4 rounded-full"
-                                style={{ backgroundColor: source.color }}
-                              ></div>
-                              <span className="font-medium text-gray-700">{source.name}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-32 bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="h-2 rounded-full"
-                                  style={{ 
-                                    width: `${source.percentage}%`,
-                                    backgroundColor: source.color
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="text-sm text-gray-600 w-12">{source.percentage}%</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Traffic Source Details */}
-                    <div className="space-y-4">
-                      {selectedPost.trafficSources.map((source, index) => (
-                        <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                          <div className="flex justify-between items-center mb-2">
-                            <h5 className="font-semibold text-gray-800">{source.name}</h5>
-                            <span className="text-sm font-medium" style={{ color: source.color }}>
-                              {source.count.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm text-gray-600">
-                            <span>{source.percentage}% от общего трафика</span>
-                            <span>Конверсия: {Math.round(source.percentage * 0.6)}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'daily' && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Ежедневная статистика поста</h3>
-                  
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-semibold text-gray-800">Дата</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-800">Просмотры</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-800">Лайки</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-800">Комментарии</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-800">Репосты</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-800">Клики</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedPost.dailyStats.map((stat, index) => (
-                          <tr key={index} className="border-b hover:bg-gray-50">
-                            <td className="py-3 px-4 text-gray-700">
-                              {new Date(stat.date).toLocaleDateString()}
-                            </td>
-                            <td className="py-3 px-4 text-right text-blue-600 font-medium">
-                              {stat.views.toLocaleString()}
-                            </td>
-                            <td className="py-3 px-4 text-right text-red-600 font-medium">
-                              {stat.likes}
-                            </td>
-                            <td className="py-3 px-4 text-right text-green-600 font-medium">
-                              {stat.comments}
-                            </td>
-                            <td className="py-3 px-4 text-right text-purple-600 font-medium">
-                              {stat.shares}
-                            </td>
-                            <td className="py-3 px-4 text-right text-orange-600 font-medium">
-                              {stat.clicks}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'engagement' && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Анализ вовлечённости</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Engagement Chart */}
-                    <div className="bg-gray-50 p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Вовлечённость по дням</h4>
-                      <div className="flex items-end justify-between h-32">
-                        {selectedPost.dailyStats.map((stat, index) => {
-                          const engagement = ((stat.likes + stat.comments) / stat.views) * 100;
-                          return (
-                            <div key={index} className="flex flex-col items-center">
-                              <div
-                                className="bg-purple-500 rounded-t w-8 transition-all duration-300 hover:bg-purple-600"
-                                style={{ height: `${(engagement / Math.max(...selectedPost.dailyStats.map(s => ((s.likes + s.comments) / s.views) * 100))) * 100}%` }}
-                              ></div>
-                              <div className="text-xs text-gray-600 mt-2">{engagement.toFixed(1)}%</div>
-                              <div className="text-xs text-gray-500">День {index + 1}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Engagement Analysis */}
-                    <div className="space-y-6">
-                      <div className="bg-gray-50 p-6 rounded-xl">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4">Показатели вовлечённости</h4>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Общая вовлечённость</span>
-                            <span className="font-semibold text-purple-600">{selectedPost.engagementRate}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Лайки/просмотры</span>
-                            <span className="font-semibold">{(selectedPost.likes / selectedPost.views * 100).toFixed(1)}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Комментарии/просмотры</span>
-                            <span className="font-semibold">{(selectedPost.comments / selectedPost.views * 100).toFixed(1)}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Репосты/просмотры</span>
-                            <span className="font-semibold">{(selectedPost.shares / selectedPost.views * 100).toFixed(1)}%</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 p-6 rounded-xl">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4">Рекомендации</h4>
-                        <div className="space-y-2 text-sm">
-                          {selectedPost.engagementRate > 8 ? (
-                            <p className="text-green-600">✅ Отличная вовлечённость! Продолжайте в том же духе.</p>
-                          ) : (
-                            <p className="text-orange-600">⚠️ Вовлечённость ниже среднего. Попробуйте добавить больше интерактивности.</p>
-                          )}
-                          {selectedPost.ctr > 7 ? (
-                            <p className="text-green-600">✅ Высокий CTR! Ссылки работают эффективно.</p>
-                          ) : (
-                            <p className="text-orange-600">⚠️ CTR можно улучшить. Попробуйте более привлекательные призывы к действию.</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Add Post Modal */}
-        {showAddPost && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Добавить новый пост</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Заголовок поста</label>
-                  <input
-                    type="text"
-                    value={newPost.title}
-                    onChange={(e) => setNewPost({...newPost, title: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Введите заголовок поста"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Содержание</label>
-                  <textarea
-                    value={newPost.content}
-                    onChange={(e) => setNewPost({...newPost, content: e.target.value})}
-                    rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Краткое описание поста"
-                  ></textarea>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ссылка на пост</label>
-                  <input
-                    type="url"
-                    value={newPost.postUrl}
-                    onChange={(e) => setNewPost({...newPost, postUrl: e.target.value})}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="https://t.me/channel/123"
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowAddPost(false)}
-                    className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg"
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    onClick={addPost}
-                    className="flex-1 bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600"
-                  >
-                    Добавить
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

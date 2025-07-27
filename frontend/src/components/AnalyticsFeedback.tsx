@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import BackButton from './BackButton';
+import FullscreenButton from './FullscreenButton';
 
 interface AnalyticsData {
   dailyUsers: number[];
@@ -97,204 +99,135 @@ const AnalyticsFeedback: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-cyan-100 p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      {/* Красивая кнопка "Назад" */}
+      <BackButton onClick={() => {
+        if ((window as any).handleGoBack) {
+          (window as any).handleGoBack();
+        } else {
+          window.location.reload();
+        }
+      }} />
+      
+      {/* Кнопка полноэкранного режима */}
+      <FullscreenButton />
+      
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Аналитика и отзывы</h1>
-          <p className="text-lg text-gray-600">Статистика использования и отзывы пользователей</p>
+        <div className="text-center mb-8 fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-indigo-400 to-cyan-600 rounded-2xl mb-4 shadow-2xl">
+            <span className="text-2xl sm:text-3xl">📊</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
+            Аналитика & Обратная связь
+          </h1>
+          <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
+            Подробная статистика и отзывы пользователей
+          </p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg mb-8">
-          <div className="border-b">
-            <nav className="flex space-x-8 px-6">
-              {[
-                { id: 'analytics', label: 'Аналитика', icon: '📊' },
-                { id: 'feedback', label: 'Отзывы', icon: '💬' }
-              ].map(tab => (
+        <div className="mb-8">
+          <div className="flex overflow-x-auto scrollbar-hide gap-2 pb-4">
+            {[
+              { id: 'analytics', label: 'Аналитика', icon: '📈' },
+              { id: 'feedback', label: 'Отзывы', icon: '💬' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 flex items-center space-x-2 ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                    : 'bg-white/10 backdrop-blur-sm text-white/70 hover:bg-white/20 hover:text-white border border-white/20'
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="space-y-6">
+          {activeTab === 'analytics' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                    <span className="text-xl">👥</span>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-1">{analytics.totalUsers.toLocaleString()}</h3>
+                <p className="text-white/60">Всего пользователей</p>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center">
+                    <span className="text-xl">📈</span>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-green-400 mb-1">+{analytics.weeklyGrowth}%</h3>
+                <p className="text-white/60">Рост за неделю</p>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center">
+                    <span className="text-xl">⏱️</span>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-purple-400 mb-1">{analytics.averageSessionTime}м</h3>
+                <p className="text-white/60">Среднее время сессии</p>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center">
+                    <span className="text-xl">🔥</span>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-orange-400 mb-1">{analytics.activeUsers.toLocaleString()}</h3>
+                <p className="text-white/60">Активных пользователей</p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'feedback' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-white">Отзывы пользователей</h2>
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                    activeTab === tab.id
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
+                  onClick={() => setShowFeedbackForm(true)}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
                 >
-                  <span>{tab.icon}</span>
-                  <span>{tab.label}</span>
+                  ✍️ Оставить отзыв
                 </button>
-              ))}
-            </nav>
-          </div>
-
-          <div className="p-6">
-            {activeTab === 'analytics' && (
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-6">Статистика платформы</h3>
-                
-                {/* Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl">
-                    <div className="text-3xl font-bold mb-2">{analytics.totalUsers.toLocaleString()}</div>
-                    <div className="text-blue-100">Всего пользователей</div>
-                  </div>
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
-                    <div className="text-3xl font-bold mb-2">{analytics.activeUsers.toLocaleString()}</div>
-                    <div className="text-green-100">Активных пользователей</div>
-                  </div>
-                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl">
-                    <div className="text-3xl font-bold mb-2">+{analytics.weeklyGrowth}%</div>
-                    <div className="text-purple-100">Рост за неделю</div>
-                  </div>
-                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl">
-                    <div className="text-3xl font-bold mb-2">{analytics.averageSessionTime}м</div>
-                    <div className="text-orange-100">Среднее время сессии</div>
-                  </div>
-                </div>
-
-                {/* Daily Users Chart */}
-                <div className="bg-gray-50 p-6 rounded-xl mb-8">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Активность за неделю</h4>
-                  <div className="flex items-end justify-between h-32">
-                    {analytics.dailyUsers.map((users, index) => (
-                      <div key={index} className="flex flex-col items-center">
-                        <div
-                          className="bg-indigo-500 rounded-t w-8 transition-all duration-300 hover:bg-indigo-600"
-                          style={{ height: `${(users / Math.max(...analytics.dailyUsers)) * 100}%` }}
-                        ></div>
-                        <div className="text-xs text-gray-600 mt-2">{users}</div>
-                        <div className="text-xs text-gray-500">День {index + 1}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Popular Bots */}
-                <div className="bg-gray-50 p-6 rounded-xl">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">Популярные боты</h4>
-                  <div className="space-y-4">
-                    {analytics.popularBots.map((bot, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="font-medium text-gray-700">{bot.name}</span>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-32 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-indigo-500 h-2 rounded-full"
-                              style={{ width: `${(bot.usage / Math.max(...analytics.popularBots.map(b => b.usage))) * 100}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm text-gray-600 w-8">{bot.usage}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
-            )}
-
-            {activeTab === 'feedback' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold text-gray-800">Отзывы пользователей</h3>
-                  <button
-                    onClick={() => setShowFeedbackForm(true)}
-                    className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
-                  >
-                    Оставить отзыв
-                  </button>
-                </div>
-
-                {/* Feedback List */}
-                <div className="space-y-6">
-                  {feedbacks.map(feedback => (
-                    <div key={feedback.id} className="bg-gray-50 p-6 rounded-xl">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-semibold text-gray-800">{feedback.user}</h4>
-                          <div className="text-yellow-500 text-lg">{getRatingStars(feedback.rating)}</div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(feedback.category)}`}>
-                            {feedback.category === 'general' ? 'Общий' : 
-                             feedback.category === 'suggestion' ? 'Предложение' : 'Реферал'}
-                          </span>
-                          <span className="text-sm text-gray-500">{new Date(feedback.date).toLocaleDateString()}</span>
-                        </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {feedbacks.map((feedback) => (
+                  <div key={feedback.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">{feedback.user}</h3>
+                        <p className="text-white/60 text-sm">{feedback.date}</p>
                       </div>
-                      <p className="text-gray-700">{feedback.comment}</p>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(feedback.category)}`}>
+                        {feedback.category}
+                      </span>
                     </div>
-                  ))}
-                </div>
-
-                {/* Feedback Form Modal */}
-                {showFeedbackForm && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl max-w-md w-full p-6">
-                      <h3 className="text-xl font-bold text-gray-800 mb-4">Оставить отзыв</h3>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Оценка</label>
-                          <div className="flex space-x-2">
-                            {[1, 2, 3, 4, 5].map(star => (
-                              <button
-                                key={star}
-                                onClick={() => setFeedbackForm({...feedbackForm, rating: star})}
-                                className={`text-2xl ${feedbackForm.rating >= star ? 'text-yellow-500' : 'text-gray-300'}`}
-                              >
-                                ★
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Категория</label>
-                          <select
-                            value={feedbackForm.category}
-                            onChange={(e) => setFeedbackForm({...feedbackForm, category: e.target.value})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          >
-                            <option value="general">Общий отзыв</option>
-                            <option value="suggestion">Предложение</option>
-                            <option value="referral">Реферальная программа</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Комментарий</label>
-                          <textarea
-                            value={feedbackForm.comment}
-                            onChange={(e) => setFeedbackForm({...feedbackForm, comment: e.target.value})}
-                            rows={4}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="Поделитесь своим мнением..."
-                          ></textarea>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setShowFeedbackForm(false)}
-                            className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg"
-                          >
-                            Отмена
-                          </button>
-                          <button
-                            onClick={handleSubmitFeedback}
-                            className="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600"
-                          >
-                            Отправить
-                          </button>
-                        </div>
-                      </div>
+                    <div className="mb-3">
+                      <span className="text-yellow-400 text-lg">{getRatingStars(feedback.rating)}</span>
                     </div>
+                    <p className="text-white/80 leading-relaxed">{feedback.comment}</p>
                   </div>
-                )}
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

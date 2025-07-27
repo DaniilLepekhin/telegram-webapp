@@ -2,36 +2,94 @@ import React, { useState, useEffect } from 'react';
 
 const FullscreenButton: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(0);
 
   useEffect(() => {
+    // Проверяем Telegram WebApp API
+    if (window.Telegram?.WebApp) {
+      const webApp = window.Telegram.WebApp;
+      setIsExpanded(webApp.isExpanded);
+      setViewportHeight(webApp.viewportHeight);
+    }
+
+    // Слушаем изменения полноэкранного режима
+    const handleViewportChange = () => {
+      if (window.Telegram?.WebApp) {
+        const webApp = window.Telegram.WebApp;
+        setIsExpanded(webApp.isExpanded);
+        setViewportHeight(webApp.viewportHeight);
+      }
+    };
+
+    // Слушаем изменения браузерного полноэкранного режима
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
 
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.onEvent('viewportChanged', handleViewportChange);
+    }
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+
+    return () => {
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.offEvent('viewportChanged', handleViewportChange);
+      }
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
   }, []);
 
-  const toggleFullscreen = async () => {
+  const toggleFullscreen = () => {
     try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
+      if (window.Telegram?.WebApp) {
+        if (!window.Telegram.WebApp.isExpanded) {
+          // Расширяем на весь экран
+          window.Telegram.WebApp.expand();
+          console.log('🖼️ Расширяем Mini App на весь экран');
+        } else {
+          // В Telegram Mini Apps нет прямого метода для выхода из полноэкранного режима
+          // Пользователь может использовать кнопку "Назад" в Telegram
+          console.log('📱 Mini App уже в полноэкранном режиме');
+        }
       } else {
-        await document.exitFullscreen();
+        // Fallback для браузера
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
       }
     } catch (error) {
       console.error('Ошибка переключения полноэкранного режима:', error);
     }
   };
 
+  // Скрываем кнопку, если Telegram WebApp не доступен
+  if (!window.Telegram?.WebApp) {
+    return null;
+  }
+
+  // Определяем позицию кнопки в зависимости от состояния
+  const getButtonPosition = () => {
+    if (isExpanded) {
+      // В полноэкранном режиме Telegram - кнопка ниже, чтобы не мешать верхней панели
+      return "fixed top-20 right-6 z-[9999]";
+    } else {
+      // В обычном режиме - стандартная позиция
+      return "fixed top-6 right-6 z-[9999]";
+    }
+  };
+
   return (
     <button
       onClick={toggleFullscreen}
-      className="fixed top-6 right-6 z-[9999] w-12 h-12 bg-white/95 backdrop-blur-xl border-2 border-white/80 rounded-full shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group"
-      aria-label={isFullscreen ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
+      className={`${getButtonPosition()} w-12 h-12 bg-white/95 backdrop-blur-xl border-2 border-white/80 rounded-full shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group`}
+      aria-label={isExpanded ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
     >
       <div className="flex items-center justify-center w-full h-full">
-        {isFullscreen ? (
+        {isExpanded ? (
           <svg 
             className="w-5 h-5 text-gray-800 group-hover:text-purple-600 transition-colors duration-300" 
             fill="none" 
