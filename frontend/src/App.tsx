@@ -339,6 +339,7 @@ function AppContent() {
         webApp.onEvent('viewportChanged', () => {
           addLog('📱 Viewport изменился: ' + webApp.viewportHeight + ', isExpanded: ' + webApp.isExpanded);
           setViewportHeight(webApp.viewportHeight);
+          setIsExpanded(webApp.isExpanded);
         });
         
         webApp.onEvent('themeChanged', () => {
@@ -437,9 +438,11 @@ function AppContent() {
       // Прокручиваем к верху страницы
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Если мы на главной странице, закрываем приложение
+      // Если мы на главной странице, НЕ закрываем приложение
+      // Вместо этого показываем уведомление или ничего не делаем
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.close();
+        // Можно показать уведомление, что мы уже на главной странице
+        window.Telegram.WebApp.showAlert('Вы уже на главной странице');
       }
     }
   };

@@ -31,7 +31,8 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
   const getButtonPosition = () => {
     if (isExpanded) {
       // В полноэкранном режиме Telegram - кнопка ниже, чтобы не мешать верхней панели
-      return "fixed top-20 left-6 z-[9999]";
+      // Согласно документации, нужно учитывать высоту верхней панели
+      return "fixed top-24 left-6 z-[9999]";
     } else {
       // В обычном режиме - стандартная позиция
       return "fixed top-6 left-6 z-[9999]";
