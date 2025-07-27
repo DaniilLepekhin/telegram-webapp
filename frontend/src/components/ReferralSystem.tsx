@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import BackButton from './BackButton';
+import FullscreenButton from './FullscreenButton';
 
 interface ReferralStats {
   totalReferrals: number;
@@ -35,47 +37,77 @@ const ReferralSystem: React.FC = () => {
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
   };
 
+  const handleBack = () => {
+    if ((window as any).handleGoBack) {
+      (window as any).handleGoBack();
+    } else {
+      window.location.reload();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      {/* Кнопка "Назад" */}
+      <BackButton onClick={handleBack} />
+
+      {/* Кнопка полноэкранного режима */}
+      <FullscreenButton />
+
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Реферальная программа</h1>
-          <p className="text-lg text-gray-600">Приглашайте друзей и получайте бонусы за каждого активного реферала</p>
+        <div className="text-center mb-8 fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl mb-4 shadow-2xl">
+            <span className="text-2xl sm:text-3xl">🎁</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
+            Реферальная программа
+          </h1>
+          <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
+            Приглашайте друзей и получайте бонусы за каждого активного реферала
+          </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">{stats.totalReferrals}</div>
-            <div className="text-gray-600">Всего рефералов</div>
+          <div className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10 text-center">
+              <div className="text-3xl font-bold text-blue-400 mb-2 drop-shadow-sm">{stats.totalReferrals}</div>
+              <div className="text-white/70 drop-shadow-sm">Всего рефералов</div>
+            </div>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">{stats.activeReferrals}</div>
-            <div className="text-gray-600">Активных рефералов</div>
+          <div className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10 text-center">
+              <div className="text-3xl font-bold text-green-400 mb-2 drop-shadow-sm">{stats.activeReferrals}</div>
+              <div className="text-white/70 drop-shadow-sm">Активных рефералов</div>
+            </div>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">₽{stats.totalEarnings}</div>
-            <div className="text-gray-600">Общий заработок</div>
+          <div className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10 text-center">
+              <div className="text-3xl font-bold text-purple-400 mb-2 drop-shadow-sm">₽{stats.totalEarnings}</div>
+              <div className="text-white/70 drop-shadow-sm">Общий заработок</div>
+            </div>
           </div>
         </div>
 
         {/* Referral Code Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Ваша реферальная ссылка</h2>
+        <div className="glass-card p-6 mb-8">
+          <h2 className="text-2xl font-bold text-white mb-4 drop-shadow-2xl">Ваша реферальная ссылка</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Код приглашения</label>
+              <label className="block text-sm font-medium text-white/80 mb-2 drop-shadow-sm">Код приглашения</label>
               <div className="flex">
                 <input
                   type="text"
                   value={stats.referralCode}
                   readOnly
-                  className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 bg-gray-50"
+                  className="flex-1 border border-white/20 rounded-l-lg px-3 py-2 bg-white/10 text-white backdrop-blur-sm"
                 />
                 <button
                   onClick={() => copyToClipboard(stats.referralCode)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition-colors"
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-r-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   {copied ? 'Скопировано!' : 'Копировать'}
                 </button>
@@ -83,17 +115,17 @@ const ReferralSystem: React.FC = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Полная ссылка</label>
+              <label className="block text-sm font-medium text-white/80 mb-2 drop-shadow-sm">Полная ссылка</label>
               <div className="flex">
                 <input
                   type="text"
                   value={stats.referralLink}
                   readOnly
-                  className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 bg-gray-50 text-sm"
+                  className="flex-1 border border-white/20 rounded-l-lg px-3 py-2 bg-white/10 text-white backdrop-blur-sm text-sm"
                 />
                 <button
                   onClick={() => copyToClipboard(stats.referralLink)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-r-lg hover:bg-green-600 transition-colors"
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-r-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   {copied ? 'Скопировано!' : 'Копировать'}
                 </button>

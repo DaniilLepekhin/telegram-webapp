@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import BackButton from './BackButton';
+import FullscreenButton from './FullscreenButton';
 
 interface TelegramStats {
   channelId: string;
@@ -107,13 +109,34 @@ const TelegramIntegration: React.FC = () => {
     }
   };
 
+  const handleBack = () => {
+    if ((window as any).handleGoBack) {
+      (window as any).handleGoBack();
+    } else {
+      window.location.reload();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      {/* Кнопка "Назад" */}
+      <BackButton onClick={handleBack} />
+
+      {/* Кнопка полноэкранного режима */}
+      <FullscreenButton />
+
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Интеграция с Telegram</h1>
-          <p className="text-lg text-gray-600">Подключите бота для получения реальной статистики</p>
+        <div className="text-center mb-8 fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl mb-4 shadow-2xl">
+            <span className="text-2xl sm:text-3xl">🤖</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
+            Интеграция с Telegram
+          </h1>
+          <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
+            Подключите бота для получения реальной статистики
+          </p>
         </div>
 
         {/* Connection Form */}
