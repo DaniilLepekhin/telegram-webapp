@@ -304,7 +304,8 @@ function App() {
         console.log('🔧 BackButton доступен:', !!webApp.BackButton);
         console.log('🔧 BackButton методы:', Object.keys(webApp.BackButton));
         
-        webApp.BackButton.onClick(() => {
+        // Создаем функцию для обработки BackButton
+        const handleBackButtonClick = () => {
           console.log('🔙 BackButton.onClick СРАБОТАЛ!');
           setBackButtonClicked(true);
           console.log('🔙 BackButton нажат!');
@@ -337,7 +338,10 @@ function App() {
               return prevHistory;
             }
           });
-        });
+        };
+        
+        // Устанавливаем обработчик
+        webApp.BackButton.onClick(handleBackButtonClick);
         
         // Показываем BackButton только если не на главной странице
         if (currentPage === 'main') {
@@ -462,6 +466,38 @@ function App() {
       } else {
         console.log('🔙 Показываем BackButton (не главная страница)');
         webApp.BackButton.show();
+        
+        // Обновляем обработчик BackButton для актуального состояния
+        console.log('🔧 Обновляем обработчик BackButton...');
+        webApp.BackButton.onClick(() => {
+          console.log('🔙 BackButton.onClick СРАБОТАЛ! (обновленный)');
+          setBackButtonClicked(true);
+          
+          setNavigationHistory(prevHistory => {
+            console.log('📚 Текущая история навигации:', prevHistory);
+            
+            if (prevHistory.length > 1) {
+              const newHistory = prevHistory.slice(0, -1);
+              const previousPage = newHistory[newHistory.length - 1];
+              
+              console.log('🔙 Возвращаемся на страницу:', previousPage);
+              
+              setCurrentPage(previousPage);
+              
+              if (previousPage === 'main') {
+                webApp.BackButton.hide();
+              } else {
+                webApp.BackButton.show();
+              }
+              
+              return newHistory;
+            } else {
+              console.log('🔙 Закрываем WebApp');
+              webApp.close();
+              return prevHistory;
+            }
+          });
+        });
       }
 
       // Всегда скрываем MainButton - он не нужен
