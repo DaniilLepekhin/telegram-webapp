@@ -427,15 +427,17 @@ function AppContent() {
       
       // Устанавливаем новую страницу
       setCurrentPage(page);
-      
-      // Прокручиваем к верху страницы
-      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
         // Всегда скрываем MainButton - он не нужен
         webApp.MainButton.hide();
       }
+      
+      // Прокручиваем к верху страницы с задержкой, чтобы страница успела отрендериться
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     };
 
   // Функция для возврата назад
@@ -462,13 +464,21 @@ function AppContent() {
       
       setCurrentPage(previousPage);
       setNavigationHistory(newHistory);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Прокручиваем к верху страницы с задержкой
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     } else {
       // Если история пуста, возвращаемся на главную
       console.log('🏠 История пуста, возвращаемся на главную');
       setCurrentPage('main');
       setNavigationHistory(['main']);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Прокручиваем к верху страницы с задержкой
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     }
   };
 
