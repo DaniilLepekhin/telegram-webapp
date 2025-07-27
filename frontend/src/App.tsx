@@ -251,9 +251,17 @@ function App() {
     };
 
     const initializeWebApp = () => {
-      if (!window.Telegram?.WebApp) return;
+      console.log('🔧 initializeWebApp вызвана');
+      console.log('🔧 window.Telegram:', !!window.Telegram);
+      console.log('🔧 window.Telegram.WebApp:', !!window.Telegram?.WebApp);
+      
+      if (!window.Telegram?.WebApp) {
+        console.log('❌ WebApp не найден, выходим');
+        return;
+      }
       
       const webApp = window.Telegram.WebApp;
+      console.log('🔧 WebApp найден, начинаем инициализацию');
       
       try {
         console.log('🔧 Инициализация Telegram WebApp...');
@@ -292,7 +300,12 @@ function App() {
         webApp.MainButton.hide();
         
         // Настраиваем BackButton с актуальным состоянием
+        console.log('🔧 Настраиваем BackButton...');
+        console.log('🔧 BackButton доступен:', !!webApp.BackButton);
+        console.log('🔧 BackButton методы:', Object.keys(webApp.BackButton));
+        
         webApp.BackButton.onClick(() => {
+          console.log('🔙 BackButton.onClick СРАБОТАЛ!');
           setBackButtonClicked(true);
           console.log('🔙 BackButton нажат!');
           
@@ -618,6 +631,26 @@ function App() {
                   className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-bold hover:from-yellow-400 hover:to-orange-400 transition-all transform hover:scale-105 text-base sm:text-lg border-2 border-black"
                 >
                   🧪 ТЕСТ КНОПКИ "НАЗАД"
+                </button>
+                
+                <button
+                  onClick={() => {
+                    console.log('🧪 ТЕСТ: Ручное нажатие BackButton');
+                    if (window.Telegram?.WebApp?.BackButton) {
+                      console.log('🧪 ТЕСТ: BackButton найден, вызываем onClick');
+                      const handler = () => {
+                        console.log('🧪 ТЕСТ: Ручной onClick сработал!');
+                      };
+                      window.Telegram.WebApp.BackButton.onClick(handler);
+                      // Симулируем клик
+                      handler();
+                    } else {
+                      console.log('🧪 ТЕСТ: BackButton НЕ найден!');
+                    }
+                  }}
+                  className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-bold hover:from-red-400 hover:to-pink-400 transition-all transform hover:scale-105 text-base sm:text-lg border-2 border-white"
+                >
+                  🧪 РУЧНОЙ ТЕСТ BackButton
                 </button>
               </div>
               
