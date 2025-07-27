@@ -91,10 +91,10 @@ const AnalyticsFeedback: React.FC = () => {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'general': return 'bg-blue-100 text-blue-800';
-      case 'suggestion': return 'bg-yellow-100 text-yellow-800';
-      case 'referral': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'general': return 'bg-blue-500/20 text-blue-300 border border-blue-500/30';
+      case 'suggestion': return 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30';
+      case 'referral': return 'bg-green-500/20 text-green-300 border border-green-500/30';
+      default: return 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
     }
   };
 
@@ -197,11 +197,11 @@ const AnalyticsFeedback: React.FC = () => {
 
           {activeTab === 'feedback' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-white">Отзывы пользователей</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white drop-shadow-2xl">Отзывы пользователей</h2>
                 <button
                   onClick={() => setShowFeedbackForm(true)}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-purple-500/25"
                 >
                   ✍️ Оставить отзыв
                 </button>
@@ -209,20 +209,23 @@ const AnalyticsFeedback: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {feedbacks.map((feedback) => (
-                  <div key={feedback.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white">{feedback.user}</h3>
-                        <p className="text-white/60 text-sm">{feedback.date}</p>
+                  <div key={feedback.id} className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-white drop-shadow-sm">{feedback.user}</h3>
+                          <p className="text-white/60 text-sm drop-shadow-sm">{feedback.date}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${getCategoryColor(feedback.category)}`}>
+                          {feedback.category}
+                        </span>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(feedback.category)}`}>
-                        {feedback.category}
-                      </span>
+                      <div className="mb-3">
+                        <span className="text-yellow-400 text-lg drop-shadow-sm">{getRatingStars(feedback.rating)}</span>
+                      </div>
+                      <p className="text-white/80 leading-relaxed drop-shadow-sm">{feedback.comment}</p>
                     </div>
-                    <div className="mb-3">
-                      <span className="text-yellow-400 text-lg">{getRatingStars(feedback.rating)}</span>
-                    </div>
-                    <p className="text-white/80 leading-relaxed">{feedback.comment}</p>
                   </div>
                 ))}
               </div>
