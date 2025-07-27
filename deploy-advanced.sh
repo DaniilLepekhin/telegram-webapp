@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Скрипт автоматического деплоя Telegram WebApp
-# Использование: ./deploy.sh [commit_message]
+# Улучшенный скрипт автоматического деплоя Telegram WebApp
+# Использование: ./deploy-advanced.sh [commit_message]
 
 set -e
 
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Запуск автоматического деплоя Telegram WebApp${NC}"
+echo -e "${BLUE}🚀 Запуск улучшенного деплоя Telegram WebApp${NC}"
 
 # Проверяем, что мы в правильной директории
 if [ ! -f "docker-compose.yml" ]; then
@@ -46,17 +46,22 @@ git push origin main
 # Подключаемся к серверу и обновляем код
 echo -e "${BLUE}🖥️  Подключаемся к серверу...${NC}"
 ssh root@217.114.13.102 << 'EOF'
+    set -e
+    
     echo "📁 Переходим в директорию проекта..."
     cd /opt/telegram-webapp
     
     echo "🔄 Сохраняем локальные изменения..."
-    git stash
+    git stash || true
     
     echo "📥 Получаем последние изменения..."
-    git pull origin main
+    git fetch origin main
     
-    echo "🔄 Восстанавливаем локальные изменения..."
-    git stash pop || true
+    echo "🔄 Сбрасываем к состоянию удаленного репозитория..."
+    git reset --hard origin/main
+    
+    echo "🧹 Очищаем неотслеживаемые файлы..."
+    git clean -fd || true
     
     echo "🔨 Пересобираем frontend..."
     docker-compose build --no-cache frontend
@@ -64,11 +69,18 @@ ssh root@217.114.13.102 << 'EOF'
     echo "🚀 Перезапускаем frontend..."
     docker-compose up -d frontend
     
+    echo "⏳ Ждем запуска контейнера..."
+    sleep 10
+    
     echo "✅ Проверяем статус..."
     docker-compose ps | grep frontend
+    
+    echo "🔍 Проверяем логи..."
+    docker-compose logs --tail=5 frontend
     
     echo "🎉 Деплой завершен!"
 EOF
 
 echo -e "${GREEN}✅ Деплой успешно завершен!${NC}"
-echo -e "${BLUE}🌐 WebApp доступен по адресу: https://app.daniillepekhin.ru${NC}" 
+echo -e "${BLUE}🌐 WebApp доступен по адресу: https://app.daniillepekhin.ru${NC}"
+echo -e "${YELLOW}💡 Для просмотра логов: ssh root@217.114.13.102 'cd /opt/telegram-webapp && docker-compose logs -f frontend'${NC}" 
