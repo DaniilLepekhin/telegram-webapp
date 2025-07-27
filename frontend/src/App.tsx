@@ -199,6 +199,12 @@ function App() {
                                  userAgent.includes('tgWebApp') ||
                                  userAgent.includes('TelegramWebApp');
       
+      // Проверяем URL параметры Telegram
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasTgWebAppData = urlParams.has('tgWebAppData');
+      const hasTgWebAppVersion = urlParams.has('tgWebAppVersion');
+      const hasTgWebAppPlatform = urlParams.has('tgWebAppPlatform');
+      
       console.log('🔍 Диагностика Telegram Mini App:', {
         hasTelegram,
         hasWebApp,
@@ -207,8 +213,17 @@ function App() {
         hasPlatform,
         platform: webApp?.platform,
         isTelegramUserAgent,
+        hasTgWebAppData,
+        hasTgWebAppVersion,
+        hasTgWebAppPlatform,
         userAgent: userAgent.substring(0, 100) + '...'
       });
+      
+      // Если есть параметры Telegram в URL, но API не загружен, ждем загрузки
+      if (hasTgWebAppData && hasTgWebAppVersion && !hasTelegram) {
+        console.log('🔄 Обнаружены параметры Telegram, но API еще не загружен. Ждем...');
+        return; // Выходим и ждем следующей попытки
+      }
       
       const isMiniApp = hasTelegram && hasWebApp && hasReady && hasExpand && hasPlatform;
       
@@ -345,25 +360,32 @@ function App() {
 
     // Запускаем диагностику с задержкой и повторными попытками
     const runDiagnosticsWithRetry = () => {
-      checkTelegramMiniApp();
+      let attempts = 0;
+      const maxAttempts = 10; // Увеличиваем количество попыток
       
-      // Повторная попытка через 1 секунду
-      setTimeout(() => {
-        console.log('🔄 Повторная диагностика через 1 секунду...');
-        checkTelegramMiniApp();
-      }, 1000);
+      const attemptCheck = () => {
+        attempts++;
+        console.log(`🔄 Попытка диагностики #${attempts}/${maxAttempts}...`);
+        
+        const result = checkTelegramMiniApp();
+        
+        // Если API еще не загружен и есть параметры Telegram, продолжаем попытки
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasTgWebAppData = urlParams.has('tgWebAppData');
+        const hasTgWebAppVersion = urlParams.has('tgWebAppVersion');
+        
+        if (hasTgWebAppData && hasTgWebAppVersion && !window.Telegram && attempts < maxAttempts) {
+          setTimeout(attemptCheck, 1000); // Повторяем каждую секунду
+        } else if (attempts < maxAttempts) {
+          // Если нет параметров Telegram или API загружен, делаем финальные попытки
+          setTimeout(() => {
+            console.log('🔄 Финальная проверка...');
+            checkTelegramMiniApp();
+          }, 2000);
+        }
+      };
       
-      // Повторная попытка через 3 секунды
-      setTimeout(() => {
-        console.log('🔄 Повторная диагностика через 3 секунды...');
-        checkTelegramMiniApp();
-      }, 3000);
-      
-      // Повторная попытка через 5 секунд
-      setTimeout(() => {
-        console.log('🔄 Финальная диагностика через 5 секунд...');
-        checkTelegramMiniApp();
-      }, 5000);
+      attemptCheck();
     };
     
     runDiagnosticsWithRetry();
