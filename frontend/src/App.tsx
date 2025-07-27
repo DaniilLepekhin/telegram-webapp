@@ -14,6 +14,7 @@ import FullscreenManager from './components/FullscreenManager';
 import DetailedDiagnostics from './components/DetailedDiagnostics';
 import ScreenshotHelper from './components/ScreenshotHelper';
 import FullscreenControls from './components/FullscreenControls';
+import LogsCopy from './components/LogsCopy';
 
 // Глобальная переменная для Telegram WebApp
 declare global {
@@ -183,6 +184,15 @@ function App() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [initData, setInitData] = useState('');
   const [navigationHistory, setNavigationHistory] = useState<Page[]>(['main']);
+  const [logs, setLogs] = useState<string[]>([]);
+
+  // Функция для добавления логов
+  const addLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}`;
+    setLogs(prev => [...prev, logEntry]);
+    console.log(logEntry);
+  };
 
   useEffect(() => {
     // Проверяем, запущен ли Mini App в Telegram
@@ -300,15 +310,15 @@ function App() {
         webApp.MainButton.hide();
         
         // Настраиваем BackButton с актуальным состоянием
-        console.log('🔧 Настраиваем BackButton...');
-        console.log('🔧 BackButton доступен:', !!webApp.BackButton);
-        console.log('🔧 BackButton методы:', Object.keys(webApp.BackButton));
+        addLog('🔧 Настраиваем BackButton...');
+        addLog(`🔧 BackButton доступен: ${!!webApp.BackButton}`);
+        addLog(`🔧 BackButton методы: ${Object.keys(webApp.BackButton).join(', ')}`);
         
         // Создаем функцию для обработки BackButton
         const handleBackButtonClick = () => {
-          console.log('🔙 BackButton.onClick СРАБОТАЛ!');
+          addLog('🔙 BackButton.onClick СРАБОТАЛ!');
           setBackButtonClicked(true);
-          console.log('🔙 BackButton нажат!');
+          addLog('🔙 BackButton нажат!');
           
           // Получаем актуальное состояние
           setNavigationHistory(prevHistory => {
@@ -689,6 +699,9 @@ function App() {
                   🧪 РУЧНОЙ ТЕСТ BackButton
                 </button>
               </div>
+              
+              {/* Логи консоли */}
+              <LogsCopy logs={logs} />
               
               {/* Статус кнопок */}
               <div className="mt-6 p-4 bg-black bg-opacity-20 rounded-lg text-sm">
