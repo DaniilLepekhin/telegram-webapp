@@ -9,6 +9,7 @@ import PostAnalytics from './components/PostAnalytics';
 import TelegramIntegration from './components/TelegramIntegration';
 import PostTracking from './components/PostTracking';
 import TestBackButton from './components/TestBackButton';
+import PostBuilder from './components/PostBuilder';
 import WebAppInfo from './components/WebAppInfo';
 import FullscreenManager from './components/FullscreenManager';
 import DetailedDiagnostics from './components/DetailedDiagnostics';
@@ -174,7 +175,7 @@ declare global {
 
 const tg = window.Telegram?.WebApp;
 
-type Page = 'main' | 'showcase' | 'chat' | 'referral' | 'profile' | 'analytics' | 'channel-analytics' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'test-back' | 'fullscreen-test';
+type Page = 'main' | 'showcase' | 'chat' | 'referral' | 'profile' | 'analytics' | 'channel-analytics' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test-back' | 'fullscreen-test';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('main');
@@ -187,6 +188,8 @@ function AppContent() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [initData, setInitData] = useState('');
   const [navigationHistory, setNavigationHistory] = useState<Page[]>(['main']);
+  const [navigationQueue, setNavigationQueue] = useState<Page[]>([]);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   
   const { logs, addLog } = useLogs();
 
@@ -406,29 +409,69 @@ function AppContent() {
     runDiagnosticsWithRetry();
   }, [currentPage]);
 
+    // Функция для обработки очереди навигации
+    const processNavigationQueue = () => {
+      if (isProcessingQueue || navigationQueue.length === 0) return;
+      
+      setIsProcessingQueue(true);
+      const nextPage = navigationQueue[0];
+      
+      console.log('🔄 Обрабатываем навигацию к странице:', nextPage);
+      
+      // Добавляем текущую страницу в историю
+      setNavigationHistory(prev => {
+        const newHistory = [...prev, nextPage];
+        console.log('📚 Обновлена история навигации:', newHistory);
+        return newHistory;
+      });
+      
+      setCurrentPage(nextPage);
+      
+      // Прокручиваем к верху страницы
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (window.Telegram?.WebApp) {
+        const webApp = window.Telegram.WebApp;
+        // Всегда скрываем MainButton - он не нужен
+        webApp.MainButton.hide();
+      }
+      
+      // Удаляем обработанную страницу из очереди
+      setNavigationQueue(prev => prev.slice(1));
+      
+      // Через небольшую задержку обрабатываем следующую страницу
+      setTimeout(() => {
+        setIsProcessingQueue(false);
+        processNavigationQueue(); // Проверяем, есть ли еще страницы в очереди
+      }, 100);
+    };
+
     const navigateTo = (page: Page) => {
-    // Добавляем текущую страницу в историю
-    setNavigationHistory(prev => {
-      const newHistory = [...prev, page];
-      return newHistory;
-    });
-    setCurrentPage(page);
+      // Если пытаемся перейти на ту же страницу, игнорируем
+      if (currentPage === page) {
+        console.log('🚫 Попытка перехода на текущую страницу:', page);
+        return;
+      }
 
-    // Прокручиваем к верху страницы
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    if (window.Telegram?.WebApp) {
-      const webApp = window.Telegram.WebApp;
-
-      // Всегда скрываем MainButton - он не нужен
-      webApp.MainButton.hide();
-    }
-  };
+      console.log('➕ Добавляем в очередь навигации:', page);
+      
+      // Добавляем страницу в очередь
+      setNavigationQueue(prev => [...prev, page]);
+      
+      // Запускаем обработку очереди
+      setTimeout(() => {
+        processNavigationQueue();
+      }, 0);
+    };
 
   // Функция для возврата назад
   const goBack = () => {
+    console.log('🔄 Попытка возврата назад с текущей страницы:', currentPage);
+    console.log('📚 Текущая история навигации:', navigationHistory);
+
     // Проверяем, находимся ли мы на главной странице
     if (currentPage === 'main') {
+      console.log('🏠 Уже на главной странице, показываем уведомление');
       // Если мы на главной странице, показываем уведомление
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.showAlert('Вы уже на главной странице');
@@ -442,6 +485,9 @@ function AppContent() {
       const newHistory = navigationHistory.slice(0, -1);
       const previousPage = newHistory[newHistory.length - 1];
       
+      console.log('⬅️ Возвращаемся к странице:', previousPage);
+      console.log('📚 Обновленная история:', newHistory);
+      
       setNavigationHistory(newHistory);
       setCurrentPage(previousPage);
       
@@ -449,6 +495,7 @@ function AppContent() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Если история пуста или содержит только одну страницу, возвращаемся на главную
+      console.log('🏠 История пуста, возвращаемся на главную');
       setNavigationHistory(['main']);
       setCurrentPage('main');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -583,6 +630,30 @@ function AppContent() {
                     </div>
                   </div>
 
+                  {/* Post Builder Card */}
+                  <div 
+                    onClick={() => navigateTo('post-builder')}
+                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-xl">📝</span>
+                        </div>
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Пост + кнопка</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
+                        Конструктор постов с кнопками для Telegram каналов
+                      </p>
+                    </div>
+                  </div>
+
                                       {/* Channel Analytics Card */}
                     <div
                       onClick={() => navigateTo('channel-analytics')}
@@ -673,6 +744,8 @@ function AppContent() {
         return <TelegramIntegration />;
       case 'post-tracking':
         return <PostTracking />;
+      case 'post-builder':
+        return <PostBuilder />;
       case 'test-back':
         return <TestBackButton />;
       case 'fullscreen-test':
