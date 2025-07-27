@@ -316,29 +316,33 @@ function AppContent() {
           
           // Получаем актуальное состояние
           setNavigationHistory(prevHistory => {
-            console.log('📚 Текущая история навигации:', prevHistory);
+            addLog('📚 Текущая история навигации (из обработчика):' + prevHistory.join(' → '));
             
             if (prevHistory.length > 1) {
               // Удаляем текущую страницу из истории
               const newHistory = prevHistory.slice(0, -1);
               const previousPage = newHistory[newHistory.length - 1];
               
-              console.log('🔙 Возвращаемся на страницу:', previousPage);
+              addLog('🔙 Возвращаемся на страницу:' + previousPage);
               
               // Обновляем текущую страницу
               setCurrentPage(previousPage);
               
               // Обновляем видимость BackButton
-              if (previousPage === 'main') {
-                webApp.BackButton.hide();
-              } else {
-                webApp.BackButton.show();
+              if (window.Telegram?.WebApp) {
+                if (previousPage === 'main') {
+                  window.Telegram.WebApp.BackButton.hide();
+                } else {
+                  window.Telegram.WebApp.BackButton.show();
+                }
               }
               
               return newHistory;
             } else {
-              console.log('🔙 Закрываем WebApp');
-              webApp.close();
+              addLog('🔙 Закрываем WebApp');
+              if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.close();
+              }
               return prevHistory;
             }
           });
@@ -346,6 +350,7 @@ function AppContent() {
         
         // Устанавливаем обработчик
         webApp.BackButton.onClick(handleBackButtonClick);
+        addLog('🔧 BackButton обработчик установлен');
         
         // Показываем BackButton только если не на главной странице
         if (currentPage === 'main') {
@@ -450,12 +455,12 @@ function AppContent() {
   }, [currentPage]);
 
     const navigateTo = (page: Page) => {
-    console.log('🧭 Навигация на страницу:', page);
+    addLog('🧭 Навигация на страницу: ' + page);
     
     // Добавляем текущую страницу в историю
     setNavigationHistory(prev => {
       const newHistory = [...prev, page];
-      console.log('📚 Обновленная история навигации:', newHistory);
+      addLog('📚 Обновленная история навигации: ' + newHistory.join(' → '));
       return newHistory;
     });
     setCurrentPage(page);
@@ -465,39 +470,43 @@ function AppContent() {
 
       // Показываем BackButton только если не на главной странице
       if (page === 'main') {
-        console.log('🔙 Скрываем BackButton (главная страница)');
+        addLog('🔙 Скрываем BackButton (главная страница)');
         webApp.BackButton.hide();
       } else {
-        console.log('🔙 Показываем BackButton (не главная страница)');
+        addLog('🔙 Показываем BackButton (не главная страница)');
         webApp.BackButton.show();
         
         // Обновляем обработчик BackButton для актуального состояния
-        console.log('🔧 Обновляем обработчик BackButton...');
+        addLog('🔧 Обновляем обработчик BackButton...');
         webApp.BackButton.onClick(() => {
-          console.log('🔙 BackButton.onClick СРАБОТАЛ! (обновленный)');
+          addLog('🔙 BackButton.onClick СРАБОТАЛ! (обновленный)');
           setBackButtonClicked(true);
           
           setNavigationHistory(prevHistory => {
-            console.log('📚 Текущая история навигации:', prevHistory);
+            addLog('📚 Текущая история навигации (из navigateTo):' + prevHistory.join(' → '));
             
             if (prevHistory.length > 1) {
               const newHistory = prevHistory.slice(0, -1);
               const previousPage = newHistory[newHistory.length - 1];
               
-              console.log('🔙 Возвращаемся на страницу:', previousPage);
+              addLog('🔙 Возвращаемся на страницу:' + previousPage);
               
               setCurrentPage(previousPage);
               
-              if (previousPage === 'main') {
-                webApp.BackButton.hide();
-              } else {
-                webApp.BackButton.show();
+              if (window.Telegram?.WebApp) {
+                if (previousPage === 'main') {
+                  window.Telegram.WebApp.BackButton.hide();
+                } else {
+                  window.Telegram.WebApp.BackButton.show();
+                }
               }
               
               return newHistory;
             } else {
-              console.log('🔙 Закрываем WebApp');
-              webApp.close();
+              addLog('🔙 Закрываем WebApp');
+              if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.close();
+              }
               return prevHistory;
             }
           });
@@ -507,21 +516,21 @@ function AppContent() {
       // Всегда скрываем MainButton - он не нужен
       webApp.MainButton.hide();
       
-      console.log('✅ Навигация завершена, BackButton видимость:', page !== 'main');
+      addLog('✅ Навигация завершена, BackButton видимость: ' + (page !== 'main'));
     }
   };
 
   // Функция для возврата назад
   const goBack = () => {
-    console.log('🔙 Вызвана функция goBack');
-    console.log('📚 История навигации:', navigationHistory);
+    addLog('🔙 Вызвана функция goBack');
+    addLog('📚 История навигации: ' + navigationHistory.join(' → '));
     
     if (navigationHistory.length > 1) {
       // Удаляем текущую страницу из истории
       const newHistory = navigationHistory.slice(0, -1);
       const previousPage = newHistory[newHistory.length - 1];
       
-      console.log('🔙 Возвращаемся на страницу:', previousPage);
+      addLog('🔙 Возвращаемся на страницу: ' + previousPage);
       
       setNavigationHistory(newHistory);
       setCurrentPage(previousPage);
@@ -535,7 +544,7 @@ function AppContent() {
         }
       }
     } else {
-      console.log('🔙 Закрываем WebApp');
+      addLog('🔙 Закрываем WebApp');
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.close();
       }
@@ -675,22 +684,50 @@ function AppContent() {
                 
                 <button
                   onClick={() => {
-                    console.log('🧪 ТЕСТ: Ручное нажатие BackButton');
+                    addLog('🧪 ТЕСТ: Ручное нажатие BackButton');
                     if (window.Telegram?.WebApp?.BackButton) {
-                      console.log('🧪 ТЕСТ: BackButton найден, вызываем onClick');
+                      addLog('🧪 ТЕСТ: BackButton найден, вызываем onClick');
                       const handler = () => {
-                        console.log('🧪 ТЕСТ: Ручной onClick сработал!');
+                        addLog('🧪 ТЕСТ: Ручной onClick сработал!');
                       };
                       window.Telegram.WebApp.BackButton.onClick(handler);
                       // Симулируем клик
                       handler();
                     } else {
-                      console.log('🧪 ТЕСТ: BackButton НЕ найден!');
+                      addLog('🧪 ТЕСТ: BackButton НЕ найден!');
                     }
                   }}
                   className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-bold hover:from-red-400 hover:to-pink-400 transition-all transform hover:scale-105 text-base sm:text-lg border-2 border-white"
                 >
                   🧪 РУЧНОЙ ТЕСТ BackButton
+                </button>
+                
+                <button
+                  onClick={() => {
+                    addLog('🔍 ДИАГНОСТИКА BackButton API');
+                    if (window.Telegram?.WebApp?.BackButton) {
+                      const backButton = window.Telegram.WebApp.BackButton;
+                      addLog('🔍 BackButton.isVisible: ' + backButton.isVisible);
+                      addLog('🔍 BackButton методы: ' + Object.keys(backButton).join(', '));
+                      
+                      // Тестируем show/hide
+                      addLog('🔍 Тестируем BackButton.show()');
+                      backButton.show();
+                      setTimeout(() => {
+                        addLog('🔍 BackButton.isVisible после show: ' + backButton.isVisible);
+                        addLog('🔍 Тестируем BackButton.hide()');
+                        backButton.hide();
+                        setTimeout(() => {
+                          addLog('🔍 BackButton.isVisible после hide: ' + backButton.isVisible);
+                        }, 100);
+                      }, 100);
+                    } else {
+                      addLog('🔍 BackButton НЕ найден!');
+                    }
+                  }}
+                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-bold hover:from-purple-400 hover:to-indigo-400 transition-all transform hover:scale-105 text-base sm:text-lg border-2 border-white"
+                >
+                  🔍 ДИАГНОСТИКА BackButton API
                 </button>
               </div>
               
