@@ -308,49 +308,10 @@ function AppContent() {
         addLog(`🔧 BackButton доступен: ${!!webApp.BackButton}`);
         addLog(`🔧 BackButton методы: ${Object.keys(webApp.BackButton).join(', ')}`);
         
-        // Создаем функцию для обработки BackButton
-        const handleBackButtonClick = () => {
-          addLog('🔙 BackButton.onClick СРАБОТАЛ!');
-          setBackButtonClicked(true);
-          addLog('🔙 BackButton нажат!');
-          
-          // Получаем актуальное состояние
-          setNavigationHistory(prevHistory => {
-            addLog('📚 Текущая история навигации (из обработчика):' + prevHistory.join(' → '));
-            
-            if (prevHistory.length > 1) {
-              // Удаляем текущую страницу из истории
-              const newHistory = prevHistory.slice(0, -1);
-              const previousPage = newHistory[newHistory.length - 1];
-              
-              addLog('🔙 Возвращаемся на страницу:' + previousPage);
-              
-              // Обновляем текущую страницу
-              setCurrentPage(previousPage);
-              
-              // Обновляем видимость BackButton
-              if (window.Telegram?.WebApp) {
-                if (previousPage === 'main') {
-                  window.Telegram.WebApp.BackButton.hide();
-                } else {
-                  window.Telegram.WebApp.BackButton.show();
-                }
-              }
-              
-              return newHistory;
-            } else {
-              addLog('🔙 Закрываем WebApp');
-              if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.close();
-              }
-              return prevHistory;
-            }
-          });
-        };
-        
-        // Устанавливаем обработчик
-        webApp.BackButton.onClick(handleBackButtonClick);
-        addLog('🔧 BackButton обработчик установлен');
+        // НЕ используем Telegram BackButton API - он закрывает приложение
+        // Вместо этого используем нашу собственную кнопку
+        addLog('🔧 Telegram BackButton API отключен (закрывает приложение)');
+        addLog('🔧 Используем собственную кнопку "Назад"');
         
         // Показываем BackButton только если не на главной странице
         if (currentPage === 'main') {
@@ -388,30 +349,33 @@ function AppContent() {
         
         // Обработчики событий
         webApp.onEvent('viewportChanged', () => {
-          console.log('📱 Viewport изменился:', {
-            height: webApp.viewportHeight,
-            stableHeight: webApp.viewportStableHeight,
-          });
+          addLog('📱 Viewport изменился: ' + webApp.viewportHeight);
           setViewportHeight(webApp.viewportHeight);
         });
         
         webApp.onEvent('themeChanged', () => {
-          console.log('🎨 Тема изменилась:', webApp.colorScheme);
+          addLog('🎨 Тема изменилась: ' + webApp.colorScheme);
           setTheme(webApp.colorScheme);
         });
         
         // Новые события для полноэкранного режима (Bot API 8.0+)
         webApp.onEvent('fullscreenChanged', () => {
-          console.log('🖼️ Полноэкранный режим изменился:', webApp.isFullscreen);
+          addLog('🖼️ Полноэкранный режим изменился: ' + webApp.isFullscreen);
         });
         
         webApp.onEvent('activated', () => {
-          console.log('✅ WebApp активирован');
+          addLog('✅ WebApp активирован');
         });
         
         webApp.onEvent('deactivated', () => {
-          console.log('⏸️ WebApp деактивирован');
+          addLog('⏸️ WebApp деактивирован');
         });
+        
+        // Глобальная функция для обработки навигации назад
+        (window as any).handleGoBack = () => {
+          addLog('🔙 Вызвана глобальная функция handleGoBack');
+          goBack();
+        };
         
         console.log('✅ Telegram WebApp успешно инициализирован!');
         
@@ -468,55 +432,14 @@ function AppContent() {
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
 
-      // Показываем BackButton только если не на главной странице
-      if (page === 'main') {
-        addLog('🔙 Скрываем BackButton (главная страница)');
-        webApp.BackButton.hide();
-      } else {
-        addLog('🔙 Показываем BackButton (не главная страница)');
-        webApp.BackButton.show();
-        
-        // Обновляем обработчик BackButton для актуального состояния
-        addLog('🔧 Обновляем обработчик BackButton...');
-        webApp.BackButton.onClick(() => {
-          addLog('🔙 BackButton.onClick СРАБОТАЛ! (обновленный)');
-          setBackButtonClicked(true);
-          
-          setNavigationHistory(prevHistory => {
-            addLog('📚 Текущая история навигации (из navigateTo):' + prevHistory.join(' → '));
-            
-            if (prevHistory.length > 1) {
-              const newHistory = prevHistory.slice(0, -1);
-              const previousPage = newHistory[newHistory.length - 1];
-              
-              addLog('🔙 Возвращаемся на страницу:' + previousPage);
-              
-              setCurrentPage(previousPage);
-              
-              if (window.Telegram?.WebApp) {
-                if (previousPage === 'main') {
-                  window.Telegram.WebApp.BackButton.hide();
-                } else {
-                  window.Telegram.WebApp.BackButton.show();
-                }
-              }
-              
-              return newHistory;
-            } else {
-              addLog('🔙 Закрываем WebApp');
-              if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.close();
-              }
-              return prevHistory;
-            }
-          });
-        });
-      }
+      // НЕ используем Telegram BackButton API - он закрывает приложение
+      // Вместо этого используем нашу собственную кнопку "Назад"
+      addLog('🔧 Используем собственную кнопку "Назад" вместо Telegram API');
 
       // Всегда скрываем MainButton - он не нужен
       webApp.MainButton.hide();
       
-      addLog('✅ Навигация завершена, BackButton видимость: ' + (page !== 'main'));
+      addLog('✅ Навигация завершена');
     }
   };
 
