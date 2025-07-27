@@ -275,9 +275,9 @@ function AppContent() {
         // Готовим WebApp (обязательно!)
         webApp.ready();
         
-        // Расширяем на полный экран (согласно документации)
-        webApp.expand();
-        setIsExpanded(true);
+        // НЕ расширяем автоматически - пусть пользователь сам выберет
+        // webApp.expand();
+        setIsExpanded(webApp.isExpanded);
         
         // Пробуем включить полноэкранный режим (Bot API 8.0+)
         if (webApp.isVersionAtLeast && webApp.isVersionAtLeast('8.0')) {
@@ -413,6 +413,9 @@ function AppContent() {
     });
     setCurrentPage(page);
 
+    // Прокручиваем к верху страницы
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
 
@@ -430,6 +433,9 @@ function AppContent() {
       
       setNavigationHistory(newHistory);
       setCurrentPage(previousPage);
+      
+      // Прокручиваем к верху страницы
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Если мы на главной странице, закрываем приложение
       if (window.Telegram?.WebApp) {
