@@ -287,20 +287,8 @@ function App() {
         setTheme(webApp.colorScheme);
         setInitData(webApp.initData);
         
-        // Настраиваем MainButton
-        webApp.MainButton.setText('🚀 Отправить данные');
-        webApp.MainButton.show();
-        webApp.MainButton.onClick(() => {
-          setMainButtonClicked(true);
-          const data = {
-            action: 'demo',
-            value: 'Привет из революционного WebApp!',
-            timestamp: new Date().toISOString(),
-            page: currentPage,
-            theme: webApp.colorScheme
-          };
-          webApp.sendData(JSON.stringify(data));
-        });
+        // Скрываем MainButton - он не нужен
+        webApp.MainButton.hide();
         
         // Настраиваем BackButton
         webApp.BackButton.onClick(() => {
@@ -434,23 +422,8 @@ function App() {
         webApp.BackButton.show();
       }
       
-      // Обновляем MainButton в зависимости от страницы
-      switch (page) {
-        case 'showcase':
-          webApp.MainButton.setText('🎯 Выбрать кейс');
-          break;
-        case 'chat':
-          webApp.MainButton.setText('💬 Отправить сообщение');
-          break;
-        case 'analytics':
-          webApp.MainButton.setText('📊 Экспорт данных');
-          break;
-        case 'post-tracking':
-          webApp.MainButton.setText('🔗 Создать ссылку');
-          break;
-        default:
-          webApp.MainButton.setText('🚀 Отправить данные');
-      }
+      // Всегда скрываем MainButton - он не нужен
+      webApp.MainButton.hide();
       
       console.log('✅ Навигация завершена, BackButton видимость:', page !== 'main');
     }
@@ -600,7 +573,7 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className="app-container">
       {renderPage()}
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import BackButton from './BackButton';
 
 interface Case {
   id: number;
@@ -85,25 +86,15 @@ const Showcase: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen p-4 relative">
+      {/* Красивая кнопка "Назад" */}
+      <BackButton onClick={handleBack} />
+      
       <div className="max-w-6xl mx-auto">
-        {/* Header с кнопкой назад */}
-        <div className="mb-8">
-          {/* Кнопка назад - максимально заметная */}
-          <div className="mb-6">
-            <button
-              onClick={handleBack}
-              className="w-full bg-red-600 text-white py-8 px-10 rounded-xl shadow-2xl hover:bg-red-700 transition-all transform hover:scale-105 font-bold text-3xl border-4 border-white"
-            >
-              🔙 НАЖМИ НАЗАД К ГЛАВНОЙ СТРАНИЦЕ 🔙
-            </button>
-          </div>
-          
-          {/* Заголовок */}
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">Витрина чат-ботов</h1>
-            <p className="text-lg text-gray-600">Выберите интересующий вас кейс и попробуйте демо</p>
-          </div>
+        {/* Header */}
+        <div className="mb-8 text-center fade-in">
+          <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">Витрина чат-ботов</h1>
+          <p className="text-lg text-white/90 drop-shadow-md">Выберите интересующий вас кейс и попробуйте демо</p>
         </div>
 
         {/* Categories */}
@@ -112,10 +103,10 @@ const Showcase: React.FC = () => {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 selectedCategory === category
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? 'bg-white/90 text-gray-800 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm'
               }`}
             >
               {category === 'all' ? 'Все' : category}
@@ -126,7 +117,7 @@ const Showcase: React.FC = () => {
         {/* Cases Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCases.map(caseItem => (
-            <div key={caseItem.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+            <div key={caseItem.id} className="glass-card overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <img 
                 src={caseItem.image} 
                 alt={caseItem.title}
@@ -134,19 +125,19 @@ const Showcase: React.FC = () => {
               />
               <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                  <span className="text-sm font-medium text-white bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm">
                     {caseItem.category}
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{caseItem.title}</h3>
-                <p className="text-gray-600 mb-4">{caseItem.description}</p>
+                <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">{caseItem.title}</h3>
+                <p className="text-white/80 mb-4 drop-shadow-sm">{caseItem.description}</p>
                 
                 <div className="mb-4">
-                  <h4 className="font-semibold text-gray-700 mb-2">Возможности:</h4>
+                  <h4 className="font-semibold text-white mb-2 drop-shadow-md">Возможности:</h4>
                   <ul className="space-y-1">
                     {caseItem.features.map((feature, index) => (
-                      <li key={index} className="flex items-center text-sm text-gray-600">
-                        <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <li key={index} className="flex items-center text-sm text-white/90 drop-shadow-sm">
+                        <svg className="w-4 h-4 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                         {feature}
@@ -157,7 +148,7 @@ const Showcase: React.FC = () => {
                 
                 <button
                   onClick={() => handleTryDemo(caseItem)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105"
+                  className="btn-primary w-full"
                 >
                   🚀 Попробовать демо
                 </button>
@@ -170,8 +161,8 @@ const Showcase: React.FC = () => {
         {filteredCases.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🤖</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">Кейсы не найдены</h3>
-            <p className="text-gray-500">Попробуйте выбрать другую категорию</p>
+            <h3 className="text-xl font-semibold text-white mb-2 drop-shadow-lg">Кейсы не найдены</h3>
+            <p className="text-white/80 drop-shadow-md">Попробуйте выбрать другую категорию</p>
           </div>
         )}
       </div>
