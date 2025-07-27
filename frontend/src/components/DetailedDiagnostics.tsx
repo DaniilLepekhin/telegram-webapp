@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 const DetailedDiagnostics: React.FC = () => {
   const [diagnostics, setDiagnostics] = useState<any>({});
+  const [copyStatus, setCopyStatus] = useState<string>('');
 
   useEffect(() => {
     const runDiagnostics = () => {
@@ -86,9 +87,90 @@ const DetailedDiagnostics: React.FC = () => {
            diagnostics.platform;
   };
 
+  const copyToClipboard = async () => {
+    const diagnosticText = `
+🔍 ДИАГНОСТИКА TELEGRAM MINI APP
+📅 Дата: ${new Date().toLocaleString()}
+🌐 URL: ${diagnostics.url || 'Неизвестно'}
+
+📱 API ПРОВЕРКА:
+• window.Telegram: ${diagnostics.hasWindowTelegram ? '✅' : '❌'}
+• window.Telegram.WebApp: ${diagnostics.hasWebApp ? '✅' : '❌'}
+• ready() метод: ${diagnostics.hasReady ? '✅' : '❌'}
+• expand() метод: ${diagnostics.hasExpand ? '✅' : '❌'}
+• platform: ${diagnostics.hasPlatform ? '✅' : '❌'}
+• Платформа: ${diagnostics.platform || 'Неизвестно'}
+• Версия API: ${diagnostics.version || 'Неизвестно'}
+
+🌍 ОКРУЖЕНИЕ:
+• User-Agent содержит Telegram: ${diagnostics.hasTelegramInUserAgent ? '✅' : '❌'}
+• URL содержит tgWebAppStartParam: ${diagnostics.hasTgWebAppStartParam ? '✅' : '❌'}
+• Referrer от Telegram: ${diagnostics.hasTelegramReferrer ? '✅' : '❌'}
+• В iframe: ${diagnostics.hasFrameElement ? '✅' : '❌'}
+
+📄 ДЕТАЛИ:
+• User-Agent: ${diagnostics.userAgent || 'Неизвестно'}
+• Referrer: ${diagnostics.referrer || 'Нет'}
+• Viewport высота: ${diagnostics.viewportHeight || 'Неизвестно'}
+• Тема: ${diagnostics.colorScheme || 'Неизвестно'}
+
+🎯 ВЕРДИКТ: ${isLikelyTelegramMiniApp() ? '✅ Это Telegram Mini App' : '❌ Это браузер'}
+    `.trim();
+
+    try {
+      // Пробуем использовать Telegram WebApp API для копирования
+      if (window.Telegram?.WebApp && typeof window.Telegram.WebApp.readTextFromClipboard === 'function') {
+        // Используем Telegram API для копирования
+        window.Telegram.WebApp.readTextFromClipboard((data) => {
+          // Это обратный вызов, но мы можем использовать его для проверки
+        });
+        
+        // Показываем пользователю, что нужно скопировать вручную
+        setCopyStatus('📋 Используйте Telegram: Долгое нажатие → Копировать');
+        
+        // Создаем временный элемент для выделения
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = diagnosticText;
+        tempTextArea.style.position = 'fixed';
+        tempTextArea.style.left = '-9999px';
+        tempTextArea.style.top = '-9999px';
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        
+        // Показываем инструкцию пользователю
+        alert('📋 Диагностика скопирована!\n\nДля вставки в чат:\n1. Долгое нажатие на текстовое поле\n2. Выберите "Вставить"\n\nИли отправьте скриншот этой страницы.');
+        
+        document.body.removeChild(tempTextArea);
+      } else {
+        // Fallback для браузера
+        await navigator.clipboard.writeText(diagnosticText);
+        setCopyStatus('✅ Скопировано в буфер обмена!');
+        setTimeout(() => setCopyStatus(''), 3000);
+      }
+    } catch (error) {
+      console.error('Ошибка копирования:', error);
+      setCopyStatus('❌ Ошибка копирования');
+      setTimeout(() => setCopyStatus(''), 3000);
+    }
+  };
+
   return (
     <div className="mb-4 p-4 bg-gray-100 border border-gray-400 text-gray-700 rounded-lg">
-      <h3 className="text-sm font-medium mb-2">🔍 Детальная диагностика</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-medium">🔍 Детальная диагностика</h3>
+        <button
+          onClick={copyToClipboard}
+          className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+        >
+          📋 Копировать
+        </button>
+      </div>
+      
+      {copyStatus && (
+        <div className="mb-2 p-2 bg-blue-100 border border-blue-300 rounded text-xs">
+          {copyStatus}
+        </div>
+      )}
       
       <div className="text-xs space-y-1">
         <div className="grid grid-cols-2 gap-2">

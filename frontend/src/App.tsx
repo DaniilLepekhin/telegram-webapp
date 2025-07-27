@@ -12,6 +12,7 @@ import TestBackButton from './components/TestBackButton';
 import WebAppInfo from './components/WebAppInfo';
 import FullscreenManager from './components/FullscreenManager';
 import DetailedDiagnostics from './components/DetailedDiagnostics';
+import ScreenshotHelper from './components/ScreenshotHelper';
 
 // Глобальная переменная для Telegram WebApp
 declare global {
@@ -453,6 +454,9 @@ function App() {
               
               {/* Детальная диагностика */}
               <DetailedDiagnostics />
+              
+              {/* Помощь со скриншотом */}
+              <ScreenshotHelper />
               
               <div className="space-y-4">
                 <button
