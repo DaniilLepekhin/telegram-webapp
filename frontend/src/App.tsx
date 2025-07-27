@@ -9,6 +9,159 @@ import PostAnalytics from './components/PostAnalytics';
 import TelegramIntegration from './components/TelegramIntegration';
 import PostTracking from './components/PostTracking';
 import TestBackButton from './components/TestBackButton';
+import WebAppInfo from './components/WebAppInfo';
+
+// Глобальная переменная для Telegram WebApp
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        ready: () => void;
+        expand: () => void;
+        close: () => void;
+        MainButton: {
+          text: string;
+          color: string;
+          textColor: string;
+          isVisible: boolean;
+          isActive: boolean;
+          isProgressVisible: boolean;
+          setText: (text: string) => void;
+          onClick: (callback: () => void) => void;
+          offClick: (callback: () => void) => void;
+          show: () => void;
+          hide: () => void;
+          enable: () => void;
+          disable: () => void;
+          showProgress: (leaveActive?: boolean) => void;
+          hideProgress: () => void;
+        };
+        BackButton: {
+          isVisible: boolean;
+          onClick: (callback: () => void) => void;
+          offClick: (callback: () => void) => void;
+          show: () => void;
+          hide: () => void;
+        };
+        HapticFeedback: {
+          impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
+          notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
+          selectionChanged: () => void;
+        };
+        CloudStorage: {
+          getItem: (key: string) => Promise<string | null>;
+          setItem: (key: string, value: string) => Promise<void>;
+          getItems: (keys: string[]) => Promise<{ [key: string]: string | null }>;
+          removeItem: (key: string) => Promise<void>;
+          removeItems: (keys: string[]) => Promise<void>;
+        };
+        BiometricManager: {
+          isInited: boolean;
+          isSupported: boolean;
+          isAvailable: boolean;
+          isAccessRequested: boolean;
+          isAccessGranted: boolean;
+          init: () => Promise<void>;
+          authenticate: () => Promise<boolean>;
+          requestAccess: () => Promise<boolean>;
+        };
+        QRScanner: {
+          isSupported: boolean;
+          isAvailable: boolean;
+          isInited: boolean;
+          isOpened: boolean;
+          init: () => Promise<void>;
+          open: () => Promise<void>;
+          close: () => void;
+          onResult: (callback: (result: string) => void) => void;
+          offResult: (callback: (result: string) => void) => void;
+        };
+        initData: string;
+        initDataUnsafe: {
+          query_id?: string;
+          user?: {
+            id: number;
+            is_bot?: boolean;
+            first_name: string;
+            last_name?: string;
+            username?: string;
+            language_code?: string;
+            is_premium?: boolean;
+            added_to_attachment_menu?: boolean;
+            allows_write_to_pm?: boolean;
+            photo_url?: string;
+          };
+          receiver?: {
+            id: number;
+            is_bot?: boolean;
+            first_name: string;
+            last_name?: string;
+            username?: string;
+            language_code?: string;
+            is_premium?: boolean;
+            added_to_attachment_menu?: boolean;
+            allows_write_to_pm?: boolean;
+            photo_url?: string;
+          };
+          chat?: {
+            id: number;
+            type: 'group' | 'supergroup' | 'channel';
+            title: string;
+            username?: string;
+            photo_url?: string;
+          };
+          chat_type?: 'sender' | 'private' | 'group' | 'supergroup' | 'channel';
+          chat_instance?: string;
+          start_param?: string;
+          can_send_after?: number;
+          auth_date: number;
+          hash: string;
+        };
+        colorScheme: 'light' | 'dark';
+        themeParams: {
+          bg_color?: string;
+          text_color?: string;
+          hint_color?: string;
+          link_color?: string;
+          button_color?: string;
+          button_text_color?: string;
+          secondary_bg_color?: string;
+        };
+        isExpanded: boolean;
+        viewportHeight: number;
+        viewportStableHeight: number;
+        headerColor: string;
+        backgroundColor: string;
+        isClosingConfirmationEnabled: boolean;
+        platform: string;
+        version: string;
+        sendData: (data: string) => void;
+        switchInlineQuery: (query: string, choose_chat_types?: string[]) => void;
+        openLink: (url: string, options?: { try_instant_view?: boolean }) => void;
+        openTelegramLink: (url: string) => void;
+        openInvoice: (url: string, callback?: (status: string) => void) => void;
+        showPopup: (params: { title?: string; message: string; buttons?: Array<{ id?: string; type?: 'default' | 'ok' | 'close' | 'cancel' | 'destructive'; text: string }> }, callback?: (buttonId: string) => void) => void;
+        showAlert: (message: string, callback?: () => void) => void;
+        showConfirm: (message: string, callback?: (confirmed: boolean) => void) => void;
+        showScanQrPopup: (params: { text?: string }, callback?: (data: string) => void) => void;
+        closeScanQrPopup: () => void;
+        readTextFromClipboard: (callback?: (data: string) => void) => void;
+        requestWriteAccess: (callback?: (access: boolean) => void) => void;
+        requestContact: (callback?: (contact: { phone_number: string; first_name: string; last_name?: string; user_id?: number }) => void) => void;
+        invokeCustomMethod: (method: string, params?: any) => Promise<any>;
+        onEvent: (eventType: string, eventHandler: () => void) => void;
+        offEvent: (eventType: string, eventHandler: () => void) => void;
+        setHeaderColor: (color: string) => void;
+        setBackgroundColor: (color: string) => void;
+        enableClosingConfirmation: () => void;
+        disableClosingConfirmation: () => void;
+        isVersionAtLeast: (version: string) => boolean;
+        getHeaderColor: () => string;
+        getBackgroundColor: () => string;
+      };
+    };
+  }
+}
 
 const tg = window.Telegram?.WebApp;
 
@@ -16,165 +169,131 @@ type Page = 'main' | 'showcase' | 'chat' | 'referral' | 'profile' | 'analytics' 
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('main');
-  const [theme, setTheme] = useState(tg?.colorScheme || 'default');
-  const [initData, setInitData] = useState(tg?.initData || '');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [initData, setInitData] = useState('');
   const [mainButtonClicked, setMainButtonClicked] = useState(false);
   const [backButtonClicked, setBackButtonClicked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
+  const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
+  const [webAppInfo, setWebAppInfo] = useState<any>(null);
 
   useEffect(() => {
-    if (tg) {
-      // Инициализация Telegram WebApp с полным функционалом
-      console.log('🚀 Инициализация революционного Telegram WebApp...');
-      
-      // Расширяем на полный экран
-      tg.expand();
-      setIsExpanded(true);
-      
-      // Устанавливаем высоту viewport
-      setViewportHeight(tg.viewportHeight);
-      
-      // Готовим WebApp
-      tg.ready();
-      
-      // Настраиваем MainButton
-      tg.MainButton.setText('🚀 Отправить данные');
-      tg.MainButton.show();
-      tg.MainButton.onClick(() => {
-        setMainButtonClicked(true);
-        const data = {
-          action: 'demo',
-          value: 'Привет из революционного WebApp!',
-          timestamp: new Date().toISOString(),
-          page: currentPage,
-          theme: tg.colorScheme
-        };
-        tg.sendData(JSON.stringify(data));
-      });
-      
-      // Настраиваем BackButton
-      tg.BackButton.show();
-      tg.BackButton.onClick(() => {
-        setBackButtonClicked(true);
-        if (currentPage === 'main') {
-          tg.close();
-        } else {
-          setCurrentPage('main');
-        }
-      });
-      
-      // Устанавливаем тему
-      setTheme(tg.colorScheme);
-      setInitData(tg.initData);
-      
-      // Логируем информацию о WebApp
-      console.log('📱 WebApp информация:', {
-        platform: tg.platform,
-        colorScheme: tg.colorScheme,
-        themeParams: tg.themeParams,
-        initData: tg.initData,
-        initDataUnsafe: tg.initDataUnsafe,
-        version: tg.version,
-        isExpanded: tg.isExpanded,
-        viewportHeight: tg.viewportHeight,
-        viewportStableHeight: tg.viewportStableHeight,
-        headerColor: tg.headerColor,
-        backgroundColor: tg.backgroundColor,
-        isClosingConfirmationEnabled: tg.isClosingConfirmationEnabled
-      });
-      
-      // Включаем подтверждение закрытия
-      tg.enableClosingConfirmation();
-      
-      // Устанавливаем цвет заголовка
-      tg.setHeaderColor('#2B2D42');
-      
-      // Устанавливаем цвет фона
-      tg.setBackgroundColor('#1A1B26');
-      
-      // Обработчик изменения viewport
-      tg.onEvent('viewportChanged', () => {
-        console.log('📱 Viewport изменился:', {
-          height: tg.viewportHeight,
-          stableHeight: tg.viewportStableHeight,
-          isExpanded: tg.isExpanded
-        });
-        setViewportHeight(tg.viewportHeight);
-        setIsExpanded(tg.isExpanded);
-      });
-      
-      // Обработчик изменения темы
-      tg.onEvent('themeChanged', () => {
-        console.log('🎨 Тема изменилась:', tg.colorScheme);
-        setTheme(tg.colorScheme);
-      });
-      
-      // Обработчик изменения размера viewport
-      tg.onEvent('mainButtonClicked', () => {
-        console.log('🔘 MainButton нажат');
-      });
-      
-      tg.onEvent('backButtonClicked', () => {
-        console.log('⬅️ BackButton нажат');
-      });
-      
-      tg.onEvent('settingsButtonClicked', () => {
-        console.log('⚙️ SettingsButton нажат');
-      });
-      
-      tg.onEvent('invoiceClosed', (eventData) => {
-        console.log('💳 Invoice закрыт:', eventData);
-      });
-      
-      tg.onEvent('popupClosed', (eventData) => {
-        console.log('📋 Popup закрыт:', eventData);
-      });
-      
-      tg.onEvent('qrTextReceived', (eventData) => {
-        console.log('📱 QR код получен:', eventData);
-      });
-      
-      tg.onEvent('clipboardTextReceived', (eventData) => {
-        console.log('📋 Текст из буфера обмена:', eventData);
-      });
-      
-      tg.onEvent('writeAccessRequested', (eventData) => {
-        console.log('✏️ Запрос на запись:', eventData);
-      });
-      
-      tg.onEvent('contactRequested', (eventData) => {
-        console.log('👤 Запрос контакта:', eventData);
-      });
-      
-      tg.onEvent('customMethodInvoked', (eventData) => {
-        console.log('🔧 Кастомный метод вызван:', eventData);
-      });
-      
-      console.log('✅ Революционный WebApp инициализирован!');
-    }
-    
-    return () => {
+    // Проверяем, запущен ли WebApp в Telegram
+    const checkTelegramWebApp = () => {
       if (tg) {
-        // Очищаем обработчики событий
-        tg.offEvent('viewportChanged');
-        tg.offEvent('themeChanged');
-        tg.offEvent('mainButtonClicked');
-        tg.offEvent('backButtonClicked');
-        tg.offEvent('settingsButtonClicked');
-        tg.offEvent('invoiceClosed');
-        tg.offEvent('popupClosed');
-        tg.offEvent('qrTextReceived');
-        tg.offEvent('clipboardTextReceived');
-        tg.offEvent('writeAccessRequested');
-        tg.offEvent('contactRequested');
-        tg.offEvent('customMethodInvoked');
+        console.log('🚀 Telegram WebApp обнаружен!');
+        setIsTelegramWebApp(true);
         
-        // Очищаем обработчики кнопок
-        tg.MainButton.onClick(() => {});
-        tg.BackButton.onClick(() => {});
+        // Инициализация с задержкой для полной загрузки
+        setTimeout(() => {
+          initializeWebApp();
+        }, 100);
+      } else {
+        console.log('⚠️ Telegram WebApp не обнаружен, запуск в режиме браузера');
+        setIsTelegramWebApp(false);
+        // Fallback для браузера
+        setViewportHeight(window.innerHeight);
+        setTheme('light');
       }
     };
+
+    const initializeWebApp = () => {
+      if (!tg) return;
+      
+      try {
+        console.log('🔧 Инициализация Telegram WebApp...');
+        
+        // Готовим WebApp
+        tg.ready();
+        
+        // Расширяем на полный экран
+        tg.expand();
+        setIsExpanded(true);
+        
+        // Устанавливаем высоту viewport
+        setViewportHeight(tg.viewportHeight);
+        
+        // Устанавливаем тему
+        setTheme(tg.colorScheme);
+        setInitData(tg.initData);
+        
+        // Настраиваем MainButton
+        tg.MainButton.setText('🚀 Отправить данные');
+        tg.MainButton.show();
+        tg.MainButton.onClick(() => {
+          setMainButtonClicked(true);
+          const data = {
+            action: 'demo',
+            value: 'Привет из революционного WebApp!',
+            timestamp: new Date().toISOString(),
+            page: currentPage,
+            theme: tg.colorScheme
+          };
+          tg.sendData(JSON.stringify(data));
+        });
+        
+        // Настраиваем BackButton
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+          setBackButtonClicked(true);
+          if (currentPage === 'main') {
+            tg.close();
+          } else {
+            setCurrentPage('main');
+          }
+        });
+        
+        // Включаем подтверждение закрытия
+        tg.enableClosingConfirmation();
+        
+        // Устанавливаем цвета
+        tg.setHeaderColor('#2B2D42');
+        tg.setBackgroundColor('#1A1B26');
+        
+        // Собираем информацию о WebApp
+        const info = {
+          platform: tg.platform,
+          colorScheme: tg.colorScheme,
+          themeParams: tg.themeParams,
+          initData: tg.initData,
+          initDataUnsafe: tg.initDataUnsafe,
+          version: tg.version,
+          isExpanded: tg.isExpanded,
+          viewportHeight: tg.viewportHeight,
+          viewportStableHeight: tg.viewportStableHeight,
+          headerColor: tg.headerColor,
+          backgroundColor: tg.backgroundColor,
+          isClosingConfirmationEnabled: tg.isClosingConfirmationEnabled
+        };
+        
+        setWebAppInfo(info);
+        
+        console.log('📱 WebApp информация:', info);
+        
+        // Обработчики событий
+        tg.onEvent('viewportChanged', () => {
+          console.log('📱 Viewport изменился:', {
+            height: tg.viewportHeight,
+            stableHeight: tg.viewportStableHeight,
+          });
+          setViewportHeight(tg.viewportHeight);
+        });
+        
+        tg.onEvent('themeChanged', () => {
+          console.log('🎨 Тема изменилась:', tg.colorScheme);
+          setTheme(tg.colorScheme);
+        });
+        
+        console.log('✅ Telegram WebApp успешно инициализирован!');
+        
+      } catch (error) {
+        console.error('❌ Ошибка инициализации Telegram WebApp:', error);
+        setIsTelegramWebApp(false);
+      }
+    };
+
+    checkTelegramWebApp();
   }, [currentPage]);
 
   const navigateTo = (page: Page) => {
@@ -247,13 +366,13 @@ function App() {
               </p>
               
               {/* Информация о WebApp */}
-              <div className="mb-6 p-4 bg-black bg-opacity-20 rounded-lg text-sm">
-                <p>📱 Платформа: {tg?.platform || 'Unknown'}</p>
-                <p>🎨 Тема: {theme}</p>
-                <p>📏 Высота: {viewportHeight}px</p>
-                <p>🖼️ Полный экран: {isExpanded ? '✅' : '❌'}</p>
-                <p>🔧 Версия API: {tg?.version || 'Unknown'}</p>
-              </div>
+              <WebAppInfo
+                isTelegramWebApp={isTelegramWebApp}
+                webAppInfo={webAppInfo}
+                theme={theme}
+                viewportHeight={viewportHeight}
+                isExpanded={isExpanded}
+              />
               
               <div className="space-y-4">
                 <button
