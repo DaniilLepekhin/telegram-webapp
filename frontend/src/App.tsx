@@ -13,6 +13,37 @@ import FullscreenButton from './components/FullscreenButton';
 import BackButton from './components/BackButton';
 import { LogsProvider, useLogs } from './contexts/LogsContext';
 
+// Компонент для отображения логов
+const LogsDisplay: React.FC = () => {
+  const { logs } = useLogs();
+  
+  const copyLogs = () => {
+    const logsText = logs.join('\n');
+    navigator.clipboard.writeText(logsText).then(() => {
+      console.log('📋 Логи скопированы в буфер обмена');
+    });
+  };
+
+  if (logs.length === 0) return null;
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 bg-black/90 backdrop-blur-xl border border-white/20 rounded-lg p-4 z-[10000] max-h-48 overflow-y-auto">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-white text-sm font-bold">Логи навигации:</h3>
+        <button
+          onClick={copyLogs}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs transition-colors"
+        >
+          📋 Копировать
+        </button>
+      </div>
+      <div className="text-green-400 text-xs font-mono whitespace-pre-wrap">
+        {logs.join('\n')}
+      </div>
+    </div>
+  );
+};
+
 // Глобальная переменная для Telegram WebApp
 declare global {
   interface Window {
@@ -164,16 +195,23 @@ function AppContent() {
   // Функция навигации
   const navigateTo = (page: Page) => {
     if (currentPage === page) {
-      console.log('🚫 Попытка перехода на текущую страницу:', page);
+      const message = `🚫 Попытка перехода на текущую страницу: ${page}`;
+      console.log(message);
+      addLog(message);
       return;
     }
 
-    console.log('🔄 Переход к странице:', page, 'с', currentPage);
+    const message = `🔄 Переход к странице: ${page} с ${currentPage}`;
+    console.log(message);
+    addLog(message);
+    
     console.log('📚 Текущая история:', navigationHistory);
+    addLog(`📚 Текущая история: [${navigationHistory.join(', ')}]`);
     
     // Обновляем историю навигации
     const newHistory = [...navigationHistory, page];
     console.log('📝 Новая история:', newHistory);
+    addLog(`📝 Новая история: [${newHistory.join(', ')}]`);
     
     setNavigationHistory(newHistory);
     
@@ -192,13 +230,21 @@ function AppContent() {
 
   // Функция возврата назад
   const goBack = () => {
-    console.log('🔄 Возврат назад с страницы:', currentPage);
+    const message = `🔄 Возврат назад с страницы: ${currentPage}`;
+    console.log(message);
+    addLog(message);
+    
     console.log('📚 История навигации:', navigationHistory);
+    addLog(`📚 История навигации: [${navigationHistory.join(', ')}]`);
+    
     console.log('🔍 Текущее состояние:', { currentPage, navigationHistoryLength: navigationHistory.length });
+    addLog(`🔍 Текущее состояние: страница=${currentPage}, история=${navigationHistory.length} элементов`);
 
     // Если мы на главной странице, не показываем кнопку "Назад" вообще
     if (currentPage === 'main') {
-      console.log('🏠 Уже на главной странице - кнопка "Назад" не должна показываться');
+      const message = '🏠 Уже на главной странице - кнопка "Назад" не должна показываться';
+      console.log(message);
+      addLog(message);
       return;
     }
 
@@ -206,8 +252,12 @@ function AppContent() {
       const newHistory = navigationHistory.slice(0, -1);
       const previousPage = newHistory[newHistory.length - 1];
       
-      console.log('⬅️ Возвращаемся к:', previousPage);
+      const message = `⬅️ Возвращаемся к: ${previousPage}`;
+      console.log(message);
+      addLog(message);
+      
       console.log('📝 Новая история:', newHistory);
+      addLog(`📝 Новая история: [${newHistory.join(', ')}]`);
       
       setNavigationHistory(newHistory);
       setCurrentPage(previousPage);
@@ -221,7 +271,10 @@ function AppContent() {
         });
       }, 50);
     } else {
-      console.log('🏠 Возвращаемся на главную (история пуста)');
+      const message = '🏠 Возвращаемся на главную (история пуста)';
+      console.log(message);
+      addLog(message);
+      
       setCurrentPage('main');
       setNavigationHistory(['main']);
       
@@ -552,6 +605,7 @@ function AppContent() {
   return (
     <div className="app">
       {renderPage()}
+      <LogsDisplay />
     </div>
   );
 }
