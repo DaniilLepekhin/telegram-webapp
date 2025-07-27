@@ -291,11 +291,39 @@ function App() {
         // Скрываем MainButton - он не нужен
         webApp.MainButton.hide();
         
-        // Настраиваем BackButton
+        // Настраиваем BackButton с актуальным состоянием
         webApp.BackButton.onClick(() => {
           setBackButtonClicked(true);
           console.log('🔙 BackButton нажат!');
-          goBack(); // Используем нашу функцию goBack
+          
+          // Получаем актуальное состояние
+          setNavigationHistory(prevHistory => {
+            console.log('📚 Текущая история навигации:', prevHistory);
+            
+            if (prevHistory.length > 1) {
+              // Удаляем текущую страницу из истории
+              const newHistory = prevHistory.slice(0, -1);
+              const previousPage = newHistory[newHistory.length - 1];
+              
+              console.log('🔙 Возвращаемся на страницу:', previousPage);
+              
+              // Обновляем текущую страницу
+              setCurrentPage(previousPage);
+              
+              // Обновляем видимость BackButton
+              if (previousPage === 'main') {
+                webApp.BackButton.hide();
+              } else {
+                webApp.BackButton.show();
+              }
+              
+              return newHistory;
+            } else {
+              console.log('🔙 Закрываем WebApp');
+              webApp.close();
+              return prevHistory;
+            }
+          });
         });
         
         // Показываем BackButton только если не на главной странице
@@ -404,7 +432,11 @@ function App() {
     console.log('🧭 Навигация на страницу:', page);
     
     // Добавляем текущую страницу в историю
-    setNavigationHistory(prev => [...prev, page]);
+    setNavigationHistory(prev => {
+      const newHistory = [...prev, page];
+      console.log('📚 Обновленная история навигации:', newHistory);
+      return newHistory;
+    });
     setCurrentPage(page);
 
     if (window.Telegram?.WebApp) {
@@ -593,6 +625,8 @@ function App() {
               <div className="mt-6 p-4 bg-black bg-opacity-20 rounded-lg text-sm">
                 <p>🔘 MainButton: {mainButtonClicked ? 'Нажат ✅' : 'Ожидает'}</p>
                 <p>⬅️ BackButton: {backButtonClicked ? 'Нажат ✅' : 'Ожидает'}</p>
+                <p>📚 История: {navigationHistory.join(' → ')}</p>
+                <p>📍 Текущая: {currentPage}</p>
               </div>
             </div>
           </div>
