@@ -181,12 +181,37 @@ function App() {
   const [webAppInfo, setWebAppInfo] = useState<any>(null);
 
   useEffect(() => {
-    // Проверяем, запущен ли WebApp в Telegram
-    const checkTelegramWebApp = () => {
-      // Проверяем наличие Telegram WebApp API
-      if (window.Telegram && window.Telegram.WebApp) {
-        const webApp = window.Telegram.WebApp;
-        console.log('🚀 Telegram WebApp обнаружен!');
+    // Проверяем, запущен ли Mini App в Telegram
+    const checkTelegramMiniApp = () => {
+      // Улучшенная проверка для Telegram Mini App
+      const hasTelegram = !!window.Telegram;
+      const hasWebApp = !!window.Telegram?.WebApp;
+      const webApp = window.Telegram?.WebApp;
+      const hasReady = typeof webApp?.ready === 'function';
+      const hasExpand = typeof webApp?.expand === 'function';
+      const hasPlatform = !!webApp?.platform;
+      
+      // Проверяем User-Agent для дополнительной диагностики
+      const userAgent = navigator.userAgent;
+      const isTelegramUserAgent = userAgent.includes('Telegram') || 
+                                 userAgent.includes('tgWebApp') ||
+                                 userAgent.includes('TelegramWebApp');
+      
+      console.log('🔍 Диагностика Telegram Mini App:', {
+        hasTelegram,
+        hasWebApp,
+        hasReady,
+        hasExpand,
+        hasPlatform,
+        platform: webApp?.platform,
+        isTelegramUserAgent,
+        userAgent: userAgent.substring(0, 100) + '...'
+      });
+      
+      const isMiniApp = hasTelegram && hasWebApp && hasReady && hasExpand && hasPlatform;
+      
+      if (isMiniApp) {
+        console.log('🚀 Telegram Mini App обнаружен!');
         console.log('📱 Платформа:', webApp.platform);
         console.log('🔧 Версия:', webApp.version);
         console.log('🎨 Тема:', webApp.colorScheme);
@@ -198,9 +223,7 @@ function App() {
           initializeWebApp();
         }, 100);
       } else {
-        console.log('⚠️ Telegram WebApp не обнаружен, запуск в режиме браузера');
-        console.log('🔍 window.Telegram:', !!window.Telegram);
-        console.log('🔍 window.Telegram?.WebApp:', !!window.Telegram?.WebApp);
+        console.log('⚠️ Telegram Mini App не обнаружен, запуск в режиме браузера');
         setIsTelegramWebApp(false);
         // Fallback для браузера
         setViewportHeight(window.innerHeight);
@@ -318,7 +341,7 @@ function App() {
       }
     };
 
-    checkTelegramWebApp();
+    checkTelegramMiniApp();
   }, [currentPage]);
 
   const navigateTo = (page: Page) => {
@@ -386,10 +409,10 @@ function App() {
           >
             <div className="p-8 rounded-xl shadow-xl bg-white bg-opacity-10 backdrop-blur-md w-full max-w-md">
               <h1 className="text-3xl font-bold mb-4 text-center">
-                🚀 Революционный WebApp
+                🚀 Telegram Mini App
               </h1>
               <p className="text-lg mb-6 text-center">
-                Полноэкранная витрина с современными возможностями Telegram Web Apps API
+                Полноэкранная витрина с современными возможностями Telegram Mini Apps API
               </p>
               
               {/* Информация о WebApp */}

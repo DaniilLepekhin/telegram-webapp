@@ -15,7 +15,43 @@ const WebAppInfo: React.FC<WebAppInfoProps> = ({
   viewportHeight,
   isExpanded
 }) => {
-  if (!isTelegramWebApp) {
+  // Улучшенная проверка для Telegram Mini App
+  const isTelegramMiniApp = () => {
+    if (typeof window === 'undefined') return false;
+    
+    // Проверяем наличие Telegram WebApp API
+    const hasTelegram = !!window.Telegram;
+    const hasWebApp = !!window.Telegram?.WebApp;
+    
+    // Проверяем наличие ключевых методов
+    const webApp = window.Telegram?.WebApp;
+    const hasReady = typeof webApp?.ready === 'function';
+    const hasExpand = typeof webApp?.expand === 'function';
+    const hasPlatform = !!webApp?.platform;
+    
+    // Проверяем User-Agent для дополнительной диагностики
+    const userAgent = navigator.userAgent;
+    const isTelegramUserAgent = userAgent.includes('Telegram') || 
+                               userAgent.includes('tgWebApp') ||
+                               userAgent.includes('TelegramWebApp');
+    
+    console.log('🔍 Диагностика Telegram Mini App:', {
+      hasTelegram,
+      hasWebApp,
+      hasReady,
+      hasExpand,
+      hasPlatform,
+      platform: webApp?.platform,
+      isTelegramUserAgent,
+      userAgent: userAgent.substring(0, 100) + '...'
+    });
+    
+    return hasTelegram && hasWebApp && hasReady && hasExpand && hasPlatform;
+  };
+
+  const isMiniApp = isTelegramMiniApp();
+
+  if (!isMiniApp) {
     return (
       <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
         <div className="flex">
@@ -27,9 +63,12 @@ const WebAppInfo: React.FC<WebAppInfoProps> = ({
           <div className="ml-3">
             <h3 className="text-sm font-medium">⚠️ Запущено в браузере</h3>
             <div className="mt-2 text-sm">
-              <p>Этот WebApp должен быть запущен внутри Telegram для полной функциональности.</p>
+              <p>Этот <strong>Telegram Mini App</strong> должен быть запущен внутри Telegram для полной функциональности.</p>
               <p className="mt-1"><strong>Viewport высота:</strong> {viewportHeight}px</p>
               <p><strong>Тема:</strong> {theme}</p>
+              <p className="mt-2 text-xs text-yellow-600">
+                💡 <strong>Совет:</strong> Откройте через бота в Telegram для доступа к полноэкранному режиму и всем функциям Mini App.
+              </p>
             </div>
           </div>
         </div>
@@ -38,15 +77,15 @@ const WebAppInfo: React.FC<WebAppInfoProps> = ({
   }
 
   return (
-    <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
+    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
         </div>
         <div className="ml-3">
-          <h3 className="text-sm font-medium">✅ Telegram WebApp активен</h3>
+          <h3 className="text-sm font-medium">✅ Telegram Mini App активен</h3>
           <div className="mt-2 text-sm space-y-1">
             <p><strong>Платформа:</strong> {webAppInfo?.platform || 'Неизвестно'}</p>
             <p><strong>Тема:</strong> {webAppInfo?.colorScheme || theme}</p>
@@ -56,6 +95,9 @@ const WebAppInfo: React.FC<WebAppInfoProps> = ({
             {webAppInfo?.initDataUnsafe?.user && (
               <p><strong>Пользователь:</strong> {webAppInfo.initDataUnsafe.user.first_name}</p>
             )}
+            <p className="mt-2 text-xs text-green-600">
+              🎉 <strong>Отлично!</strong> Все функции Telegram Mini App доступны.
+            </p>
           </div>
         </div>
       </div>
