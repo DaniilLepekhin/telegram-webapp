@@ -118,35 +118,33 @@ const DetailedDiagnostics: React.FC = () => {
     `.trim();
 
     try {
-      // Пробуем использовать Telegram WebApp API для копирования
-      if (window.Telegram?.WebApp && typeof window.Telegram.WebApp.readTextFromClipboard === 'function') {
-        // Используем Telegram API для копирования
-        window.Telegram.WebApp.readTextFromClipboard((data) => {
-          // Это обратный вызов, но мы можем использовать его для проверки
-        });
-        
-        // Показываем пользователю, что нужно скопировать вручную
-        setCopyStatus('📋 Используйте Telegram: Долгое нажатие → Копировать');
-        
-        // Создаем временный элемент для выделения
-        const tempTextArea = document.createElement('textarea');
-        tempTextArea.value = diagnosticText;
-        tempTextArea.style.position = 'fixed';
-        tempTextArea.style.left = '-9999px';
-        tempTextArea.style.top = '-9999px';
-        document.body.appendChild(tempTextArea);
-        tempTextArea.select();
-        
-        // Показываем инструкцию пользователю
-        alert('📋 Диагностика скопирована!\n\nДля вставки в чат:\n1. Долгое нажатие на текстовое поле\n2. Выберите "Вставить"\n\nИли отправьте скриншот этой страницы.');
-        
-        document.body.removeChild(tempTextArea);
-      } else {
-        // Fallback для браузера
+      // Простое копирование в буфер обмена
+      if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(diagnosticText);
         setCopyStatus('✅ Скопировано в буфер обмена!');
-        setTimeout(() => setCopyStatus(''), 3000);
+      } else {
+        // Fallback для старых браузеров
+        const textArea = document.createElement('textarea');
+        textArea.value = diagnosticText;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          setCopyStatus('✅ Скопировано в буфер обмена!');
+        } catch (err) {
+          setCopyStatus('❌ Ошибка копирования');
+        }
+        
+        document.body.removeChild(textArea);
       }
+      
+      setTimeout(() => setCopyStatus(''), 3000);
+      
     } catch (error) {
       console.error('Ошибка копирования:', error);
       setCopyStatus('❌ Ошибка копирования');
