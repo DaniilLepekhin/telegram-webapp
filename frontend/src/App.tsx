@@ -10,6 +10,7 @@ import TelegramIntegration from './components/TelegramIntegration';
 import PostTracking from './components/PostTracking';
 import TestBackButton from './components/TestBackButton';
 import WebAppInfo from './components/WebAppInfo';
+import FullscreenManager from './components/FullscreenManager';
 
 // Глобальная переменная для Telegram WebApp
 declare global {
@@ -158,6 +159,7 @@ declare global {
         isVersionAtLeast: (version: string) => boolean;
         getHeaderColor: () => string;
         getBackgroundColor: () => string;
+        isFullscreen: boolean;
       };
     };
   }
@@ -181,8 +183,14 @@ function App() {
   useEffect(() => {
     // Проверяем, запущен ли WebApp в Telegram
     const checkTelegramWebApp = () => {
-      if (tg) {
+      // Проверяем наличие Telegram WebApp API
+      if (window.Telegram && window.Telegram.WebApp) {
+        const webApp = window.Telegram.WebApp;
         console.log('🚀 Telegram WebApp обнаружен!');
+        console.log('📱 Платформа:', webApp.platform);
+        console.log('🔧 Версия:', webApp.version);
+        console.log('🎨 Тема:', webApp.colorScheme);
+        
         setIsTelegramWebApp(true);
         
         // Инициализация с задержкой для полной загрузки
@@ -191,6 +199,8 @@ function App() {
         }, 100);
       } else {
         console.log('⚠️ Telegram WebApp не обнаружен, запуск в режиме браузера');
+        console.log('🔍 window.Telegram:', !!window.Telegram);
+        console.log('🔍 window.Telegram?.WebApp:', !!window.Telegram?.WebApp);
         setIsTelegramWebApp(false);
         // Fallback для браузера
         setViewportHeight(window.innerHeight);
@@ -199,72 +209,74 @@ function App() {
     };
 
     const initializeWebApp = () => {
-      if (!tg) return;
+      if (!window.Telegram?.WebApp) return;
+      
+      const webApp = window.Telegram.WebApp;
       
       try {
         console.log('🔧 Инициализация Telegram WebApp...');
         
-        // Готовим WebApp
-        tg.ready();
+        // Готовим WebApp (обязательно!)
+        webApp.ready();
         
-        // Расширяем на полный экран
-        tg.expand();
+        // Расширяем на полный экран (согласно документации)
+        webApp.expand();
         setIsExpanded(true);
         
         // Устанавливаем высоту viewport
-        setViewportHeight(tg.viewportHeight);
+        setViewportHeight(webApp.viewportHeight);
         
         // Устанавливаем тему
-        setTheme(tg.colorScheme);
-        setInitData(tg.initData);
+        setTheme(webApp.colorScheme);
+        setInitData(webApp.initData);
         
         // Настраиваем MainButton
-        tg.MainButton.setText('🚀 Отправить данные');
-        tg.MainButton.show();
-        tg.MainButton.onClick(() => {
+        webApp.MainButton.setText('🚀 Отправить данные');
+        webApp.MainButton.show();
+        webApp.MainButton.onClick(() => {
           setMainButtonClicked(true);
           const data = {
             action: 'demo',
             value: 'Привет из революционного WebApp!',
             timestamp: new Date().toISOString(),
             page: currentPage,
-            theme: tg.colorScheme
+            theme: webApp.colorScheme
           };
-          tg.sendData(JSON.stringify(data));
+          webApp.sendData(JSON.stringify(data));
         });
         
         // Настраиваем BackButton
-        tg.BackButton.show();
-        tg.BackButton.onClick(() => {
+        webApp.BackButton.show();
+        webApp.BackButton.onClick(() => {
           setBackButtonClicked(true);
           if (currentPage === 'main') {
-            tg.close();
+            webApp.close();
           } else {
             setCurrentPage('main');
           }
         });
         
         // Включаем подтверждение закрытия
-        tg.enableClosingConfirmation();
+        webApp.enableClosingConfirmation();
         
         // Устанавливаем цвета
-        tg.setHeaderColor('#2B2D42');
-        tg.setBackgroundColor('#1A1B26');
+        webApp.setHeaderColor('#2B2D42');
+        webApp.setBackgroundColor('#1A1B26');
         
         // Собираем информацию о WebApp
         const info = {
-          platform: tg.platform,
-          colorScheme: tg.colorScheme,
-          themeParams: tg.themeParams,
-          initData: tg.initData,
-          initDataUnsafe: tg.initDataUnsafe,
-          version: tg.version,
-          isExpanded: tg.isExpanded,
-          viewportHeight: tg.viewportHeight,
-          viewportStableHeight: tg.viewportStableHeight,
-          headerColor: tg.headerColor,
-          backgroundColor: tg.backgroundColor,
-          isClosingConfirmationEnabled: tg.isClosingConfirmationEnabled
+          platform: webApp.platform,
+          colorScheme: webApp.colorScheme,
+          themeParams: webApp.themeParams,
+          initData: webApp.initData,
+          initDataUnsafe: webApp.initDataUnsafe,
+          version: webApp.version,
+          isExpanded: webApp.isExpanded,
+          viewportHeight: webApp.viewportHeight,
+          viewportStableHeight: webApp.viewportStableHeight,
+          headerColor: webApp.headerColor,
+          backgroundColor: webApp.backgroundColor,
+          isClosingConfirmationEnabled: webApp.isClosingConfirmationEnabled
         };
         
         setWebAppInfo(info);
@@ -272,17 +284,30 @@ function App() {
         console.log('📱 WebApp информация:', info);
         
         // Обработчики событий
-        tg.onEvent('viewportChanged', () => {
+        webApp.onEvent('viewportChanged', () => {
           console.log('📱 Viewport изменился:', {
-            height: tg.viewportHeight,
-            stableHeight: tg.viewportStableHeight,
+            height: webApp.viewportHeight,
+            stableHeight: webApp.viewportStableHeight,
           });
-          setViewportHeight(tg.viewportHeight);
+          setViewportHeight(webApp.viewportHeight);
         });
         
-        tg.onEvent('themeChanged', () => {
-          console.log('🎨 Тема изменилась:', tg.colorScheme);
-          setTheme(tg.colorScheme);
+        webApp.onEvent('themeChanged', () => {
+          console.log('🎨 Тема изменилась:', webApp.colorScheme);
+          setTheme(webApp.colorScheme);
+        });
+        
+        // Новые события для полноэкранного режима (Bot API 8.0+)
+        webApp.onEvent('fullscreenChanged', () => {
+          console.log('🖼️ Полноэкранный режим изменился:', webApp.isFullscreen);
+        });
+        
+        webApp.onEvent('activated', () => {
+          console.log('✅ WebApp активирован');
+        });
+        
+        webApp.onEvent('deactivated', () => {
+          console.log('⏸️ WebApp деактивирован');
         });
         
         console.log('✅ Telegram WebApp успешно инициализирован!');
@@ -298,30 +323,32 @@ function App() {
 
   const navigateTo = (page: Page) => {
     setCurrentPage(page);
-    if (tg) {
+    if (window.Telegram?.WebApp) {
+      const webApp = window.Telegram.WebApp;
+      
       // Показываем BackButton только если не на главной странице
       if (page === 'main') {
-        tg.BackButton.hide();
+        webApp.BackButton.hide();
       } else {
-        tg.BackButton.show();
+        webApp.BackButton.show();
       }
       
       // Обновляем MainButton в зависимости от страницы
       switch (page) {
         case 'showcase':
-          tg.MainButton.setText('🎯 Выбрать кейс');
+          webApp.MainButton.setText('🎯 Выбрать кейс');
           break;
         case 'chat':
-          tg.MainButton.setText('💬 Отправить сообщение');
+          webApp.MainButton.setText('💬 Отправить сообщение');
           break;
         case 'analytics':
-          tg.MainButton.setText('📊 Экспорт данных');
+          webApp.MainButton.setText('📊 Экспорт данных');
           break;
         case 'post-tracking':
-          tg.MainButton.setText('🔗 Создать ссылку');
+          webApp.MainButton.setText('🔗 Создать ссылку');
           break;
         default:
-          tg.MainButton.setText('🚀 Отправить данные');
+          webApp.MainButton.setText('🚀 Отправить данные');
       }
     }
   };
@@ -373,6 +400,9 @@ function App() {
                 viewportHeight={viewportHeight}
                 isExpanded={isExpanded}
               />
+              
+              {/* Управление полноэкранным режимом */}
+              <FullscreenManager isTelegramWebApp={isTelegramWebApp} />
               
               <div className="space-y-4">
                 <button
