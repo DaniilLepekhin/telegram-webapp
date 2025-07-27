@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import BackButton from './BackButton';
 
 interface UserProfile {
   id: string;
@@ -99,6 +100,21 @@ const UserProfile: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'profile' | 'achievements' | 'stats'>('profile');
 
+  // Получаем данные пользователя из Telegram
+  useEffect(() => {
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+      const user = window.Telegram.WebApp.initDataUnsafe.user;
+      setProfile(prev => ({
+        ...prev,
+        id: user.id.toString(),
+        name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+        username: user.username ? `@${user.username}` : 'Без username',
+        avatar: user.photo_url || prev.avatar,
+        joinDate: new Date().toISOString().split('T')[0] // Сегодняшняя дата как пример
+      }));
+    }
+  }, []);
+
   const progressPercentage = (profile.experience / profile.nextLevelExp) * 100;
 
   const getLevelTitle = (level: number) => {
@@ -108,17 +124,31 @@ const UserProfile: React.FC = () => {
     return 'Мастер';
   };
 
+  const handleBack = () => {
+    // Используем Telegram WebApp BackButton для правильной навигации
+    if (window.Telegram?.WebApp) {
+      const tempHandler = () => {
+        // Логика навигации обрабатывается в App.tsx
+      };
+      window.Telegram.WebApp.BackButton.onClick(tempHandler);
+      tempHandler();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+    <div className="min-h-screen p-4 relative">
+      {/* Красивая кнопка "Назад" */}
+      <BackButton onClick={handleBack} />
+      
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Личный кабинет</h1>
-          <p className="text-lg text-gray-600">Ваш профиль, достижения и статистика</p>
+        <div className="text-center mb-8 fade-in">
+          <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">Личный кабинет</h1>
+          <p className="text-lg text-white/90 drop-shadow-md">Ваш профиль, достижения и статистика</p>
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="glass-card p-6 mb-8">
           <div className="flex items-center space-x-6 mb-6">
             <img
               src={profile.avatar}
@@ -126,25 +156,25 @@ const UserProfile: React.FC = () => {
               className="w-20 h-20 rounded-full border-4 border-purple-200"
             />
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-800">{profile.name}</h2>
-              <p className="text-gray-600">{profile.username}</p>
-              <p className="text-sm text-gray-500">Участник с {new Date(profile.joinDate).toLocaleDateString()}</p>
+              <h2 className="text-2xl font-bold text-white drop-shadow-md">{profile.name}</h2>
+              <p className="text-white/90 drop-shadow-sm">{profile.username}</p>
+              <p className="text-sm text-white/70 drop-shadow-sm">Участник с {new Date(profile.joinDate).toLocaleDateString()}</p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-purple-600">Уровень {profile.level}</div>
-              <div className="text-sm text-gray-600">{getLevelTitle(profile.level)}</div>
+              <div className="text-3xl font-bold text-purple-300 drop-shadow-md">Уровень {profile.level}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">{getLevelTitle(profile.level)}</div>
             </div>
           </div>
 
           {/* Experience Bar */}
           <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <div className="flex justify-between text-sm text-white/80 mb-2 drop-shadow-sm">
               <span>Опыт: {profile.experience} / {profile.nextLevelExp}</span>
               <span>{Math.round(progressPercentage)}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-white/20 rounded-full h-3 backdrop-blur-sm">
               <div
-                className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-purple-400 to-pink-400 h-3 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
@@ -152,41 +182,44 @@ const UserProfile: React.FC = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{profile.stats.totalSessions}</div>
-              <div className="text-sm text-gray-600">Сессий</div>
+            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+              <div className="text-2xl font-bold text-blue-300 drop-shadow-md">{profile.stats.totalSessions}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">Сессий</div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{profile.stats.totalMessages}</div>
-              <div className="text-sm text-gray-600">Сообщений</div>
+            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+              <div className="text-2xl font-bold text-green-300 drop-shadow-md">{profile.stats.totalMessages}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">Сообщений</div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{profile.stats.favoriteBots}</div>
-              <div className="text-sm text-gray-600">Любимых ботов</div>
+            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+              <div className="text-2xl font-bold text-purple-300 drop-shadow-md">{profile.stats.favoriteBots}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">Любимых ботов</div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">₽{profile.stats.referralEarnings}</div>
-              <div className="text-sm text-gray-600">Заработано</div>
+            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+              <div className="text-2xl font-bold text-orange-300 drop-shadow-md">₽{profile.stats.referralEarnings}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">Заработано</div>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg mb-8">
-          <div className="border-b">
-            <nav className="flex space-x-8 px-6">
+        <div className="glass-card mb-8">
+          <div className="border-b border-white/20">
+            <nav className="flex overflow-x-auto scrollbar-hide px-6">
               {[
                 { id: 'profile', label: 'Профиль', icon: '👤' },
                 { id: 'achievements', label: 'Достижения', icon: '🏆' },
-                { id: 'stats', label: 'Статистика', icon: '📊' }
+                { id: 'stats', label: 'Статистика', icon: '📊' },
+                { id: 'settings', label: 'Настройки', icon: '⚙️' },
+                { id: 'security', label: 'Безопасность', icon: '🔒' },
+                { id: 'notifications', label: 'Уведомления', icon: '🔔' }
               ].map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  className={`py-4 px-4 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap flex-shrink-0 transition-all duration-200 ${
                     activeTab === tab.id
-                      ? 'border-purple-500 text-purple-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-purple-400 text-purple-300'
+                      : 'border-transparent text-white/70 hover:text-white/90'
                   }`}
                 >
                   <span>{tab.icon}</span>
@@ -199,27 +232,29 @@ const UserProfile: React.FC = () => {
           <div className="p-6">
             {activeTab === 'profile' && (
               <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Настройки профиля</h3>
+                <h3 className="text-xl font-bold text-white mb-4 drop-shadow-md">Настройки профиля</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Имя</label>
+                    <label className="block text-sm font-medium text-white/90 mb-2 drop-shadow-sm">Имя</label>
                     <input
                       type="text"
                       value={profile.name}
                       onChange={(e) => setProfile({...profile, name: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 text-white placeholder-white/50 backdrop-blur-sm"
+                      placeholder="Введите ваше имя"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <label className="block text-sm font-medium text-white/90 mb-2 drop-shadow-sm">Username</label>
                     <input
                       type="text"
                       value={profile.username}
                       onChange={(e) => setProfile({...profile, username: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 text-white placeholder-white/50 backdrop-blur-sm"
+                      placeholder="Введите username"
                     />
                   </div>
-                  <button className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                  <button className="btn-primary">
                     Сохранить изменения
                   </button>
                 </div>

@@ -174,14 +174,15 @@ type Page = 'main' | 'showcase' | 'chat' | 'referral' | 'profile' | 'analytics' 
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('main');
+  const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
+  const [webAppInfo, setWebAppInfo] = useState<any>(null);
+  const [viewportHeight, setViewportHeight] = useState(0);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [initData, setInitData] = useState('');
   const [mainButtonClicked, setMainButtonClicked] = useState(false);
   const [backButtonClicked, setBackButtonClicked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(0);
-  const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
-  const [webAppInfo, setWebAppInfo] = useState<any>(null);
+  const [initData, setInitData] = useState('');
+  const [navigationHistory, setNavigationHistory] = useState<Page[]>(['main']);
 
   useEffect(() => {
     // Проверяем, запущен ли Mini App в Telegram
@@ -294,13 +295,31 @@ function App() {
         webApp.BackButton.onClick(() => {
           setBackButtonClicked(true);
           console.log('🔙 BackButton нажат, текущая страница:', currentPage);
-          
+          console.log('📚 История навигации:', navigationHistory);
+
+          // Получаем предыдущую страницу из истории
+          const previousPage = navigationHistory.length > 1 
+            ? navigationHistory[navigationHistory.length - 2] 
+            : 'main';
+
           if (currentPage === 'main') {
             console.log('🔙 Закрываем WebApp');
             webApp.close();
           } else {
-            console.log('🔙 Возвращаемся на главную страницу');
-            setCurrentPage('main');
+            console.log('🔙 Возвращаемся на предыдущую страницу:', previousPage);
+            
+            // Удаляем текущую страницу из истории
+            setNavigationHistory(prev => prev.slice(0, -1));
+            
+            // Переходим на предыдущую страницу
+            setCurrentPage(previousPage);
+            
+            // Обновляем видимость BackButton
+            if (previousPage === 'main') {
+              webApp.BackButton.hide();
+            } else {
+              webApp.BackButton.show();
+            }
           }
         });
         
@@ -406,13 +425,16 @@ function App() {
     runDiagnosticsWithRetry();
   }, [currentPage]);
 
-  const navigateTo = (page: Page) => {
+    const navigateTo = (page: Page) => {
     console.log('🧭 Навигация на страницу:', page);
-    setCurrentPage(page);
     
+    // Добавляем текущую страницу в историю
+    setNavigationHistory(prev => [...prev, page]);
+    setCurrentPage(page);
+
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
-      
+
       // Показываем BackButton только если не на главной странице
       if (page === 'main') {
         console.log('🔙 Скрываем BackButton (главная страница)');
@@ -421,7 +443,7 @@ function App() {
         console.log('🔙 Показываем BackButton (не главная страница)');
         webApp.BackButton.show();
       }
-      
+
       // Всегда скрываем MainButton - он не нужен
       webApp.MainButton.hide();
       

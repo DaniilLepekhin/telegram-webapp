@@ -31,6 +31,15 @@ html, body, #root {
   background: transparent;
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
 /* Основной контейнер */
 .app-container {
   min-height: 100vh;

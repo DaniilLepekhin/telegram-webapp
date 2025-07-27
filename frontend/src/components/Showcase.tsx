@@ -75,12 +75,15 @@ const Showcase: React.FC = () => {
     if (selectedCase) {
       setSelectedCase(null);
     } else {
-      // Возвращаемся на главную страницу
+      // Просто вызываем BackButton - логика навигации уже настроена в App.tsx
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.BackButton.onClick(() => {
-          // Эмулируем возврат на главную страницу
-          window.location.reload();
-        });
+        // Создаем временный обработчик для симуляции клика
+        const tempHandler = () => {
+          // Логика навигации обрабатывается в App.tsx
+        };
+        window.Telegram.WebApp.BackButton.onClick(tempHandler);
+        // Вызываем обработчик
+        tempHandler();
       }
     }
   };
