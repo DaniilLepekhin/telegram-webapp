@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import BackButton from './BackButton';
+import FullscreenButton from './FullscreenButton';
 
 interface ChannelData {
   id: string;
@@ -87,286 +88,202 @@ const ChannelAnalytics: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
       {/* Красивая кнопка "Назад" */}
       <BackButton onClick={handleBack} />
       
-      <div className="max-w-7xl mx-auto">
+      {/* Кнопка полноэкранного режима */}
+      <FullscreenButton />
+      
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="mb-8">
-          
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">Аналитика каналов</h1>
-            <p className="text-lg text-gray-600">Отслеживайте подписчиков и источники трафика</p>
+        <div className="text-center mb-8 fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-indigo-400 to-purple-600 rounded-2xl mb-4 shadow-2xl">
+            <span className="text-2xl sm:text-3xl">📈</span>
           </div>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
+            Аналитика каналов
+          </h1>
+          <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
+            Продвинутая аналитика и отслеживание эффективности ваших Telegram каналов
+          </p>
         </div>
 
         {/* Channel Selector */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">Ваши каналы</h2>
-            <button
-              onClick={addChannel}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              + Добавить канал
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {channels.map(channel => (
-              <div
-                key={channel.id}
-                onClick={() => setSelectedChannel(channel)}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                  selectedChannel?.id === channel.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
+        <div className="mb-8">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Выберите канал</h2>
+              <button
+                onClick={addChannel}
+                className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-4 py-2 rounded-xl font-semibold hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105"
               >
-                <h3 className="font-semibold text-gray-800">{channel.name}</h3>
-                <p className="text-gray-600 text-sm">{channel.username}</p>
-                <div className="mt-2 flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-800">
-                    {channel.subscribers.toLocaleString()}
-                  </span>
-                  <span className={`text-sm font-medium ${
-                    channel.growth > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {channel.growth > 0 ? '+' : ''}{channel.growth}
-                  </span>
+                + Добавить канал
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {channels.map((channel) => (
+                <div
+                  key={channel.id}
+                  onClick={() => setSelectedChannel(channel)}
+                  className={`p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                    selectedChannel?.id === channel.id
+                      ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-400'
+                      : 'bg-white/5 hover:bg-white/10 border border-white/20'
+                  }`}
+                >
+                  <h3 className="font-semibold text-white mb-1">{channel.name}</h3>
+                  <p className="text-white/60 text-sm mb-2">{channel.username}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-green-400">{channel.subscribers.toLocaleString()}</span>
+                    <span className="text-sm text-green-400">+{channel.growth}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {selectedChannel && (
-          <div className="bg-white rounded-xl shadow-lg">
-            {/* Channel Header */}
-            <div className="p-6 border-b">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800">{selectedChannel.name}</h2>
-                  <p className="text-gray-600">{selectedChannel.username}</p>
-                </div>
-                <button
-                  onClick={generateSubscriptionLink}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  🔗 Создать ссылку подписки
-                </button>
-              </div>
-            </div>
-
+          <>
             {/* Tabs */}
-            <div className="border-b">
-              <nav className="flex space-x-8 px-6">
+            <div className="mb-8">
+              <div className="flex overflow-x-auto scrollbar-hide gap-2 pb-4">
                 {[
                   { id: 'overview', label: 'Обзор', icon: '📊' },
-                  { id: 'sources', label: 'Источники трафика', icon: '🌐' },
-                  { id: 'daily', label: 'Ежедневная статистика', icon: '📈' },
-                  { id: 'ads', label: 'Рекламные кампании', icon: '📢' }
+                  { id: 'sources', label: 'Источники', icon: '🌐' },
+                  { id: 'daily', label: 'Ежедневно', icon: '📅' },
+                  { id: 'ads', label: 'Реклама', icon: '💰' }
                 ].map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 flex items-center space-x-2 ${
                       activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                        : 'bg-white/10 backdrop-blur-sm text-white/70 hover:bg-white/20 hover:text-white border border-white/20'
                     }`}
                   >
                     <span>{tab.icon}</span>
                     <span>{tab.label}</span>
                   </button>
                 ))}
-              </nav>
+              </div>
             </div>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <div className="space-y-6">
               {activeTab === 'overview' && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Общая статистика</h3>
-                  
-                  {/* Key Metrics */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl">
-                      <div className="text-3xl font-bold mb-2">{selectedChannel.subscribers.toLocaleString()}</div>
-                      <div className="text-blue-100">Подписчиков</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                        <span className="text-xl">👥</span>
+                      </div>
                     </div>
-                    <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
-                      <div className="text-3xl font-bold mb-2">+{selectedChannel.growth}</div>
-                      <div className="text-green-100">Рост за день</div>
-                    </div>
-                    <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl">
-                      <div className="text-3xl font-bold mb-2">4</div>
-                      <div className="text-purple-100">Источника трафика</div>
-                    </div>
-                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl">
-                      <div className="text-3xl font-bold mb-2">15.2%</div>
-                      <div className="text-orange-100">Конверсия</div>
-                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-1">{selectedChannel.subscribers.toLocaleString()}</h3>
+                    <p className="text-white/60">Подписчиков</p>
                   </div>
-
-                  {/* Growth Chart */}
-                  <div className="bg-gray-50 p-6 rounded-xl">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Рост за неделю</h4>
-                    <div className="flex items-end justify-between h-32">
-                      {selectedChannel.dailyStats.map((stat, index) => (
-                        <div key={index} className="flex flex-col items-center">
-                          <div
-                            className="bg-blue-500 rounded-t w-8 transition-all duration-300 hover:bg-blue-600"
-                            style={{ height: `${(stat.netGrowth / Math.max(...selectedChannel.dailyStats.map(s => s.netGrowth))) * 100}%` }}
-                          ></div>
-                          <div className="text-xs text-gray-600 mt-2">{stat.netGrowth}</div>
-                          <div className="text-xs text-gray-500">День {index + 1}</div>
-                        </div>
-                      ))}
+                  
+                  <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center">
+                        <span className="text-xl">📈</span>
+                      </div>
                     </div>
+                    <h3 className="text-2xl font-bold text-green-400 mb-1">+{selectedChannel.growth}</h3>
+                    <p className="text-white/60">Рост за день</p>
+                  </div>
+                  
+                  <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span className="text-xl">🎯</span>
+                      </div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-purple-400 mb-1">4.8%</h3>
+                    <p className="text-white/60">Вовлеченность</p>
+                  </div>
+                  
+                  <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center">
+                        <span className="text-xl">💰</span>
+                      </div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-orange-400 mb-1">₽12.5K</h3>
+                    <p className="text-white/60">Доход</p>
                   </div>
                 </div>
               )}
 
               {activeTab === 'sources' && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Источники трафика</h3>
-                  
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Pie Chart */}
-                    <div className="bg-gray-50 p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Распределение по источникам</h4>
-                      <div className="space-y-4">
-                        {selectedChannel.sources.map((source, index) => (
-                          <div key={index} className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div
-                                className="w-4 h-4 rounded-full"
-                                style={{ backgroundColor: source.color }}
-                              ></div>
-                              <span className="font-medium text-gray-700">{source.name}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-32 bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="h-2 rounded-full"
-                                  style={{ 
-                                    width: `${source.percentage}%`,
-                                    backgroundColor: source.color
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="text-sm text-gray-600 w-12">{source.percentage}%</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Source Details */}
-                    <div className="space-y-4">
-                      {selectedChannel.sources.map((source, index) => (
-                        <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                          <div className="flex justify-between items-center mb-2">
-                            <h5 className="font-semibold text-gray-800">{source.name}</h5>
-                            <span className="text-sm font-medium" style={{ color: source.color }}>
-                              {source.count.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm text-gray-600">
-                            <span>{source.percentage}% от общего трафика</span>
-                            <span>Конверсия: {Math.round(source.percentage * 0.8)}%</span>
-                          </div>
+                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                  <h3 className="text-xl font-bold text-white mb-6">Источники трафика</h3>
+                  <div className="space-y-4">
+                    {selectedChannel.sources.map((source, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: source.color }}></div>
+                          <span className="text-white font-medium">{source.name}</span>
                         </div>
-                      ))}
-                    </div>
+                        <div className="text-right">
+                          <div className="text-white font-bold">{source.count.toLocaleString()}</div>
+                          <div className="text-white/60 text-sm">{source.percentage}%</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
               {activeTab === 'daily' && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Ежедневная статистика</h3>
-                  
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-semibold text-gray-800">Дата</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-800">Подписчики</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-800">Отписались</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-800">Чистый рост</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedChannel.dailyStats.map((stat, index) => (
-                          <tr key={index} className="border-b hover:bg-gray-50">
-                            <td className="py-3 px-4 text-gray-700">
-                              {new Date(stat.date).toLocaleDateString()}
-                            </td>
-                            <td className="py-3 px-4 text-right text-green-600 font-medium">
-                              +{stat.subscribers}
-                            </td>
-                            <td className="py-3 px-4 text-right text-red-600 font-medium">
-                              -{stat.unsubscribers}
-                            </td>
-                            <td className={`py-3 px-4 text-right font-medium ${
-                              stat.netGrowth > 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {stat.netGrowth > 0 ? '+' : ''}{stat.netGrowth}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                  <h3 className="text-xl font-bold text-white mb-6">Ежедневная статистика</h3>
+                  <div className="space-y-3">
+                    {selectedChannel.dailyStats.map((stat, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                        <div>
+                          <div className="text-white font-medium">{new Date(stat.date).toLocaleDateString()}</div>
+                          <div className="text-white/60 text-sm">Чистый рост: +{stat.netGrowth}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-green-400 font-bold">+{stat.subscribers}</div>
+                          <div className="text-red-400 text-sm">-{stat.unsubscribers}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
               {activeTab === 'ads' && (
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Рекламные кампании</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold mb-2">ВКонтакте</h4>
-                      <div className="text-3xl font-bold mb-2">3,240</div>
-                      <div className="text-blue-100">Подписчиков</div>
-                      <div className="text-sm mt-2">Конверсия: 21%</div>
+                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                  <h3 className="text-xl font-bold text-white mb-6">Рекламные кампании</h3>
+                  <div className="text-center py-8">
+                    <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-3xl">💰</span>
                     </div>
-                    
-                    <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold mb-2">Instagram</h4>
-                      <div className="text-3xl font-bold mb-2">2,160</div>
-                      <div className="text-pink-100">Подписчиков</div>
-                      <div className="text-sm mt-2">Конверсия: 14%</div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold mb-2">Google Ads</h4>
-                      <div className="text-3xl font-bold mb-2">1,100</div>
-                      <div className="text-red-100">Подписчиков</div>
-                      <div className="text-sm mt-2">Конверсия: 7%</div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white p-6 rounded-xl">
-                      <h4 className="text-lg font-semibold mb-2">Facebook</h4>
-                      <div className="text-3xl font-bold mb-2">890</div>
-                      <div className="text-yellow-100">Подписчиков</div>
-                      <div className="text-sm mt-2">Конверсия: 6%</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8">
-                    <button className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                      📊 Подключить рекламную платформу
-                    </button>
+                    <h3 className="text-lg font-semibold text-white mb-2">Реклама не настроена</h3>
+                    <p className="text-white/60">Настройте рекламные кампании для отслеживания эффективности</p>
                   </div>
                 </div>
               )}
             </div>
-          </div>
+
+            {/* Action Buttons */}
+            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={generateSubscriptionLink}
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
+              >
+                🔗 Создать ссылку для отслеживания
+              </button>
+              <button className="flex-1 bg-white/10 text-white py-4 px-6 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 border border-white/20">
+                📊 Экспорт данных
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

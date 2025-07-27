@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import BackButton from './BackButton';
+import FullscreenButton from './FullscreenButton';
 
 interface Message {
   id: string;
@@ -88,97 +89,89 @@ const DemoChat: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
       {/* Красивая кнопка "Назад" */}
       <BackButton onClick={handleBack} />
       
-      <div className="flex flex-col h-full bg-gray-50">
+      {/* Кнопка полноэкранного режима */}
+      <FullscreenButton />
+      
+      <div className="flex flex-col h-screen">
         {/* Header */}
-        <div className="bg-white border-b px-4 py-3">
-        </div>
-        
-        {/* Информация о боте */}
-        <div className="flex items-center justify-between">
+        <div className="bg-white/10 backdrop-blur-xl border-b border-white/20 px-4 py-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold">🤖</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+              <span className="text-lg">💬</span>
             </div>
             <div>
-              <h2 className="font-semibold text-gray-800">Демо-бот</h2>
-              <p className="text-sm text-gray-500">Онлайн</p>
+              <h1 className="text-lg font-bold text-white">Демо-чат</h1>
+              <p className="text-white/60 text-sm">Интеллектуальный помощник</p>
             </div>
           </div>
-          <button
-            onClick={() => {
-              if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.close();
-              }
-            }}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            ✕
-          </button>
         </div>
-      </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-          >
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((message) => (
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                message.isUser
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-white text-gray-800 border'
-              }`}
+              key={message.id}
+              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
             >
-              <p className="text-sm">{message.text}</p>
-              <p className={`text-xs mt-1 ${
-                message.isUser ? 'text-blue-100' : 'text-gray-400'
-              }`}>
-                {message.timestamp.toLocaleTimeString()}
-              </p>
-            </div>
-          </div>
-        ))}
-        
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-white text-gray-800 border px-4 py-2 rounded-lg">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div
+                className={`max-w-xs sm:max-w-md lg:max-w-lg px-4 py-3 rounded-2xl ${
+                  message.isUser
+                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+                    : 'bg-white/10 backdrop-blur-sm text-white border border-white/20'
+                }`}
+              >
+                <p className="text-sm leading-relaxed">{message.text}</p>
+                <p className={`text-xs mt-2 ${
+                  message.isUser ? 'text-white/70' : 'text-white/50'
+                }`}>
+                  {message.timestamp.toLocaleTimeString()}
+                </p>
               </div>
             </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
+          ))}
+          
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-4 py-3">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
 
-      {/* Input */}
-      <div className="bg-white border-t p-4">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Введите сообщение..."
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isTyping}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!inputText.trim() || isTyping}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Отправить
-          </button>
+        {/* Input */}
+        <div className="bg-white/10 backdrop-blur-xl border-t border-white/20 p-4">
+          <div className="flex space-x-3">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Введите сообщение..."
+                className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-300"
+              />
+            </div>
+            <button
+              onClick={handleSendMessage}
+              disabled={!inputText.trim()}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

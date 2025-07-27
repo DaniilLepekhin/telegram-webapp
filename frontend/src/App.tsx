@@ -14,6 +14,7 @@ import FullscreenManager from './components/FullscreenManager';
 import DetailedDiagnostics from './components/DetailedDiagnostics';
 import ScreenshotHelper from './components/ScreenshotHelper';
 import FullscreenControls from './components/FullscreenControls';
+import FullscreenButton from './components/FullscreenButton';
 import LogsCopy from './components/LogsCopy';
 import { LogsProvider, useLogs } from './contexts/LogsContext';
 
@@ -447,6 +448,9 @@ function AppContent() {
               <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
               <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
             </div>
+
+            {/* Кнопка полноэкранного режима */}
+            <FullscreenButton />
 
             <div className="relative z-10 p-4 sm:p-6">
               {/* Header */}

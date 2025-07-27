@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import BackButton from './BackButton';
+import FullscreenButton from './FullscreenButton'; // Added import for FullscreenButton
 
 interface UserProfile {
   id: string;
@@ -133,67 +134,73 @@ const UserProfile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 relative">
       {/* Красивая кнопка "Назад" */}
       <BackButton onClick={handleBack} />
+      
+      {/* Кнопка полноэкранного режима */}
+      <FullscreenButton />
       
       <div className="max-w-4xl mx-auto px-2 sm:px-4">
         {/* Header */}
         <div className="text-center mb-6 fade-in">
-          <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-4 drop-shadow-lg">Личный кабинет</h1>
-          <p className="text-sm sm:text-lg text-white/90 drop-shadow-md">Ваш профиль, достижения и статистика</p>
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-orange-400 to-red-600 rounded-2xl mb-4 shadow-2xl">
+            <span className="text-2xl sm:text-3xl">👤</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">Личный кабинет</h1>
+          <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">Ваш профиль, достижения и статистика</p>
         </div>
 
         {/* Profile Card */}
-        <div className="glass-card p-4 mb-6">
-          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+        <div className="glass-card p-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-6">
             <img
               src={profile.avatar}
               alt={profile.name}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 sm:border-4 border-purple-200 flex-shrink-0"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-purple-200 flex-shrink-0 shadow-2xl"
             />
             <div className="flex-1 text-center sm:text-left min-w-0">
-              <h2 className="text-xl sm:text-2xl font-bold text-white drop-shadow-md truncate">{profile.name}</h2>
-              <p className="text-white/90 drop-shadow-sm truncate">{profile.username}</p>
-              <p className="text-xs sm:text-sm text-white/70 drop-shadow-sm">Участник с {new Date(profile.joinDate).toLocaleDateString()}</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md truncate">{profile.name}</h2>
+              <p className="text-white/90 drop-shadow-sm truncate text-lg">{profile.username}</p>
+              <p className="text-sm text-white/70 drop-shadow-sm">Участник с {new Date(profile.joinDate).toLocaleDateString()}</p>
             </div>
             <div className="text-center sm:text-right flex-shrink-0">
-              <div className="text-2xl sm:text-3xl font-bold text-purple-300 drop-shadow-md">Уровень {profile.level}</div>
-              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">{getLevelTitle(profile.level)}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-purple-300 drop-shadow-md">Уровень {profile.level}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">{getLevelTitle(profile.level)}</div>
             </div>
           </div>
 
           {/* Experience Bar */}
           <div className="mb-6">
-            <div className="flex justify-between text-sm text-white/80 mb-2 drop-shadow-sm">
+            <div className="flex justify-between text-sm text-white/80 mb-3 drop-shadow-sm">
               <span>Опыт: {profile.experience} / {profile.nextLevelExp}</span>
               <span>{Math.round(progressPercentage)}%</span>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-3 backdrop-blur-sm">
+            <div className="w-full bg-white/20 rounded-full h-4 backdrop-blur-sm">
               <div
-                className="bg-gradient-to-r from-purple-400 to-pink-400 h-3 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-purple-400 to-pink-400 h-4 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="text-center p-3 sm:p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <div className="text-lg sm:text-2xl font-bold text-blue-300 drop-shadow-md">{profile.stats.totalSessions}</div>
-              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">Сессий</div>
+          <div className="grid grid-cols-2 gap-4 sm:gap-6">
+            <div className="text-center p-4 sm:p-6 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300">
+              <div className="text-2xl sm:text-3xl font-bold text-blue-300 drop-shadow-md">{profile.stats.totalSessions}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">Сессий</div>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <div className="text-lg sm:text-2xl font-bold text-green-300 drop-shadow-md">{profile.stats.totalMessages}</div>
-              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">Сообщений</div>
+            <div className="text-center p-4 sm:p-6 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300">
+              <div className="text-2xl sm:text-3xl font-bold text-green-300 drop-shadow-md">{profile.stats.totalMessages}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">Сообщений</div>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <div className="text-lg sm:text-2xl font-bold text-purple-300 drop-shadow-md">{profile.stats.favoriteBots}</div>
-              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">Любимых ботов</div>
+            <div className="text-center p-4 sm:p-6 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300">
+              <div className="text-2xl sm:text-3xl font-bold text-purple-300 drop-shadow-md">{profile.stats.favoriteBots}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">Любимых ботов</div>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <div className="text-lg sm:text-2xl font-bold text-orange-300 drop-shadow-md">₽{profile.stats.referralEarnings}</div>
-              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">Заработано</div>
+            <div className="text-center p-4 sm:p-6 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300">
+              <div className="text-2xl sm:text-3xl font-bold text-orange-300 drop-shadow-md">₽{profile.stats.referralEarnings}</div>
+              <div className="text-sm text-white/80 drop-shadow-sm">Заработано</div>
             </div>
           </div>
         </div>
@@ -216,7 +223,7 @@ const UserProfile: React.FC = () => {
                   className={`py-4 px-4 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap flex-shrink-0 transition-all duration-200 ${
                     activeTab === tab.id
                       ? 'border-purple-400 text-purple-300'
-                      : 'border-transparent text-white/70 hover:text-white/90'
+                      : 'border-transparent text-white/60 hover:text-white/80'
                   }`}
                 >
                   <span>{tab.icon}</span>
@@ -226,66 +233,77 @@ const UserProfile: React.FC = () => {
             </nav>
           </div>
 
+          {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'profile' && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4 drop-shadow-md">Настройки профиля</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white/90 mb-2 drop-shadow-sm">Имя</label>
-                    <input
-                      type="text"
-                      value={profile.name}
-                      onChange={(e) => setProfile({...profile, name: e.target.value})}
-                      className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 text-white placeholder-white/50 backdrop-blur-sm"
-                      placeholder="Введите ваше имя"
-                    />
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20">
+                    <h3 className="text-lg font-semibold text-white mb-3">Личная информация</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-white/60 text-sm">Имя</label>
+                        <p className="text-white font-medium">{profile.name}</p>
+                      </div>
+                      <div>
+                        <label className="text-white/60 text-sm">Username</label>
+                        <p className="text-white font-medium">{profile.username}</p>
+                      </div>
+                      <div>
+                        <label className="text-white/60 text-sm">Дата регистрации</label>
+                        <p className="text-white font-medium">{new Date(profile.joinDate).toLocaleDateString()}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white/90 mb-2 drop-shadow-sm">Username</label>
-                    <input
-                      type="text"
-                      value={profile.username}
-                      onChange={(e) => setProfile({...profile, username: e.target.value})}
-                      className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 text-white placeholder-white/50 backdrop-blur-sm"
-                      placeholder="Введите username"
-                    />
+                  
+                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/20">
+                    <h3 className="text-lg font-semibold text-white mb-3">Прогресс</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-white/60 text-sm">Текущий уровень</label>
+                        <p className="text-white font-medium">{profile.level} - {getLevelTitle(profile.level)}</p>
+                      </div>
+                      <div>
+                        <label className="text-white/60 text-sm">Опыт</label>
+                        <p className="text-white font-medium">{profile.experience} / {profile.nextLevelExp}</p>
+                      </div>
+                      <div>
+                        <label className="text-white/60 text-sm">Дней активности</label>
+                        <p className="text-white font-medium">{profile.stats.daysActive}</p>
+                      </div>
+                    </div>
                   </div>
-                  <button className="btn-primary">
-                    Сохранить изменения
-                  </button>
                 </div>
               </div>
             )}
 
             {activeTab === 'achievements' && (
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Достижения</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {profile.achievements.map(achievement => (
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-white mb-4">Достижения</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {profile.achievements.map((achievement) => (
                     <div
                       key={achievement.id}
-                      className={`p-4 rounded-lg border-2 ${
+                      className={`p-4 rounded-xl border transition-all duration-300 ${
                         achievement.unlocked
-                          ? 'border-green-200 bg-green-50'
-                          : 'border-gray-200 bg-gray-50'
+                          ? 'bg-white/10 border-green-400/50'
+                          : 'bg-white/5 border-white/20 opacity-50'
                       }`}
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="text-2xl">{achievement.icon}</div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-800">{achievement.title}</h4>
-                          <p className="text-sm text-gray-600">{achievement.description}</p>
-                          {achievement.unlocked && achievement.unlockedDate && (
-                            <p className="text-xs text-green-600 mt-1">
-                              Получено {new Date(achievement.unlockedDate).toLocaleDateString()}
-                            </p>
-                          )}
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className={`text-2xl ${achievement.unlocked ? '' : 'grayscale'}`}>
+                          {achievement.icon}
                         </div>
-                        {achievement.unlocked && (
-                          <div className="text-green-500">✓</div>
-                        )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-white">{achievement.title}</h4>
+                          <p className="text-sm text-white/60">{achievement.description}</p>
+                        </div>
                       </div>
+                      {achievement.unlocked && achievement.unlockedDate && (
+                        <div className="text-xs text-green-400">
+                          Получено {new Date(achievement.unlockedDate).toLocaleDateString()}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -293,35 +311,115 @@ const UserProfile: React.FC = () => {
             )}
 
             {activeTab === 'stats' && (
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Подробная статистика</h3>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-blue-800 mb-2">Активность</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-blue-600">Дней активен:</span>
-                          <span className="font-semibold">{profile.stats.daysActive}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-blue-600">Среднее сообщений/день:</span>
-                          <span className="font-semibold">{Math.round(profile.stats.totalMessages / profile.stats.daysActive)}</span>
-                        </div>
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-white mb-4">Подробная статистика</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm border border-white/20">
+                    <h4 className="text-lg font-semibold text-white mb-4">Активность</h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-white/60">Всего сессий</span>
+                        <span className="text-white font-bold">{profile.stats.totalSessions}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/60">Всего сообщений</span>
+                        <span className="text-white font-bold">{profile.stats.totalMessages}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/60">Дней активности</span>
+                        <span className="text-white font-bold">{profile.stats.daysActive}</span>
                       </div>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-green-800 mb-2">Реферальная программа</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-green-600">Заработано:</span>
-                          <span className="font-semibold">₽{profile.stats.referralEarnings}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-green-600">Средний доход/день:</span>
-                          <span className="font-semibold">₽{Math.round(profile.stats.referralEarnings / profile.stats.daysActive)}</span>
-                        </div>
+                  </div>
+                  
+                  <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm border border-white/20">
+                    <h4 className="text-lg font-semibold text-white mb-4">Экономика</h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-white/60">Реферальные доходы</span>
+                        <span className="text-white font-bold">₽{profile.stats.referralEarnings}</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/60">Любимых ботов</span>
+                        <span className="text-white font-bold">{profile.stats.favoriteBots}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-white mb-4">Настройки</h3>
+                <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm border border-white/20">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-white">Уведомления</h4>
+                        <p className="text-sm text-white/60">Получать уведомления о новых функциях</p>
+                      </div>
+                      <button className="w-12 h-6 bg-purple-500 rounded-full relative">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1 transition-transform"></div>
+                      </button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-white">Темная тема</h4>
+                        <p className="text-sm text-white/60">Использовать темную тему</p>
+                      </div>
+                      <button className="w-12 h-6 bg-purple-500 rounded-full relative">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1 transition-transform"></div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'security' && (
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-white mb-4">Безопасность</h3>
+                <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm border border-white/20">
+                  <div className="space-y-4">
+                    <button className="w-full text-left p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                      <h4 className="font-semibold text-white">Изменить пароль</h4>
+                      <p className="text-sm text-white/60">Обновите пароль для безопасности</p>
+                    </button>
+                    
+                    <button className="w-full text-left p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                      <h4 className="font-semibold text-white">Двухфакторная аутентификация</h4>
+                      <p className="text-sm text-white/60">Дополнительная защита аккаунта</p>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'notifications' && (
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-white mb-4">Уведомления</h3>
+                <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm border border-white/20">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-white">Push-уведомления</h4>
+                        <p className="text-sm text-white/60">Получать уведомления в браузере</p>
+                      </div>
+                      <button className="w-12 h-6 bg-gray-500 rounded-full relative">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform"></div>
+                      </button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-white">Email-уведомления</h4>
+                        <p className="text-sm text-white/60">Получать уведомления на email</p>
+                      </div>
+                      <button className="w-12 h-6 bg-purple-500 rounded-full relative">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1 transition-transform"></div>
+                      </button>
                     </div>
                   </div>
                 </div>
