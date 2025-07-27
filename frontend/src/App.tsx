@@ -11,6 +11,7 @@ import PostTracking from './components/PostTracking';
 import TestBackButton from './components/TestBackButton';
 import WebAppInfo from './components/WebAppInfo';
 import FullscreenManager from './components/FullscreenManager';
+import DetailedDiagnostics from './components/DetailedDiagnostics';
 
 // Глобальная переменная для Telegram WebApp
 declare global {
@@ -341,7 +342,30 @@ function App() {
       }
     };
 
-    checkTelegramMiniApp();
+    // Запускаем диагностику с задержкой и повторными попытками
+    const runDiagnosticsWithRetry = () => {
+      checkTelegramMiniApp();
+      
+      // Повторная попытка через 1 секунду
+      setTimeout(() => {
+        console.log('🔄 Повторная диагностика через 1 секунду...');
+        checkTelegramMiniApp();
+      }, 1000);
+      
+      // Повторная попытка через 3 секунды
+      setTimeout(() => {
+        console.log('🔄 Повторная диагностика через 3 секунды...');
+        checkTelegramMiniApp();
+      }, 3000);
+      
+      // Повторная попытка через 5 секунд
+      setTimeout(() => {
+        console.log('🔄 Финальная диагностика через 5 секунд...');
+        checkTelegramMiniApp();
+      }, 5000);
+    };
+    
+    runDiagnosticsWithRetry();
   }, [currentPage]);
 
   const navigateTo = (page: Page) => {
@@ -426,6 +450,9 @@ function App() {
               
               {/* Управление полноэкранным режимом */}
               <FullscreenManager isTelegramWebApp={isTelegramWebApp} />
+              
+              {/* Детальная диагностика */}
+              <DetailedDiagnostics />
               
               <div className="space-y-4">
                 <button
