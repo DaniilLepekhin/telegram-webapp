@@ -294,33 +294,8 @@ function App() {
         // Настраиваем BackButton
         webApp.BackButton.onClick(() => {
           setBackButtonClicked(true);
-          console.log('🔙 BackButton нажат, текущая страница:', currentPage);
-          console.log('📚 История навигации:', navigationHistory);
-
-          // Получаем предыдущую страницу из истории
-          const previousPage = navigationHistory.length > 1 
-            ? navigationHistory[navigationHistory.length - 2] 
-            : 'main';
-
-          if (currentPage === 'main') {
-            console.log('🔙 Закрываем WebApp');
-            webApp.close();
-          } else {
-            console.log('🔙 Возвращаемся на предыдущую страницу:', previousPage);
-            
-            // Удаляем текущую страницу из истории
-            setNavigationHistory(prev => prev.slice(0, -1));
-            
-            // Переходим на предыдущую страницу
-            setCurrentPage(previousPage);
-            
-            // Обновляем видимость BackButton
-            if (previousPage === 'main') {
-              webApp.BackButton.hide();
-            } else {
-              webApp.BackButton.show();
-            }
-          }
+          console.log('🔙 BackButton нажат!');
+          goBack(); // Используем нашу функцию goBack
         });
         
         // Показываем BackButton только если не на главной странице
@@ -451,6 +426,37 @@ function App() {
     }
   };
 
+  // Функция для возврата назад
+  const goBack = () => {
+    console.log('🔙 Вызвана функция goBack');
+    console.log('📚 История навигации:', navigationHistory);
+    
+    if (navigationHistory.length > 1) {
+      // Удаляем текущую страницу из истории
+      const newHistory = navigationHistory.slice(0, -1);
+      const previousPage = newHistory[newHistory.length - 1];
+      
+      console.log('🔙 Возвращаемся на страницу:', previousPage);
+      
+      setNavigationHistory(newHistory);
+      setCurrentPage(previousPage);
+      
+      // Обновляем видимость BackButton
+      if (window.Telegram?.WebApp) {
+        if (previousPage === 'main') {
+          window.Telegram.WebApp.BackButton.hide();
+        } else {
+          window.Telegram.WebApp.BackButton.show();
+        }
+      }
+    } else {
+      console.log('🔙 Закрываем WebApp');
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.close();
+      }
+    }
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case 'showcase':
@@ -482,11 +488,11 @@ function App() {
               background: theme === 'dark' ? 'linear-gradient(135deg, #1a1b26 0%, #2b2d42 100%)' : 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'
             }}
           >
-            <div className="p-8 rounded-xl shadow-xl bg-white bg-opacity-10 backdrop-blur-md w-full max-w-md">
-              <h1 className="text-3xl font-bold mb-4 text-center">
+            <div className="p-4 sm:p-6 md:p-8 rounded-xl shadow-xl bg-white bg-opacity-10 backdrop-blur-md w-full max-w-md">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 sm:mb-4 text-center">
                 🚀 Telegram Mini App
               </h1>
-              <p className="text-lg mb-6 text-center">
+              <p className="text-sm sm:text-base md:text-lg mb-4 sm:mb-6 text-center">
                 Полноэкранная витрина с современными возможностями Telegram Mini Apps API
               </p>
               
@@ -511,73 +517,73 @@ function App() {
               {/* Управление полноэкранным режимом */}
               <FullscreenControls />
               
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <button
                   onClick={() => navigateTo('showcase')}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 text-lg"
+                  className="w-full btn-primary py-3 sm:py-4 px-4 sm:px-6 text-base sm:text-lg"
                 >
                   🎯 Витрина кейсов
                 </button>
                 
                 <button
                   onClick={() => navigateTo('chat')}
-                  className="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-700 hover:to-teal-700 transition-all transform hover:scale-105"
+                  className="w-full btn-primary py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
                 >
                   💬 Демо-чат
                 </button>
                 
                 <button
                   onClick={() => navigateTo('channel-analytics')}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-blue-700 transition-all transform hover:scale-105"
+                  className="w-full btn-primary py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
                 >
                   📊 Аналитика каналов
                 </button>
                 
                 <button
                   onClick={() => navigateTo('post-analytics')}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105"
+                  className="w-full btn-primary py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
                 >
                   📝 Аналитика постов
                 </button>
                 
                 <button
                   onClick={() => navigateTo('post-tracking')}
-                  className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:from-red-700 hover:to-orange-700 transition-all transform hover:scale-105"
+                  className="w-full btn-primary py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
                 >
                   🔗 Отслеживание постов
                 </button>
                 
                 <button
                   onClick={() => navigateTo('referral')}
-                  className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:from-yellow-700 hover:to-orange-700 transition-all transform hover:scale-105"
+                  className="w-full btn-primary py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
                 >
                   👥 Реферальная система
                 </button>
                 
                 <button
                   onClick={() => navigateTo('profile')}
-                  className="w-full bg-gradient-to-r from-gray-600 to-gray-700 text-white py-3 px-4 rounded-lg font-medium hover:from-gray-700 hover:to-gray-800 transition-all transform hover:scale-105"
+                  className="w-full btn-primary py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
                 >
                   👤 Профиль пользователя
                 </button>
                 
                 <button
                   onClick={() => navigateTo('analytics')}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 px-4 rounded-lg font-medium hover:from-emerald-700 hover:to-teal-700 transition-all transform hover:scale-105"
+                  className="w-full btn-primary py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
                 >
                   📈 Аналитика & Обратная связь
                 </button>
                 
                 <button
                   onClick={() => navigateTo('telegram-integration')}
-                  className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:from-cyan-700 hover:to-blue-700 transition-all transform hover:scale-105"
+                  className="w-full btn-primary py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
                 >
                   ⚙️ Интеграция с Telegram
                 </button>
                 
                 <button
                   onClick={() => navigateTo('test-back')}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black py-4 px-6 rounded-lg font-bold hover:from-yellow-400 hover:to-orange-400 transition-all transform hover:scale-105 text-lg border-2 border-black"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-bold hover:from-yellow-400 hover:to-orange-400 transition-all transform hover:scale-105 text-base sm:text-lg border-2 border-black"
                 >
                   🧪 ТЕСТ КНОПКИ "НАЗАД"
                 </button>

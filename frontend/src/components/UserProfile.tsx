@@ -125,13 +125,16 @@ const UserProfile: React.FC = () => {
   };
 
   const handleBack = () => {
-    // Используем Telegram WebApp BackButton для правильной навигации
+    console.log('🔙 handleBack вызван в UserProfile');
+    // Простое решение - возвращаемся на главную страницу
     if (window.Telegram?.WebApp) {
-      const tempHandler = () => {
-        // Логика навигации обрабатывается в App.tsx
-      };
-      window.Telegram.WebApp.BackButton.onClick(tempHandler);
-      tempHandler();
+      window.Telegram.WebApp.BackButton.onClick(() => {
+        console.log('🔙 BackButton onClick в UserProfile');
+        // Перезагружаем страницу для возврата на главную
+        window.location.reload();
+      });
+      // Симулируем клик
+      window.Telegram.WebApp.BackButton.onClick(() => {})();
     }
   };
 
@@ -140,29 +143,29 @@ const UserProfile: React.FC = () => {
       {/* Красивая кнопка "Назад" */}
       <BackButton onClick={handleBack} />
       
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4">
         {/* Header */}
-        <div className="text-center mb-8 fade-in">
-          <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">Личный кабинет</h1>
-          <p className="text-lg text-white/90 drop-shadow-md">Ваш профиль, достижения и статистика</p>
+        <div className="text-center mb-6 fade-in">
+          <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-4 drop-shadow-lg">Личный кабинет</h1>
+          <p className="text-sm sm:text-lg text-white/90 drop-shadow-md">Ваш профиль, достижения и статистика</p>
         </div>
 
         {/* Profile Card */}
-        <div className="glass-card p-6 mb-8">
-          <div className="flex items-center space-x-6 mb-6">
+        <div className="glass-card p-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
             <img
               src={profile.avatar}
               alt={profile.name}
-              className="w-20 h-20 rounded-full border-4 border-purple-200"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 sm:border-4 border-purple-200 flex-shrink-0"
             />
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-white drop-shadow-md">{profile.name}</h2>
-              <p className="text-white/90 drop-shadow-sm">{profile.username}</p>
-              <p className="text-sm text-white/70 drop-shadow-sm">Участник с {new Date(profile.joinDate).toLocaleDateString()}</p>
+            <div className="flex-1 text-center sm:text-left min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-white drop-shadow-md truncate">{profile.name}</h2>
+              <p className="text-white/90 drop-shadow-sm truncate">{profile.username}</p>
+              <p className="text-xs sm:text-sm text-white/70 drop-shadow-sm">Участник с {new Date(profile.joinDate).toLocaleDateString()}</p>
             </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-purple-300 drop-shadow-md">Уровень {profile.level}</div>
-              <div className="text-sm text-white/80 drop-shadow-sm">{getLevelTitle(profile.level)}</div>
+            <div className="text-center sm:text-right flex-shrink-0">
+              <div className="text-2xl sm:text-3xl font-bold text-purple-300 drop-shadow-md">Уровень {profile.level}</div>
+              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">{getLevelTitle(profile.level)}</div>
             </div>
           </div>
 
@@ -181,22 +184,22 @@ const UserProfile: React.FC = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <div className="text-2xl font-bold text-blue-300 drop-shadow-md">{profile.stats.totalSessions}</div>
-              <div className="text-sm text-white/80 drop-shadow-sm">Сессий</div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="text-center p-3 sm:p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+              <div className="text-lg sm:text-2xl font-bold text-blue-300 drop-shadow-md">{profile.stats.totalSessions}</div>
+              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">Сессий</div>
             </div>
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <div className="text-2xl font-bold text-green-300 drop-shadow-md">{profile.stats.totalMessages}</div>
-              <div className="text-sm text-white/80 drop-shadow-sm">Сообщений</div>
+            <div className="text-center p-3 sm:p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+              <div className="text-lg sm:text-2xl font-bold text-green-300 drop-shadow-md">{profile.stats.totalMessages}</div>
+              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">Сообщений</div>
             </div>
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <div className="text-2xl font-bold text-purple-300 drop-shadow-md">{profile.stats.favoriteBots}</div>
-              <div className="text-sm text-white/80 drop-shadow-sm">Любимых ботов</div>
+            <div className="text-center p-3 sm:p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+              <div className="text-lg sm:text-2xl font-bold text-purple-300 drop-shadow-md">{profile.stats.favoriteBots}</div>
+              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">Любимых ботов</div>
             </div>
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <div className="text-2xl font-bold text-orange-300 drop-shadow-md">₽{profile.stats.referralEarnings}</div>
-              <div className="text-sm text-white/80 drop-shadow-sm">Заработано</div>
+            <div className="text-center p-3 sm:p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+              <div className="text-lg sm:text-2xl font-bold text-orange-300 drop-shadow-md">₽{profile.stats.referralEarnings}</div>
+              <div className="text-xs sm:text-sm text-white/80 drop-shadow-sm">Заработано</div>
             </div>
           </div>
         </div>

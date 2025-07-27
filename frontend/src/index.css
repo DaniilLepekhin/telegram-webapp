@@ -106,15 +106,76 @@ html, body, #root {
   animation: slideIn 0.4s ease-out;
 }
 
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
+/* Адаптивность для разных экранов */
+@media (max-width: 480px) {
   .app-container {
-    padding: 0;
+    padding: 8px;
+  }
+  
+  .glass-card {
+    margin: 4px;
+    border-radius: 12px;
+    padding: 12px;
+  }
+  
+  .btn-primary {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .app-container {
+    padding: 12px;
+  }
+  
+  .glass-card {
+    margin: 6px;
+    border-radius: 14px;
+    padding: 16px;
+  }
+}
+
+@media (min-width: 769px) {
+  .app-container {
+    padding: 16px;
   }
   
   .glass-card {
     margin: 8px;
-    border-radius: 12px;
+    border-radius: 16px;
+    padding: 20px;
+  }
+}
+
+/* Полноэкранный режим */
+:fullscreen .app-container {
+  padding: 20px;
+}
+
+:-webkit-full-screen .app-container {
+  padding: 20px;
+}
+
+:-moz-full-screen .app-container {
+  padding: 20px;
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 360px) {
+  .app-container {
+    padding: 4px;
+  }
+  
+  .glass-card {
+    margin: 2px;
+    border-radius: 8px;
+    padding: 8px;
+  }
+  
+  .btn-primary {
+    padding: 8px 12px;
+    font-size: 12px;
   }
 }
 
