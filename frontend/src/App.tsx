@@ -427,6 +427,16 @@ function AppContent() {
 
   // Функция для возврата назад
   const goBack = () => {
+    // Проверяем, находимся ли мы на главной странице
+    if (currentPage === 'main') {
+      // Если мы на главной странице, показываем уведомление
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.showAlert('Вы уже на главной странице');
+      }
+      return;
+    }
+
+    // Если мы не на главной странице, возвращаемся назад
     if (navigationHistory.length > 1) {
       // Удаляем текущую страницу из истории
       const newHistory = navigationHistory.slice(0, -1);
@@ -438,12 +448,10 @@ function AppContent() {
       // Прокручиваем к верху страницы
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Если мы на главной странице, НЕ закрываем приложение
-      // Вместо этого показываем уведомление или ничего не делаем
-      if (window.Telegram?.WebApp) {
-        // Можно показать уведомление, что мы уже на главной странице
-        window.Telegram.WebApp.showAlert('Вы уже на главной странице');
-      }
+      // Если история пуста или содержит только одну страницу, возвращаемся на главную
+      setNavigationHistory(['main']);
+      setCurrentPage('main');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
