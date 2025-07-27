@@ -1,0 +1,17 @@
+[Unit]
+Description=Revolutionary Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/telegram-webapp
+Environment=TELEGRAM_BOT_TOKEN=5466303727:AAGauSz23_We8iTGjRhbaL5LJobgs3e9V0E
+ExecStart=/usr/bin/node telegram-bot-handler.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target 

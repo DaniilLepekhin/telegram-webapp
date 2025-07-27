@@ -1,14 +1,34 @@
-// Обработчик для Telegram бота - отслеживание переходов по постам
-
+// Революционный Telegram Bot с WebApp интеграцией
 const TelegramBot = require('node-telegram-bot-api');
 
 // Конфигурация бота
-const BOT_TOKEN = process.env.BOT_TOKEN || 'YOUR_BOT_TOKEN';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '5466303727:AAGauSz23_We8iTGjRhbaL5LJobgs3e9V0E';
+const WEBAPP_URL = 'https://app.daniillepekhin.ru';
+
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
-// Хранилище данных (в реальном проекте - база данных)
+// Хранилище данных
 const trackingData = new Map();
 const userActions = new Map();
+
+console.log('🚀 Революционный Telegram Bot запущен!');
+console.log('🌐 WebApp URL:', WEBAPP_URL);
+
+// Обработка простой команды /start
+bot.onText(/^\/start$/, async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  const username = msg.from.username;
+  
+  console.log(`👤 Новый пользователь: ${username} (${userId})`);
+  
+  try {
+    await sendRevolutionaryWelcome(msg);
+  } catch (error) {
+    console.error('❌ Ошибка обработки /start:', error);
+    await bot.sendMessage(chatId, 'Произошла ошибка. Попробуйте позже.');
+  }
+});
 
 // Обработка команды /start с параметрами отслеживания
 bot.onText(/\/start (.+)/, async (msg, match) => {
@@ -16,18 +36,236 @@ bot.onText(/\/start (.+)/, async (msg, match) => {
   const params = match[1];
   
   try {
-    // Парсим параметры отслеживания
     if (params.startsWith('track_')) {
       await handleTrackingLink(msg, params);
     } else {
-      // Обычная команда /start
-      await sendWelcomeMessage(msg);
+      await sendRevolutionaryWelcome(msg);
     }
   } catch (error) {
-    console.error('Ошибка обработки /start:', error);
+    console.error('❌ Ошибка обработки /start с параметрами:', error);
     await bot.sendMessage(chatId, 'Произошла ошибка. Попробуйте позже.');
   }
 });
+
+// Революционное приветственное сообщение с WebApp
+async function sendRevolutionaryWelcome(msg) {
+  const chatId = msg.chat.id;
+  const username = msg.from.username;
+  
+  const welcomeText = `🎉 *Добро пожаловать в революционный WebApp!*
+
+🚀 *Что вас ждет:*
+• 📱 Полноэкранный WebApp с современным дизайном
+• 🎯 Витрина кейсов чат-ботов
+• 💬 Интерактивный демо-чат
+• 📊 Аналитика каналов и постов
+• 🔗 Система отслеживания переходов
+• 👥 Реферальная программа
+• 🎮 Геймификация и достижения
+
+💡 *Нажмите кнопку ниже, чтобы открыть революционный WebApp!*`;
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        {
+          text: '🚀 Открыть революционный WebApp',
+          web_app: { url: WEBAPP_URL }
+        }
+      ],
+      [
+        { text: '📊 Статистика', callback_data: 'show_stats' },
+        { text: '🔗 Создать ссылку отслеживания', callback_data: 'create_tracking' }
+      ],
+      [
+        { text: '🎯 Демо кейсы', callback_data: 'show_cases' },
+        { text: '💬 Поддержка', callback_data: 'support' }
+      ]
+    ]
+  };
+
+  await bot.sendMessage(chatId, welcomeText, {
+    parse_mode: 'Markdown',
+    reply_markup: keyboard
+  });
+
+  console.log(`✅ Отправлено революционное приветствие пользователю ${username}`);
+}
+
+// Обработка WebApp данных
+bot.on('web_app_data', async (msg) => {
+  const chatId = msg.chat.id;
+  const data = JSON.parse(msg.web_app_data.data);
+  
+  console.log('📱 Получены данные от WebApp:', data);
+  
+  try {
+    switch (data.action) {
+      case 'demo':
+        await bot.sendMessage(chatId, `🎉 Получены данные: ${data.value}`);
+        break;
+      case 'tracking_created':
+        await bot.sendMessage(chatId, `🔗 Создана ссылка отслеживания: ${data.trackingUrl}`);
+        break;
+      case 'analytics_viewed':
+        await bot.sendMessage(chatId, `📊 Просмотрена аналитика: ${data.section}`);
+        break;
+      default:
+        await bot.sendMessage(chatId, `📱 Получено действие: ${data.action}`);
+    }
+  } catch (error) {
+    console.error('❌ Ошибка обработки WebApp данных:', error);
+  }
+});
+
+// Обработка callback_query
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
+  
+  try {
+    switch (data) {
+      case 'show_stats':
+        await showStats(chatId);
+        break;
+      case 'create_tracking':
+        await createTrackingLink(chatId);
+        break;
+      case 'show_cases':
+        await showCases(chatId);
+        break;
+      case 'support':
+        await showSupport(chatId);
+        break;
+      default:
+        if (data.startsWith('track_')) {
+          await handleTrackingAction(query);
+        }
+    }
+    
+    await bot.answerCallbackQuery(query.id);
+  } catch (error) {
+    console.error('❌ Ошибка обработки callback:', error);
+    await bot.answerCallbackQuery(query.id, { text: 'Произошла ошибка' });
+  }
+});
+
+// Показать статистику
+async function showStats(chatId) {
+  const statsText = `📊 *Статистика WebApp:*
+
+👥 Пользователей: 1,234
+🚀 Открытий WebApp: 5,678
+📱 Активных сессий: 890
+🎯 Конверсий: 234 (4.1%)
+
+📈 *Топ разделов:*
+1. Витрина кейсов - 45%
+2. Аналитика - 30%
+3. Демо-чат - 15%
+4. Реферальная система - 10%`;
+
+  await bot.sendMessage(chatId, statsText, { parse_mode: 'Markdown' });
+}
+
+// Создать ссылку отслеживания
+async function createTrackingLink(chatId) {
+  const trackingId = Date.now().toString();
+  const trackingUrl = `https://t.me/your_bot?start=track_${trackingId}`;
+  
+  const text = `🔗 *Создана ссылка отслеживания:*
+
+📝 ID: \`${trackingId}\`
+🔗 Ссылка: \`${trackingUrl}\`
+
+📊 *Статистика:*
+• Переходы: 0
+• Конверсии: 0
+• Уникальные посетители: 0
+
+💡 *Используйте эту ссылку для отслеживания переходов по постам!*`;
+
+  await bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+}
+
+// Показать кейсы
+async function showCases(chatId) {
+  const casesText = `🎯 *Демо кейсы WebApp:*
+
+1. **E-commerce Bot** 🛒
+   • Автоматические заказы
+   • Интеграция с платежами
+   • Аналитика продаж
+
+2. **Support Bot** 🎧
+   • 24/7 поддержка
+   • База знаний
+   • Эскалация тикетов
+
+3. **Health Bot** 🏥
+   • Напоминания о приемах
+   • Мониторинг здоровья
+   • Консультации врачей
+
+4. **Education Bot** 📚
+   • Интерактивные уроки
+   • Тестирование знаний
+   • Прогресс обучения
+
+🚀 *Откройте WebApp для полного демо!*`;
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        {
+          text: '🚀 Открыть WebApp',
+          web_app: { url: WEBAPP_URL }
+        }
+      ]
+    ]
+  };
+
+  await bot.sendMessage(chatId, casesText, {
+    parse_mode: 'Markdown',
+    reply_markup: keyboard
+  });
+}
+
+// Показать поддержку
+async function showSupport(chatId) {
+  const supportText = `💬 *Поддержка:*
+
+📧 Email: support@webapp.com
+📱 Telegram: @support_bot
+🌐 Сайт: https://webapp.com/support
+
+🕐 *Время работы:*
+Пн-Пт: 9:00-18:00 (МСК)
+Сб-Вс: 10:00-16:00 (МСК)
+
+💡 *Часто задаваемые вопросы:*
+• Как создать ссылку отслеживания?
+• Как настроить аналитику?
+• Как интегрировать с Telegram?
+
+🚀 *Откройте WebApp для получения помощи!*`;
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        {
+          text: '🚀 Открыть WebApp',
+          web_app: { url: WEBAPP_URL }
+        }
+      ]
+    ]
+  };
+
+  await bot.sendMessage(chatId, supportText, {
+    parse_mode: 'Markdown',
+    reply_markup: keyboard
+  });
+}
 
 // Обработка ссылки отслеживания
 async function handleTrackingLink(msg, params) {
@@ -36,8 +274,9 @@ async function handleTrackingLink(msg, params) {
   const username = msg.from.username;
   
   try {
-    // Извлекаем данные отслеживания
     const [trackingId, postId] = params.replace('track_', '').split('_');
+    
+    console.log(`🔗 Переход по ссылке: ${trackingId}, пост: ${postId}`);
     
     // Логируем переход
     const clickData = {
@@ -45,23 +284,13 @@ async function handleTrackingLink(msg, params) {
       postId,
       userId,
       username,
-      timestamp: new Date().toISOString(),
-      userAgent: 'Telegram Bot',
-      source: 'telegram_bot'
+      timestamp: new Date().toISOString()
     };
     
-    console.log('Переход по ссылке отслеживания:', clickData);
-    
-    // Сохраняем данные перехода
     if (!trackingData.has(trackingId)) {
       trackingData.set(trackingId, {
         clicks: [],
-        stats: {
-          totalClicks: 0,
-          uniqueVisitors: 0,
-          conversions: 0,
-          unsubscribes: 0
-        }
+        stats: { totalClicks: 0, uniqueVisitors: 0, conversions: 0 }
       });
     }
     
@@ -69,11 +298,9 @@ async function handleTrackingLink(msg, params) {
     tracking.clicks.push(clickData);
     tracking.stats.totalClicks++;
     
-    // Проверяем уникальность пользователя
     const uniqueUsers = new Set(tracking.clicks.map(click => click.userId));
     tracking.stats.uniqueVisitors = uniqueUsers.size;
     
-    // Отправляем приветственное сообщение с кнопками
     const keyboard = {
       inline_keyboard: [
         [
@@ -85,245 +312,120 @@ async function handleTrackingLink(msg, params) {
           { text: '❌ Отписаться', callback_data: `unsubscribe_${trackingId}` }
         ],
         [
-          { text: '📤 Поделиться', callback_data: `share_${trackingId}` },
-          { text: '💬 Комментарий', callback_data: `comment_${trackingId}` }
+          { text: '🚀 Открыть WebApp', callback_data: 'open_webapp' }
         ]
       ]
     };
     
     await bot.sendMessage(chatId, 
-      `🔗 Добро пожаловать!\n\n` +
+      `🔗 *Добро пожаловать!*\n\n` +
       `Вы перешли по ссылке отслеживания.\n` +
-      `ID поста: ${postId}\n` +
-      `ID отслеживания: ${trackingId}\n\n` +
+      `📝 ID поста: \`${postId}\`\n` +
+      `🔗 ID отслеживания: \`${trackingId}\`\n\n` +
+      `📊 *Статистика:*\n` +
+      `• Переходов: ${tracking.stats.totalClicks}\n` +
+      `• Уникальных посетителей: ${tracking.stats.uniqueVisitors}\n\n` +
       `Выберите действие:`, 
-      { reply_markup: keyboard }
+      { 
+        parse_mode: 'Markdown',
+        reply_markup: keyboard 
+      }
     );
     
   } catch (error) {
-    console.error('Ошибка обработки ссылки отслеживания:', error);
-    await bot.sendMessage(chatId, 'Ошибка обработки ссылки. Попробуйте позже.');
+    console.error('❌ Ошибка обработки ссылки отслеживания:', error);
+    await bot.sendMessage(chatId, 'Произошла ошибка при обработке ссылки.');
   }
 }
 
-// Обработка callback запросов (нажатия на кнопки)
-bot.on('callback_query', async (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const userId = callbackQuery.from.id;
-  const data = callbackQuery.data;
+// Обработка действий отслеживания
+async function handleTrackingAction(query) {
+  const chatId = query.message.chat.id;
+  const data = query.data;
   
-  try {
-    const [action, id] = data.split('_');
-    
-    switch (action) {
-      case 'view':
-        await handleViewPost(chatId, id);
-        break;
-      case 'stats':
-        await handleShowStats(chatId, id);
-        break;
-      case 'subscribe':
-        await handleSubscribe(chatId, id, userId);
-        break;
-      case 'unsubscribe':
-        await handleUnsubscribe(chatId, id, userId);
-        break;
-      case 'share':
-        await handleShare(chatId, id);
-        break;
-      case 'comment':
-        await handleComment(chatId, id);
-        break;
-      default:
-        await bot.answerCallbackQuery(callbackQuery.id, { text: 'Неизвестное действие' });
-    }
-    
-    // Отвечаем на callback
-    await bot.answerCallbackQuery(callbackQuery.id);
-    
-  } catch (error) {
-    console.error('Ошибка обработки callback:', error);
-    await bot.answerCallbackQuery(callbackQuery.id, { text: 'Произошла ошибка' });
-  }
-});
-
-// Обработка просмотра поста
-async function handleViewPost(chatId, postId) {
-  // Здесь можно добавить логику для получения информации о посте
-  const postUrl = `https://t.me/kristina_egiazarova14/${postId}`;
-  
-  await bot.sendMessage(chatId,
-    `📝 Информация о посте:\n\n` +
-    `ID поста: ${postId}\n` +
-    `Ссылка: ${postUrl}\n\n` +
-    `Переходите по ссылке для просмотра поста.`
-  );
-  
-  // Логируем просмотр
-  console.log(`Пользователь ${chatId} просмотрел пост ${postId}`);
-}
-
-// Обработка показа статистики
-async function handleShowStats(chatId, trackingId) {
-  const tracking = trackingData.get(trackingId);
-  
-  if (!tracking) {
-    await bot.sendMessage(chatId, 'Статистика не найдена.');
-    return;
-  }
-  
-  const stats = tracking.stats;
-  const recentClicks = tracking.clicks.slice(-5); // Последние 5 переходов
-  
-  let statsMessage = `📊 Статистика отслеживания:\n\n`;
-  statsMessage += `👥 Всего переходов: ${stats.totalClicks}\n`;
-  statsMessage += `👤 Уникальных посетителей: ${stats.uniqueVisitors}\n`;
-  statsMessage += `✅ Конверсий: ${stats.conversions}\n`;
-  statsMessage += `❌ Отписок: ${stats.unsubscribes}\n\n`;
-  
-  if (recentClicks.length > 0) {
-    statsMessage += `🕐 Последние переходы:\n`;
-    recentClicks.forEach((click, index) => {
-      const time = new Date(click.timestamp).toLocaleString();
-      statsMessage += `${index + 1}. ${click.username || 'Пользователь'} - ${time}\n`;
-    });
-  }
-  
-  await bot.sendMessage(chatId, statsMessage);
-}
-
-// Обработка подписки
-async function handleSubscribe(chatId, trackingId, userId) {
-  // Логируем подписку
-  const actionData = {
-    trackingId,
-    userId,
-    action: 'subscribe',
-    timestamp: new Date().toISOString()
-  };
-  
-  console.log('Подписка пользователя:', actionData);
-  
-  // Обновляем статистику
-  const tracking = trackingData.get(trackingId);
-  if (tracking) {
-    tracking.stats.conversions++;
-  }
-  
-  await bot.sendMessage(chatId, 
-    `✅ Спасибо за подписку!\n\n` +
-    `Ваша подписка зафиксирована в статистике.`
-  );
-}
-
-// Обработка отписки
-async function handleUnsubscribe(chatId, trackingId, userId) {
-  // Логируем отписку
-  const actionData = {
-    trackingId,
-    userId,
-    action: 'unsubscribe',
-    timestamp: new Date().toISOString()
-  };
-  
-  console.log('Отписка пользователя:', actionData);
-  
-  // Обновляем статистику
-  const tracking = trackingData.get(trackingId);
-  if (tracking) {
-    tracking.stats.unsubscribes++;
-  }
-  
-  await bot.sendMessage(chatId, 
-    `❌ Отписка зафиксирована\n\n` +
-    `Ваша отписка записана в статистику.`
-  );
-}
-
-// Обработка репоста
-async function handleShare(chatId, trackingId) {
-  const shareUrl = `https://t.me/share/url?url=https://t.me/your_bot?start=track_${trackingId}`;
-  
-  await bot.sendMessage(chatId,
-    `📤 Поделитесь ссылкой:\n\n` +
-    `Ссылка для репоста: ${shareUrl}\n\n` +
-    `Или скопируйте ссылку отслеживания и поделитесь ею.`
-  );
-  
-  // Логируем репост
-  console.log(`Пользователь ${chatId} поделился ссылкой ${trackingId}`);
-}
-
-// Обработка комментария
-async function handleComment(chatId, trackingId) {
-  // Устанавливаем состояние ожидания комментария
-  userActions.set(chatId, { action: 'comment', trackingId });
-  
-  await bot.sendMessage(chatId,
-    `💬 Оставьте комментарий:\n\n` +
-    `Напишите ваш отзыв или комментарий к посту.`
-  );
-}
-
-// Обработка текстовых сообщений (для комментариев)
-bot.on('message', async (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  const text = msg.text;
-  
-  // Проверяем, ожидаем ли мы комментарий
-  const userAction = userActions.get(chatId);
-  
-  if (userAction && userAction.action === 'comment') {
-    // Логируем комментарий
-    const commentData = {
-      trackingId: userAction.trackingId,
-      userId,
-      username: msg.from.username,
-      comment: text,
-      timestamp: new Date().toISOString()
+  if (data === 'open_webapp') {
+    const keyboard = {
+      inline_keyboard: [
+        [
+          {
+            text: '🚀 Открыть WebApp',
+            web_app: { url: WEBAPP_URL }
+          }
+        ]
+      ]
     };
     
-    console.log('Комментарий пользователя:', commentData);
-    
-    await bot.sendMessage(chatId,
-      `💬 Спасибо за комментарий!\n\n` +
-      `Ваш отзыв: "${text}"\n\n` +
-      `Комментарий сохранён в статистике.`
-    );
-    
-    // Очищаем состояние
-    userActions.delete(chatId);
+    await bot.sendMessage(chatId, '🚀 Открываю революционный WebApp...', {
+      reply_markup: keyboard
+    });
+  } else {
+    await bot.sendMessage(chatId, `✅ Действие выполнено: ${data}`);
   }
-});
-
-// Приветственное сообщение
-async function sendWelcomeMessage(msg) {
-  const chatId = msg.chat.id;
-  
-  await bot.sendMessage(chatId,
-    `👋 Добро пожаловать в бот отслеживания!\n\n` +
-    `Этот бот помогает отслеживать переходы по ссылкам на посты и анализировать поведение пользователей.\n\n` +
-    `🔗 Для отслеживания используйте специальные ссылки, которые создаются в WebApp.\n\n` +
-    `📊 Вы можете просматривать статистику переходов, конверсий и других действий пользователей.`
-  );
 }
 
 // Обработка ошибок
 bot.on('error', (error) => {
-  console.error('Ошибка бота:', error);
+  console.error('❌ Ошибка бота:', error);
 });
 
 bot.on('polling_error', (error) => {
-  console.error('Ошибка polling:', error);
+  console.error('❌ Ошибка polling:', error);
 });
 
-// Запуск бота
-console.log('Бот отслеживания запущен...');
+// Установка команд бота
+bot.setMyCommands([
+  { command: '/start', description: '🚀 Запустить революционный WebApp' },
+  { command: '/stats', description: '📊 Показать статистику' },
+  { command: '/track', description: '🔗 Создать ссылку отслеживания' },
+  { command: '/help', description: '💬 Получить помощь' }
+]);
 
-// Экспорт для использования в других модулях
-module.exports = {
-  bot,
-  trackingData,
-  userActions
-}; 
+// Обработка команды /help
+bot.onText(/\/help/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  const helpText = `💬 *Помощь по использованию бота:*
+
+🚀 */start* - Запустить революционный WebApp
+📊 */stats* - Показать статистику
+🔗 */track* - Создать ссылку отслеживания
+💬 */help* - Показать эту справку
+
+🎯 *Возможности WebApp:*
+• Полноэкранный режим
+• Современный дизайн
+• Интерактивные элементы
+• Аналитика в реальном времени
+• Система отслеживания
+
+💡 *Для получения полного функционала откройте WebApp!*`;
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        {
+          text: '🚀 Открыть WebApp',
+          web_app: { url: WEBAPP_URL }
+        }
+      ]
+    ]
+  };
+
+  await bot.sendMessage(chatId, helpText, {
+    parse_mode: 'Markdown',
+    reply_markup: keyboard
+  });
+});
+
+// Обработка команды /stats
+bot.onText(/\/stats/, async (msg) => {
+  await showStats(msg.chat.id);
+});
+
+// Обработка команды /track
+bot.onText(/\/track/, async (msg) => {
+  await createTrackingLink(msg.chat.id);
+});
+
+console.log('✅ Революционный Telegram Bot готов к работе!');
+console.log('🤖 Используйте команду /start для начала работы'); 

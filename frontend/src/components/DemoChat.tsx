@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import BackButton from './BackButton';
 
 interface Message {
   id: string;
@@ -81,23 +82,42 @@ const DemoChat: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold">🤖</span>
-          </div>
-          <div>
-            <h2 className="font-semibold text-gray-800">Демо-бот</h2>
-            <p className="text-sm text-gray-500">Онлайн</p>
-          </div>
+      <div className="bg-white border-b px-4 py-3">
+        {/* Кнопка назад - более заметная */}
+        <div className="mb-3">
+          <button
+            onClick={() => {
+              if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.BackButton.click();
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all font-medium"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            ← Назад к главной
+          </button>
         </div>
-        <button
-          onClick={() => {
-            if (window.Telegram?.WebApp) {
-              window.Telegram.WebApp.close();
-            }
-          }}
-          className="text-gray-400 hover:text-gray-600"
+        
+        {/* Информация о боте */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold">🤖</span>
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-800">Демо-бот</h2>
+              <p className="text-sm text-gray-500">Онлайн</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.close();
+              }
+            }}
+            className="text-gray-400 hover:text-gray-600"
         >
           ✕
         </button>

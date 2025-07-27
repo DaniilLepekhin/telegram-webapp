@@ -81,9 +81,28 @@ const ChannelAnalytics: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Аналитика каналов</h1>
-          <p className="text-lg text-gray-600">Отслеживайте подписчиков и источники трафика</p>
+        <div className="mb-8">
+          {/* Кнопка назад */}
+          <div className="mb-4">
+            <button
+              onClick={() => {
+                if (window.Telegram?.WebApp) {
+                  window.Telegram.WebApp.BackButton.click();
+                }
+              }}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105 font-medium"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              ← Назад к главной
+            </button>
+          </div>
+          
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">Аналитика каналов</h1>
+            <p className="text-lg text-gray-600">Отслеживайте подписчиков и источники трафика</p>
+          </div>
         </div>
 
         {/* Channel Selector */}
