@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import BackButton from './BackButton';
-import LogsCopy from './LogsCopy';
-import { useLogs } from '../contexts/LogsContext';
 
 interface Case {
   id: number;
@@ -55,7 +53,6 @@ const cases: Case[] = [
 const Showcase: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
-  const { logs } = useLogs();
 
   const categories = ['all', ...Array.from(new Set(cases.map(c => c.category)))];
   const filteredCases = selectedCategory === 'all' 
@@ -170,8 +167,7 @@ const Showcase: React.FC = () => {
         )}
       </div>
       
-      {/* Логи консоли */}
-      <LogsCopy logs={logs} />
+
     </div>
   );
 };

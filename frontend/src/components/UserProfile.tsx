@@ -125,16 +125,10 @@ const UserProfile: React.FC = () => {
   };
 
   const handleBack = () => {
-    console.log('🔙 handleBack вызван в UserProfile');
-    // Простое решение - возвращаемся на главную страницу
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.BackButton.onClick(() => {
-        console.log('🔙 BackButton onClick в UserProfile');
-        // Перезагружаем страницу для возврата на главную
-        window.location.reload();
-      });
-      // Симулируем клик
-      window.Telegram.WebApp.BackButton.onClick(() => {})();
+    if ((window as any).handleGoBack) {
+      (window as any).handleGoBack();
+    } else {
+      window.location.reload();
     }
   };
 

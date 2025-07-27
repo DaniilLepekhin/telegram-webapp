@@ -303,22 +303,8 @@ function AppContent() {
         // Скрываем MainButton - он не нужен
         webApp.MainButton.hide();
         
-        // Настраиваем BackButton с актуальным состоянием
-        addLog('🔧 Настраиваем BackButton...');
-        addLog(`🔧 BackButton доступен: ${!!webApp.BackButton}`);
-        addLog(`🔧 BackButton методы: ${Object.keys(webApp.BackButton).join(', ')}`);
-        
         // НЕ используем Telegram BackButton API - он закрывает приложение
         // Вместо этого используем нашу собственную кнопку
-        addLog('🔧 Telegram BackButton API отключен (закрывает приложение)');
-        addLog('🔧 Используем собственную кнопку "Назад"');
-        
-        // Показываем BackButton только если не на главной странице
-        if (currentPage === 'main') {
-          webApp.BackButton.hide();
-        } else {
-          webApp.BackButton.show();
-        }
         
         // Включаем подтверждение закрытия
         webApp.enableClosingConfirmation();
@@ -373,7 +359,6 @@ function AppContent() {
         
         // Глобальная функция для обработки навигации назад
         (window as any).handleGoBack = () => {
-          addLog('🔙 Вызвана глобальная функция handleGoBack');
           goBack();
         };
         
@@ -419,12 +404,9 @@ function AppContent() {
   }, [currentPage]);
 
     const navigateTo = (page: Page) => {
-    addLog('🧭 Навигация на страницу: ' + page);
-    
     // Добавляем текущую страницу в историю
     setNavigationHistory(prev => {
       const newHistory = [...prev, page];
-      addLog('📚 Обновленная история навигации: ' + newHistory.join(' → '));
       return newHistory;
     });
     setCurrentPage(page);
@@ -432,42 +414,22 @@ function AppContent() {
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
 
-      // НЕ используем Telegram BackButton API - он закрывает приложение
-      // Вместо этого используем нашу собственную кнопку "Назад"
-      addLog('🔧 Используем собственную кнопку "Назад" вместо Telegram API');
-
       // Всегда скрываем MainButton - он не нужен
       webApp.MainButton.hide();
-      
-      addLog('✅ Навигация завершена');
     }
   };
 
   // Функция для возврата назад
   const goBack = () => {
-    addLog('🔙 Вызвана функция goBack');
-    addLog('📚 История навигации: ' + navigationHistory.join(' → '));
-    
     if (navigationHistory.length > 1) {
       // Удаляем текущую страницу из истории
       const newHistory = navigationHistory.slice(0, -1);
       const previousPage = newHistory[newHistory.length - 1];
       
-      addLog('🔙 Возвращаемся на страницу: ' + previousPage);
-      
       setNavigationHistory(newHistory);
       setCurrentPage(previousPage);
-      
-      // Обновляем видимость BackButton
-      if (window.Telegram?.WebApp) {
-        if (previousPage === 'main') {
-          window.Telegram.WebApp.BackButton.hide();
-        } else {
-          window.Telegram.WebApp.BackButton.show();
-        }
-      }
     } else {
-      addLog('🔙 Закрываем WebApp');
+      // Если мы на главной странице, закрываем приложение
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.close();
       }
@@ -598,72 +560,12 @@ function AppContent() {
                   ⚙️ Интеграция с Telegram
                 </button>
                 
-                <button
-                  onClick={() => navigateTo('test-back')}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-bold hover:from-yellow-400 hover:to-orange-400 transition-all transform hover:scale-105 text-base sm:text-lg border-2 border-black"
-                >
-                  🧪 ТЕСТ КНОПКИ "НАЗАД"
-                </button>
-                
-                <button
-                  onClick={() => {
-                    addLog('🧪 ТЕСТ: Ручное нажатие BackButton');
-                    if (window.Telegram?.WebApp?.BackButton) {
-                      addLog('🧪 ТЕСТ: BackButton найден, вызываем onClick');
-                      const handler = () => {
-                        addLog('🧪 ТЕСТ: Ручной onClick сработал!');
-                      };
-                      window.Telegram.WebApp.BackButton.onClick(handler);
-                      // Симулируем клик
-                      handler();
-                    } else {
-                      addLog('🧪 ТЕСТ: BackButton НЕ найден!');
-                    }
-                  }}
-                  className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-bold hover:from-red-400 hover:to-pink-400 transition-all transform hover:scale-105 text-base sm:text-lg border-2 border-white"
-                >
-                  🧪 РУЧНОЙ ТЕСТ BackButton
-                </button>
-                
-                <button
-                  onClick={() => {
-                    addLog('🔍 ДИАГНОСТИКА BackButton API');
-                    if (window.Telegram?.WebApp?.BackButton) {
-                      const backButton = window.Telegram.WebApp.BackButton;
-                      addLog('🔍 BackButton.isVisible: ' + backButton.isVisible);
-                      addLog('🔍 BackButton методы: ' + Object.keys(backButton).join(', '));
-                      
-                      // Тестируем show/hide
-                      addLog('🔍 Тестируем BackButton.show()');
-                      backButton.show();
-                      setTimeout(() => {
-                        addLog('🔍 BackButton.isVisible после show: ' + backButton.isVisible);
-                        addLog('🔍 Тестируем BackButton.hide()');
-                        backButton.hide();
-                        setTimeout(() => {
-                          addLog('🔍 BackButton.isVisible после hide: ' + backButton.isVisible);
-                        }, 100);
-                      }, 100);
-                    } else {
-                      addLog('🔍 BackButton НЕ найден!');
-                    }
-                  }}
-                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-bold hover:from-purple-400 hover:to-indigo-400 transition-all transform hover:scale-105 text-base sm:text-lg border-2 border-white"
-                >
-                  🔍 ДИАГНОСТИКА BackButton API
-                </button>
+
               </div>
               
-              {/* Логи консоли */}
-              <LogsCopy logs={logs} />
+
               
-              {/* Статус кнопок */}
-              <div className="mt-6 p-4 bg-black bg-opacity-20 rounded-lg text-sm">
-                <p>🔘 MainButton: {mainButtonClicked ? 'Нажат ✅' : 'Ожидает'}</p>
-                <p>⬅️ BackButton: {backButtonClicked ? 'Нажат ✅' : 'Ожидает'}</p>
-                <p>📚 История: {navigationHistory.join(' → ')}</p>
-                <p>📍 Текущая: {currentPage}</p>
-              </div>
+
             </div>
           </div>
         );

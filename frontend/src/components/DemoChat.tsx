@@ -79,25 +79,22 @@ const DemoChat: React.FC = () => {
     }
   };
 
+  const handleBack = () => {
+    if ((window as any).handleGoBack) {
+      (window as any).handleGoBack();
+    } else {
+      window.location.reload();
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b px-4 py-3">
-        {/* Кнопка назад - более заметная */}
-        <div className="mb-3">
-          <button
-            onClick={() => {
-              if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.BackButton.click();
-              }
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all font-medium"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            ← Назад к главной
-          </button>
+    <div className="min-h-screen p-4 relative">
+      {/* Красивая кнопка "Назад" */}
+      <BackButton onClick={handleBack} />
+      
+      <div className="flex flex-col h-full bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b px-4 py-3">
         </div>
         
         {/* Информация о боте */}
