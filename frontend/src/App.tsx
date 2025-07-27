@@ -188,8 +188,6 @@ function AppContent() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [initData, setInitData] = useState('');
   const [navigationHistory, setNavigationHistory] = useState<Page[]>(['main']);
-  const [navigationQueue, setNavigationQueue] = useState<Page[]>([]);
-  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   
   const { logs, addLog } = useLogs();
 
@@ -410,30 +408,25 @@ function AppContent() {
   }, [currentPage]);
 
     // Функция для обработки очереди навигации
-    const processNavigationQueue = () => {
-      if (isProcessingQueue || navigationQueue.length === 0) return;
-      
-      setIsProcessingQueue(true);
-      const nextPage = navigationQueue[0];
-      
-      console.log('🔄 Обрабатываем навигацию к странице:', nextPage);
+    const navigateTo = (page: Page) => {
+      // Если пытаемся перейти на ту же страницу, игнорируем
+      if (currentPage === page) {
+        console.log('🚫 Попытка перехода на текущую страницу:', page);
+        return;
+      }
+
+      console.log('🔄 Переход к странице:', page);
       console.log('📍 Текущая страница:', currentPage);
       
-      // Добавляем текущую страницу в историю только если она не 'main' и не пустая
+      // Добавляем новую страницу в историю
       setNavigationHistory(prev => {
-        let newHistory: Page[];
-        if (currentPage === 'main') {
-          // Если мы на главной, начинаем новую историю
-          newHistory = ['main', nextPage];
-        } else {
-          // Если мы не на главной, добавляем к существующей истории
-          newHistory = [...prev, nextPage];
-        }
+        const newHistory = [...prev, page];
         console.log('📚 Обновлена история навигации:', newHistory);
         return newHistory;
       });
       
-      setCurrentPage(nextPage);
+      // Устанавливаем новую страницу
+      setCurrentPage(page);
       
       // Прокручиваем к верху страницы
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -443,33 +436,6 @@ function AppContent() {
         // Всегда скрываем MainButton - он не нужен
         webApp.MainButton.hide();
       }
-      
-      // Удаляем обработанную страницу из очереди
-      setNavigationQueue(prev => prev.slice(1));
-      
-      // Через небольшую задержку обрабатываем следующую страницу
-      setTimeout(() => {
-        setIsProcessingQueue(false);
-        processNavigationQueue(); // Проверяем, есть ли еще страницы в очереди
-      }, 100);
-    };
-
-    const navigateTo = (page: Page) => {
-      // Если пытаемся перейти на ту же страницу, игнорируем
-      if (currentPage === page) {
-        console.log('🚫 Попытка перехода на текущую страницу:', page);
-        return;
-      }
-
-      console.log('➕ Добавляем в очередь навигации:', page);
-      
-      // Добавляем страницу в очередь
-      setNavigationQueue(prev => [...prev, page]);
-      
-      // Запускаем обработку очереди
-      setTimeout(() => {
-        processNavigationQueue();
-      }, 0);
     };
 
   // Функция для возврата назад
@@ -480,30 +446,25 @@ function AppContent() {
     // Проверяем, находимся ли мы на главной странице
     if (currentPage === 'main') {
       console.log('🏠 Уже на главной странице, показываем уведомление');
-      // Если мы на главной странице, показываем уведомление
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.showAlert('Вы уже на главной странице');
       }
       return;
     }
 
-    // Если мы не на главной странице, возвращаемся назад
+    // Если история содержит больше одной страницы, возвращаемся назад
     if (navigationHistory.length > 1) {
-      // Удаляем текущую страницу из истории
       const newHistory = navigationHistory.slice(0, -1);
       const previousPage = newHistory[newHistory.length - 1];
       
       console.log('⬅️ Возвращаемся к странице:', previousPage);
       console.log('📚 Обновленная история:', newHistory);
       
-      // Сначала обновляем страницу, потом историю
       setCurrentPage(previousPage);
       setNavigationHistory(newHistory);
-      
-      // Прокручиваем к верху страницы
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Если история пуста или содержит только одну страницу, возвращаемся на главную
+      // Если история пуста, возвращаемся на главную
       console.log('🏠 История пуста, возвращаемся на главную');
       setCurrentPage('main');
       setNavigationHistory(['main']);
