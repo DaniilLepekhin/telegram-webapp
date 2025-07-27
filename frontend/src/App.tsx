@@ -13,6 +13,7 @@ import WebAppInfo from './components/WebAppInfo';
 import FullscreenManager from './components/FullscreenManager';
 import DetailedDiagnostics from './components/DetailedDiagnostics';
 import ScreenshotHelper from './components/ScreenshotHelper';
+import FullscreenControls from './components/FullscreenControls';
 
 // Глобальная переменная для Telegram WebApp
 declare global {
@@ -263,6 +264,22 @@ function App() {
         webApp.expand();
         setIsExpanded(true);
         
+        // Пробуем включить полноэкранный режим (Bot API 8.0+)
+        if (webApp.isVersionAtLeast && webApp.isVersionAtLeast('8.0')) {
+          try {
+            // Запрашиваем полноэкранный режим
+            if (document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen().then(() => {
+                console.log('🖼️ Полноэкранный режим включен!');
+              }).catch((error) => {
+                console.log('⚠️ Не удалось включить полноэкранный режим:', error);
+              });
+            }
+          } catch (error) {
+            console.log('⚠️ Ошибка при включении полноэкранного режима:', error);
+          }
+        }
+        
         // Устанавливаем высоту viewport
         setViewportHeight(webApp.viewportHeight);
         
@@ -286,15 +303,25 @@ function App() {
         });
         
         // Настраиваем BackButton
-        webApp.BackButton.show();
         webApp.BackButton.onClick(() => {
           setBackButtonClicked(true);
+          console.log('🔙 BackButton нажат, текущая страница:', currentPage);
+          
           if (currentPage === 'main') {
+            console.log('🔙 Закрываем WebApp');
             webApp.close();
           } else {
+            console.log('🔙 Возвращаемся на главную страницу');
             setCurrentPage('main');
           }
         });
+        
+        // Показываем BackButton только если не на главной странице
+        if (currentPage === 'main') {
+          webApp.BackButton.hide();
+        } else {
+          webApp.BackButton.show();
+        }
         
         // Включаем подтверждение закрытия
         webApp.enableClosingConfirmation();
@@ -392,14 +419,18 @@ function App() {
   }, [currentPage]);
 
   const navigateTo = (page: Page) => {
+    console.log('🧭 Навигация на страницу:', page);
     setCurrentPage(page);
+    
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       
       // Показываем BackButton только если не на главной странице
       if (page === 'main') {
+        console.log('🔙 Скрываем BackButton (главная страница)');
         webApp.BackButton.hide();
       } else {
+        console.log('🔙 Показываем BackButton (не главная страница)');
         webApp.BackButton.show();
       }
       
@@ -420,6 +451,8 @@ function App() {
         default:
           webApp.MainButton.setText('🚀 Отправить данные');
       }
+      
+      console.log('✅ Навигация завершена, BackButton видимость:', page !== 'main');
     }
   };
 
@@ -479,6 +512,9 @@ function App() {
               
               {/* Помощь со скриншотом */}
               <ScreenshotHelper />
+              
+              {/* Управление полноэкранным режимом */}
+              <FullscreenControls />
               
               <div className="space-y-4">
                 <button
