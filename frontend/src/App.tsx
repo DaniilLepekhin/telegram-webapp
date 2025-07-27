@@ -169,9 +169,13 @@ function AppContent() {
     }
 
     console.log('🔄 Переход к странице:', page, 'с', currentPage);
+    console.log('📚 Текущая история:', navigationHistory);
     
     // Обновляем историю навигации
-    setNavigationHistory(prev => [...prev, page]);
+    const newHistory = [...navigationHistory, page];
+    console.log('📝 Новая история:', newHistory);
+    
+    setNavigationHistory(newHistory);
     
     // Устанавливаем новую страницу
     setCurrentPage(page);
@@ -190,6 +194,7 @@ function AppContent() {
   const goBack = () => {
     console.log('🔄 Возврат назад с страницы:', currentPage);
     console.log('📚 История навигации:', navigationHistory);
+    console.log('🔍 Текущее состояние:', { currentPage, navigationHistoryLength: navigationHistory.length });
 
     // Если мы на главной странице, не показываем кнопку "Назад" вообще
     if (currentPage === 'main') {
@@ -202,6 +207,7 @@ function AppContent() {
       const previousPage = newHistory[newHistory.length - 1];
       
       console.log('⬅️ Возвращаемся к:', previousPage);
+      console.log('📝 Новая история:', newHistory);
       
       setNavigationHistory(newHistory);
       setCurrentPage(previousPage);

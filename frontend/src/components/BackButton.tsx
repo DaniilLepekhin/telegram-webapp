@@ -41,7 +41,10 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => {
+        console.log('🔘 BackButton clicked!');
+        onClick();
+      }}
       className={`${getButtonPosition()} w-12 h-12 bg-white/95 backdrop-blur-xl border-2 border-white/80 rounded-full shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group`}
       aria-label="Назад"
     >
