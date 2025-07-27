@@ -15,6 +15,7 @@ import DetailedDiagnostics from './components/DetailedDiagnostics';
 import ScreenshotHelper from './components/ScreenshotHelper';
 import FullscreenControls from './components/FullscreenControls';
 import LogsCopy from './components/LogsCopy';
+import { LogsProvider, useLogs } from './contexts/LogsContext';
 
 // Глобальная переменная для Telegram WebApp
 declare global {
@@ -173,7 +174,7 @@ const tg = window.Telegram?.WebApp;
 
 type Page = 'main' | 'showcase' | 'chat' | 'referral' | 'profile' | 'analytics' | 'channel-analytics' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'test-back';
 
-function App() {
+function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('main');
   const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
   const [webAppInfo, setWebAppInfo] = useState<any>(null);
@@ -184,15 +185,8 @@ function App() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [initData, setInitData] = useState('');
   const [navigationHistory, setNavigationHistory] = useState<Page[]>(['main']);
-  const [logs, setLogs] = useState<string[]>([]);
-
-  // Функция для добавления логов
-  const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    const logEntry = `[${timestamp}] ${message}`;
-    setLogs(prev => [...prev, logEntry]);
-    console.log(logEntry);
-  };
+  
+  const { logs, addLog } = useLogs();
 
   useEffect(() => {
     // Проверяем, запущен ли Mini App в Telegram
@@ -720,6 +714,14 @@ function App() {
     <div className="app-container">
       {renderPage()}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <LogsProvider>
+      <AppContent />
+    </LogsProvider>
   );
 }
 
