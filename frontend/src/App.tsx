@@ -417,10 +417,18 @@ function AppContent() {
       const nextPage = navigationQueue[0];
       
       console.log('🔄 Обрабатываем навигацию к странице:', nextPage);
+      console.log('📍 Текущая страница:', currentPage);
       
-      // Добавляем текущую страницу в историю
+      // Добавляем текущую страницу в историю только если она не 'main' и не пустая
       setNavigationHistory(prev => {
-        const newHistory = [...prev, nextPage];
+        let newHistory: Page[];
+        if (currentPage === 'main') {
+          // Если мы на главной, начинаем новую историю
+          newHistory = ['main', nextPage];
+        } else {
+          // Если мы не на главной, добавляем к существующей истории
+          newHistory = [...prev, nextPage];
+        }
         console.log('📚 Обновлена история навигации:', newHistory);
         return newHistory;
       });
@@ -488,16 +496,17 @@ function AppContent() {
       console.log('⬅️ Возвращаемся к странице:', previousPage);
       console.log('📚 Обновленная история:', newHistory);
       
-      setNavigationHistory(newHistory);
+      // Сначала обновляем страницу, потом историю
       setCurrentPage(previousPage);
+      setNavigationHistory(newHistory);
       
       // Прокручиваем к верху страницы
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Если история пуста или содержит только одну страницу, возвращаемся на главную
       console.log('🏠 История пуста, возвращаемся на главную');
-      setNavigationHistory(['main']);
       setCurrentPage('main');
+      setNavigationHistory(['main']);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
