@@ -438,6 +438,177 @@ function AppContent() {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'main':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+              <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+            </div>
+
+            <div className="relative z-10 p-4 sm:p-6">
+              {/* Header */}
+              <div className="text-center mb-8 fade-in">
+                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl mb-4 shadow-2xl">
+                  <span className="text-2xl sm:text-3xl">🚀</span>
+                </div>
+                <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
+                  Telegram Mini App
+                </h1>
+                <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
+                  Современная платформа для аналитики каналов и управления контентом
+                </p>
+              </div>
+
+              {/* Main Menu Grid */}
+              <div className="max-w-4xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  {/* Analytics Card */}
+                  <div 
+                    onClick={() => navigateTo('analytics')}
+                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-xl">📊</span>
+                        </div>
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Аналитика</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
+                        Подробная статистика и аналитика ваших каналов
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Showcase Card */}
+                  <div 
+                    onClick={() => navigateTo('showcase')}
+                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-xl">💎</span>
+                        </div>
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Витрина кейсов</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
+                        Лучшие примеры и кейсы успешных проектов
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Chat Card */}
+                  <div 
+                    onClick={() => navigateTo('chat')}
+                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-xl">💬</span>
+                        </div>
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Демо-чат</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
+                        Попробуйте наш интеллектуальный чат-бот
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Profile Card */}
+                  <div 
+                    onClick={() => navigateTo('profile')}
+                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-xl">👤</span>
+                        </div>
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Профиль</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
+                        Ваш личный кабинет и настройки
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Channel Analytics Card */}
+                  <div 
+                    onClick={() => navigateTo('channel-analytics')}
+                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer sm:col-span-2"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-xl">📈</span>
+                        </div>
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Аналитика каналов</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
+                        Продвинутая аналитика и отслеживание эффективности ваших Telegram каналов
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                    <div className="text-2xl font-bold text-white">2.5K</div>
+                    <div className="text-white/60 text-sm">Активных пользователей</div>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                    <div className="text-2xl font-bold text-white">156</div>
+                    <div className="text-white/60 text-sm">Проанализированных каналов</div>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                    <div className="text-2xl font-bold text-white">98%</div>
+                    <div className="text-white/60 text-sm">Точность данных</div>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                    <div className="text-2xl font-bold text-white">24/7</div>
+                    <div className="text-white/60 text-sm">Поддержка</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       case 'showcase':
         return <Showcase />;
       case 'chat':
