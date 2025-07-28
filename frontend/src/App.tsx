@@ -138,22 +138,32 @@ function App() {
     };
 
     return (
-      <div className="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg max-w-sm text-xs z-50">
-        <div className="flex justify-between items-center mb-2">
-          <div className="font-bold">📊 Диагностика скролла:</div>
-          <button 
-            onClick={copyLogs}
-            className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs"
-          >
-            📋 Копировать
-          </button>
+      <div className="fixed bottom-32 left-4 right-4 bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-4 z-[9998] max-h-64 overflow-hidden">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-white font-semibold text-sm">🔍 Отладочные логи</h3>
+          <div className="flex gap-2">
+            <button
+              onClick={copyLogs}
+              className="px-3 py-1 bg-green-500/80 text-white text-xs rounded-lg hover:bg-green-500 transition-colors"
+            >
+              📋 Копировать
+            </button>
+            <button
+              onClick={() => setLogs([])}
+              className="px-3 py-1 bg-red-500/80 text-white text-xs rounded-lg hover:bg-red-500 transition-colors"
+            >
+              🗑️ Очистить
+            </button>
+          </div>
         </div>
-        {logs.map((log, index) => (
-          <div key={index} className="mb-1 text-green-300">{log}</div>
-        ))}
-        {logs.length === 0 && (
-          <div className="text-gray-400">Ожидание логов...</div>
-        )}
+        
+        <div className="overflow-y-auto max-h-32">
+          {logs.map((log, index) => (
+            <div key={index} className="text-white/80 text-xs font-mono mb-1">
+              {log}
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -174,7 +184,7 @@ function App() {
             </div>
 
             {/* Кнопка полноэкранного режима */}
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
 
             <div className="relative z-10 p-4 sm:p-6">
               {/* Header */}
@@ -440,7 +450,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <ChannelAnalytics />
           </div>
         );
@@ -450,7 +460,7 @@ function App() {
         return (
           <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <div className="relative z-10 p-4 sm:p-6">
               <div className="max-w-4xl mx-auto">
                 <h1 className="text-3xl font-bold text-white mb-6 text-center">🎯 Витрина кейсов</h1>
@@ -478,7 +488,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <DemoChat />
           </div>
         );
@@ -488,7 +498,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <ReferralSystem />
           </div>
         );
@@ -498,7 +508,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <UserProfile />
           </div>
         );
@@ -508,7 +518,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <AnalyticsFeedback />
           </div>
         );
@@ -518,7 +528,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <PostAnalytics />
           </div>
         );
@@ -528,7 +538,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <TelegramIntegration />
           </div>
         );
@@ -538,7 +548,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <PostTracking />
           </div>
         );
@@ -548,7 +558,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <PostBuilder />
           </div>
         );
@@ -558,7 +568,7 @@ function App() {
         return (
           <div>
             <BackButton onClick={goBack} />
-            <FullscreenButton />
+            <FullscreenButton onLog={addLog} />
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
               <div className="text-center text-white">
                 <h1 className="text-2xl font-bold mb-4">Страница не найдена</h1>

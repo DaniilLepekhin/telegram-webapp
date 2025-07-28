@@ -1,38 +1,64 @@
 import React, { useState, useEffect } from 'react';
 
-const FullscreenButton: React.FC = () => {
+interface FullscreenButtonProps {
+  onLog?: (message: string) => void;
+}
+
+const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    console.log('🔍 FullscreenButton useEffect - инициализация');
+    const logMessage = '🔍 FullscreenButton useEffect - инициализация';
+    console.log(logMessage);
+    onLog?.(logMessage);
     
     // Проверяем Telegram WebApp API
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       
-      console.log('📱 Telegram WebApp доступен:');
-      console.log('  - webApp.isExpanded:', webApp.isExpanded);
-      console.log('  - webApp.viewportHeight:', webApp.viewportHeight);
-      console.log('  - webApp.viewportStableHeight:', webApp.viewportStableHeight);
-      console.log('  - webApp.platform:', webApp.platform);
-      console.log('  - webApp.version:', webApp.version);
-      console.log('  - webApp.colorScheme:', webApp.colorScheme);
-      console.log('  - webApp.themeParams:', webApp.themeParams);
+      const logs = [
+        '📱 Telegram WebApp доступен:',
+        `  - webApp.isExpanded: ${webApp.isExpanded}`,
+        `  - webApp.viewportHeight: ${webApp.viewportHeight}`,
+        `  - webApp.viewportStableHeight: ${webApp.viewportStableHeight}`,
+        `  - webApp.platform: ${webApp.platform}`,
+        `  - webApp.version: ${webApp.version}`,
+        `  - webApp.colorScheme: ${webApp.colorScheme}`,
+        `  - webApp.themeParams: ${JSON.stringify(webApp.themeParams)}`
+      ];
+      
+      logs.forEach(log => {
+        console.log(log);
+        onLog?.(log);
+      });
       
       setIsExpanded(webApp.isExpanded);
     } else {
-      console.log('❌ Telegram WebApp недоступен');
+      const logMessage = '❌ Telegram WebApp недоступен';
+      console.log(logMessage);
+      onLog?.(logMessage);
     }
 
     // Слушаем изменения полноэкранного режима
     const handleViewportChange = () => {
-      console.log('🔄 FullscreenButton viewportChanged event');
+      const logMessage = '🔄 FullscreenButton viewportChanged event';
+      console.log(logMessage);
+      onLog?.(logMessage);
+      
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
-        console.log('  - webApp.isExpanded:', webApp.isExpanded);
-        console.log('  - webApp.viewportHeight:', webApp.viewportHeight);
-        console.log('  - webApp.viewportStableHeight:', webApp.viewportStableHeight);
+        const logs = [
+          `  - webApp.isExpanded: ${webApp.isExpanded}`,
+          `  - webApp.viewportHeight: ${webApp.viewportHeight}`,
+          `  - webApp.viewportStableHeight: ${webApp.viewportStableHeight}`
+        ];
+        
+        logs.forEach(log => {
+          console.log(log);
+          onLog?.(log);
+        });
+        
         setIsExpanded(webApp.isExpanded);
       }
     };
@@ -40,72 +66,119 @@ const FullscreenButton: React.FC = () => {
     // Слушаем изменения браузерного полноэкранного режима
     const handleFullscreenChange = () => {
       const isFullscreenNow = !!document.fullscreenElement;
-      console.log('🖥️ Browser fullscreen change:', isFullscreenNow);
+      const logMessage = `🖥️ Browser fullscreen change: ${isFullscreenNow}`;
+      console.log(logMessage);
+      onLog?.(logMessage);
       setIsFullscreen(isFullscreenNow);
     };
 
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.onEvent('viewportChanged', handleViewportChange);
-      console.log('✅ viewportChanged listener добавлен');
+      const viewportLogMessage = '✅ viewportChanged listener добавлен';
+      console.log(viewportLogMessage);
+      onLog?.(viewportLogMessage);
     }
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    console.log('✅ fullscreenchange listener добавлен');
+    const fullscreenLogMessage = '✅ fullscreenchange listener добавлен';
+    console.log(fullscreenLogMessage);
+    onLog?.(fullscreenLogMessage);
 
     return () => {
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.offEvent('viewportChanged', handleViewportChange);
-        console.log('🧹 viewportChanged listener удален');
+        const viewportRemoveLogMessage = '🧹 viewportChanged listener удален';
+        console.log(viewportRemoveLogMessage);
+        onLog?.(viewportRemoveLogMessage);
       }
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      console.log('🧹 fullscreenchange listener удален');
+      const fullscreenRemoveLogMessage = '🧹 fullscreenchange listener удален';
+      console.log(fullscreenRemoveLogMessage);
+      onLog?.(fullscreenRemoveLogMessage);
     };
   }, []);
 
   const toggleFullscreen = () => {
-    console.log('🔘 FullscreenButton toggleFullscreen вызвана');
-    console.log('  - isExpanded state:', isExpanded);
-    console.log('  - isFullscreen state:', isFullscreen);
+    const logs = [
+      '🔘 FullscreenButton toggleFullscreen вызвана',
+      `  - isExpanded state: ${isExpanded}`,
+      `  - isFullscreen state: ${isFullscreen}`
+    ];
+    
+    logs.forEach(log => {
+      console.log(log);
+      onLog?.(log);
+    });
     
     try {
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
         
-        console.log('📱 Telegram WebApp состояние:');
-        console.log('  - webApp.isExpanded:', webApp.isExpanded);
-        console.log('  - webApp.viewportHeight:', webApp.viewportHeight);
-        console.log('  - webApp.viewportStableHeight:', webApp.viewportStableHeight);
-        console.log('  - webApp.platform:', webApp.platform);
-        console.log('  - webApp.version:', webApp.version);
+        const webAppLogs = [
+          '📱 Telegram WebApp состояние:',
+          `  - webApp.isExpanded: ${webApp.isExpanded}`,
+          `  - webApp.viewportHeight: ${webApp.viewportHeight}`,
+          `  - webApp.viewportStableHeight: ${webApp.viewportStableHeight}`,
+          `  - webApp.platform: ${webApp.platform}`,
+          `  - webApp.version: ${webApp.version}`
+        ];
+        
+        webAppLogs.forEach(log => {
+          console.log(log);
+          onLog?.(log);
+        });
         
         if (!webApp.isExpanded) {
           // Расширяем на весь экран
-          console.log('🖼️ Вызываем webApp.expand()');
+          const expandLogs = [
+            '🖼️ Вызываем webApp.expand()',
+            '✅ webApp.expand() выполнен'
+          ];
+          
+          expandLogs.forEach(log => {
+            console.log(log);
+            onLog?.(log);
+          });
+          
           webApp.expand();
-          console.log('✅ webApp.expand() выполнен');
         } else {
           // В Telegram Mini Apps нет прямого API для выхода из полноэкранного режима
           // Пользователь должен использовать кнопку "Назад" в Telegram
-          console.log('📱 Mini App уже в полноэкранном режиме. Используйте кнопку "Назад" в Telegram для выхода.');
+          const alreadyExpandedLog = '📱 Mini App уже в полноэкранном режиме. Используйте кнопку "Назад" в Telegram для выхода.';
+          console.log(alreadyExpandedLog);
+          onLog?.(alreadyExpandedLog);
           
           // НЕ показываем уведомление - это раздражает пользователя
           // webApp.showAlert('Используйте кнопку "Назад" в Telegram для выхода из полноэкранного режима');
         }
       } else {
         // Fallback для браузера
-        console.log('🖥️ Используем браузерный fallback');
-        console.log('  - document.fullscreenElement:', document.fullscreenElement);
+        const fallbackLogs = [
+          '🖥️ Используем браузерный fallback',
+          `  - document.fullscreenElement: ${document.fullscreenElement}`
+        ];
+        
+        fallbackLogs.forEach(log => {
+          console.log(log);
+          onLog?.(log);
+        });
         
         if (!document.fullscreenElement) {
-          console.log('🖼️ Вызываем document.documentElement.requestFullscreen()');
+          const requestLog = '🖼️ Вызываем document.documentElement.requestFullscreen()';
+          console.log(requestLog);
+          onLog?.(requestLog);
           document.documentElement.requestFullscreen();
         } else {
-          console.log('📱 Вызываем document.exitFullscreen()');
+          const exitLog = '📱 Вызываем document.exitFullscreen()';
+          console.log(exitLog);
+          onLog?.(exitLog);
           document.exitFullscreen();
         }
       }
     } catch (error) {
-      console.error('❌ Ошибка переключения полноэкранного режима:', error);
+      const errorLog = `❌ Ошибка переключения полноэкранного режима: ${error}`;
+      console.error(errorLog);
+      onLog?.(errorLog);
     }
   };
 
