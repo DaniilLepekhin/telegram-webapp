@@ -461,10 +461,34 @@ function App() {
         console.log('🛠️ Загружаем PostBuilder');
         addLog('🛠️ Загружаем PostBuilder');
         return (
-          <div>
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
             <BackButton onClick={goBack} />
             <FullscreenButton />
-            <PostBuilder />
+            <div className="max-w-4xl mx-auto p-4 sm:p-6">
+              <div className="text-center mb-8 fade-in">
+                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl mb-4 shadow-2xl">
+                  <span className="text-2xl sm:text-3xl">🧪</span>
+                </div>
+                <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
+                  ТЕСТОВАЯ СТРАНИЦА
+                </h1>
+                <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
+                  Если вы видите это, значит рендеринг работает!
+                </p>
+              </div>
+              
+              <div className="glass-card p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Диагностика</h2>
+                <p className="text-white/70 mb-4">
+                  Эта страница загружена из App.tsx напрямую, без PostBuilder компонента.
+                </p>
+                <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
+                  <p className="text-green-300 text-sm">
+                    ✅ Рендеринг работает! Проблема была не в PostBuilder
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
