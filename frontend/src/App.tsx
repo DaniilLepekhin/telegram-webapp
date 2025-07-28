@@ -194,45 +194,23 @@ function AppContent() {
 
   // Функция навигации
   const navigateTo = (page: Page) => {
-    console.log('🚀 navigateTo вызвана с page:', page);
-    console.log('🚀 Текущий currentPage до изменения:', currentPage);
-    addLog(`🚀 navigateTo вызвана с page: ${page}`);
-    addLog(`🚀 Текущий currentPage до изменения: ${currentPage}`);
-    
     if (currentPage === page) {
-      const message = `🚫 Попытка перехода на текущую страницу: ${page}`;
-      console.log(message);
-      addLog(message);
       return;
     }
 
-    const message = `🔄 Переход к странице: ${page} с ${currentPage}`;
-    console.log(message);
-    addLog(message);
-    
-    console.log('📚 Текущая история:', navigationHistory);
-    addLog(`📚 Текущая история: [${navigationHistory.join(', ')}]`);
+    console.log('🔄 Переход к странице:', page);
+    addLog(`🔄 Переход к странице: ${page}`);
     
     // Используем функциональные обновления для синхронности
     setNavigationHistory(prevHistory => {
       const newHistory = [...prevHistory, page];
-      console.log('📝 Новая история (внутри setState):', newHistory);
-      addLog(`📝 Новая история (внутри setState): [${newHistory.join(', ')}]`);
       return newHistory;
     });
     
     // Устанавливаем новую страницу
-    console.log('📌 Устанавливаем currentPage в:', page);
-    addLog(`📌 Устанавливаем currentPage в: ${page}`);
     setCurrentPage(page);
     
-    // Проверяем через небольшую задержку
-    setTimeout(() => {
-      console.log('✅ Проверка после setCurrentPage - currentPage должен быть:', page);
-      addLog(`✅ Проверка после setCurrentPage - currentPage должен быть: ${page}`);
-    }, 100);
-    
-    // Дополнительная прокрутка к верху для надежности
+    // Прокрутка к верху
     setTimeout(() => {
       window.scrollTo({
         top: 0,
@@ -244,26 +222,13 @@ function AppContent() {
 
   // Функция возврата назад
   const goBack = () => {
-    console.log('🔙 goBack вызвана');
-    console.log('🔙 Текущий currentPage:', currentPage);
-    addLog('🔙 goBack вызвана');
-    addLog(`🔙 Текущий currentPage: ${currentPage}`);
+    console.log('🔙 goBack вызвана, currentPage:', currentPage);
+    addLog(`🔙 goBack вызвана, currentPage: ${currentPage}`);
     
-    const message = `🔄 Возврат назад с страницы: ${currentPage}`;
-    console.log(message);
-    addLog(message);
-    
-    console.log('📚 История навигации:', navigationHistory);
-    addLog(`📚 История навигации: [${navigationHistory.join(', ')}]`);
-    
-    console.log('🔍 Текущее состояние:', { currentPage, navigationHistoryLength: navigationHistory.length });
-    addLog(`🔍 Текущее состояние: страница=${currentPage}, история=${navigationHistory.length} элементов`);
-
     // Если мы на главной странице, не показываем кнопку "Назад" вообще
     if (currentPage === 'main') {
-      const message = '🏠 Уже на главной странице - кнопка "Назад" не должна показываться';
-      console.log(message);
-      addLog(message);
+      console.log('🏠 Уже на главной странице');
+      addLog('🏠 Уже на главной странице');
       return;
     }
 
@@ -273,28 +238,23 @@ function AppContent() {
         const newHistory = prevHistory.slice(0, -1);
         const previousPage = newHistory[newHistory.length - 1];
         
-        const message = `⬅️ Возвращаемся к: ${previousPage}`;
-        console.log(message);
-        addLog(message);
-        
-        console.log('📝 Новая история (внутри setState):', newHistory);
-        addLog(`📝 Новая история (внутри setState): [${newHistory.join(', ')}]`);
+        console.log('⬅️ Возвращаемся к:', previousPage);
+        addLog(`⬅️ Возвращаемся к: ${previousPage}`);
         
         // Устанавливаем предыдущую страницу
         setCurrentPage(previousPage);
         
         return newHistory;
       } else {
-        const message = '🏠 Возвращаемся на главную (история пуста)';
-        console.log(message);
-        addLog(message);
+        console.log('🏠 Возвращаемся на главную');
+        addLog('🏠 Возвращаемся на главную');
         
         setCurrentPage('main');
         return ['main'];
       }
     });
     
-    // Дополнительная прокрутка к верху для надежности
+    // Прокрутка к верху
     setTimeout(() => {
       window.scrollTo({
         top: 0,
@@ -305,13 +265,11 @@ function AppContent() {
   };
 
   const renderPage = () => {
-    console.log('🎨 renderPage вызван с currentPage:', currentPage);
-    addLog(`🎨 renderPage вызван с currentPage: ${currentPage}`);
+    console.log('🎨 renderPage:', currentPage);
+    addLog(`🎨 renderPage: ${currentPage}`);
     
     switch (currentPage) {
       case 'main':
-        console.log('🏠 Рендерим главную страницу');
-        addLog('🏠 Рендерим главную страницу');
         return (
           <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
             {/* Animated background elements */}
@@ -512,8 +470,6 @@ function AppContent() {
         );
 
       case 'analytics':
-        console.log('📊 Рендерим страницу аналитики');
-        addLog('📊 Рендерим страницу аналитики');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -523,8 +479,6 @@ function AppContent() {
         );
 
       case 'showcase':
-        console.log('🎯 Рендерим витрину кейсов');
-        addLog('🎯 Рендерим витрину кейсов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -534,8 +488,6 @@ function AppContent() {
         );
 
       case 'demo-chat':
-        console.log('💬 Рендерим демо чат');
-        addLog('💬 Рендерим демо чат');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -545,8 +497,6 @@ function AppContent() {
         );
 
       case 'referral':
-        console.log('👥 Рендерим реферальную систему');
-        addLog('👥 Рендерим реферальную систему');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -556,8 +506,6 @@ function AppContent() {
         );
 
       case 'user-profile':
-        console.log('👤 Рендерим профиль пользователя');
-        addLog('👤 Рендерим профиль пользователя');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -567,8 +515,6 @@ function AppContent() {
         );
 
       case 'feedback':
-        console.log('📈 Рендерим аналитику отзывов');
-        addLog('📈 Рендерим аналитику отзывов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -578,8 +524,6 @@ function AppContent() {
         );
 
       case 'post-analytics':
-        console.log('📝 Рендерим аналитику постов');
-        addLog('📝 Рендерим аналитику постов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -589,8 +533,6 @@ function AppContent() {
         );
 
       case 'telegram-integration':
-        console.log('⚙️ Рендерим интеграцию с Telegram');
-        addLog('⚙️ Рендерим интеграцию с Telegram');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -600,8 +542,6 @@ function AppContent() {
         );
 
       case 'post-tracking':
-        console.log('🔗 Рендерим отслеживание постов');
-        addLog('🔗 Рендерим отслеживание постов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -611,8 +551,6 @@ function AppContent() {
         );
 
       case 'post-builder':
-        console.log('🛠️ Рендерим конструктор постов');
-        addLog('🛠️ Рендерим конструктор постов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -622,8 +560,6 @@ function AppContent() {
         );
 
       default:
-        console.log('❓ Рендерим неизвестную страницу:', currentPage);
-        addLog(`❓ Рендерим неизвестную страницу: ${currentPage}`);
         return (
           <div>
             <BackButton onClick={goBack} />
