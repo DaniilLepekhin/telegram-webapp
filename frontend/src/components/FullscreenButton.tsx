@@ -5,48 +5,84 @@ const FullscreenButton: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
+    console.log('🔍 FullscreenButton useEffect - инициализация');
+    
     // Проверяем Telegram WebApp API
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
+      
+      console.log('📱 Telegram WebApp доступен:');
+      console.log('  - webApp.isExpanded:', webApp.isExpanded);
+      console.log('  - webApp.viewportHeight:', webApp.viewportHeight);
+      console.log('  - webApp.viewportStableHeight:', webApp.viewportStableHeight);
+      console.log('  - webApp.platform:', webApp.platform);
+      console.log('  - webApp.version:', webApp.version);
+      console.log('  - webApp.colorScheme:', webApp.colorScheme);
+      console.log('  - webApp.themeParams:', webApp.themeParams);
+      
       setIsExpanded(webApp.isExpanded);
+    } else {
+      console.log('❌ Telegram WebApp недоступен');
     }
 
     // Слушаем изменения полноэкранного режима
     const handleViewportChange = () => {
+      console.log('🔄 FullscreenButton viewportChanged event');
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
+        console.log('  - webApp.isExpanded:', webApp.isExpanded);
+        console.log('  - webApp.viewportHeight:', webApp.viewportHeight);
+        console.log('  - webApp.viewportStableHeight:', webApp.viewportStableHeight);
         setIsExpanded(webApp.isExpanded);
       }
     };
 
     // Слушаем изменения браузерного полноэкранного режима
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFullscreenNow = !!document.fullscreenElement;
+      console.log('🖥️ Browser fullscreen change:', isFullscreenNow);
+      setIsFullscreen(isFullscreenNow);
     };
 
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.onEvent('viewportChanged', handleViewportChange);
+      console.log('✅ viewportChanged listener добавлен');
     }
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    console.log('✅ fullscreenchange listener добавлен');
 
     return () => {
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.offEvent('viewportChanged', handleViewportChange);
+        console.log('🧹 viewportChanged listener удален');
       }
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      console.log('🧹 fullscreenchange listener удален');
     };
   }, []);
 
   const toggleFullscreen = () => {
+    console.log('🔘 FullscreenButton toggleFullscreen вызвана');
+    console.log('  - isExpanded state:', isExpanded);
+    console.log('  - isFullscreen state:', isFullscreen);
+    
     try {
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
         
+        console.log('📱 Telegram WebApp состояние:');
+        console.log('  - webApp.isExpanded:', webApp.isExpanded);
+        console.log('  - webApp.viewportHeight:', webApp.viewportHeight);
+        console.log('  - webApp.viewportStableHeight:', webApp.viewportStableHeight);
+        console.log('  - webApp.platform:', webApp.platform);
+        console.log('  - webApp.version:', webApp.version);
+        
         if (!webApp.isExpanded) {
           // Расширяем на весь экран
+          console.log('🖼️ Вызываем webApp.expand()');
           webApp.expand();
-          console.log('🖼️ Расширяем Mini App на весь экран');
+          console.log('✅ webApp.expand() выполнен');
         } else {
           // В Telegram Mini Apps нет прямого API для выхода из полноэкранного режима
           // Пользователь должен использовать кнопку "Назад" в Telegram
@@ -57,14 +93,19 @@ const FullscreenButton: React.FC = () => {
         }
       } else {
         // Fallback для браузера
+        console.log('🖥️ Используем браузерный fallback');
+        console.log('  - document.fullscreenElement:', document.fullscreenElement);
+        
         if (!document.fullscreenElement) {
+          console.log('🖼️ Вызываем document.documentElement.requestFullscreen()');
           document.documentElement.requestFullscreen();
         } else {
+          console.log('📱 Вызываем document.exitFullscreen()');
           document.exitFullscreen();
         }
       }
     } catch (error) {
-      console.error('Ошибка переключения полноэкранного режима:', error);
+      console.error('❌ Ошибка переключения полноэкранного режима:', error);
     }
   };
 
@@ -75,14 +116,18 @@ const FullscreenButton: React.FC = () => {
 
   // Определяем позицию кнопки в зависимости от состояния
   const getButtonPosition = () => {
-    if (isExpanded) {
-      // В полноэкранном режиме Telegram - кнопка ниже, чтобы не мешать верхней панели
-      // Согласно документации, нужно учитывать высоту верхней панели
-      return "fixed top-24 right-6 z-[9999]";
-    } else {
-      // В обычном режиме - стандартная позиция
-      return "fixed top-6 right-6 z-[9999]";
-    }
+    // Для тестирования - кнопка всегда внизу
+    return "fixed bottom-6 right-6 z-[9999]";
+    
+    // Оригинальная логика (закомментирована для тестирования):
+    // if (isExpanded) {
+    //   // В полноэкранном режиме Telegram - кнопка ниже, чтобы не мешать верхней панели
+    //   // Согласно документации, нужно учитывать высоту верхней панели
+    //   return "fixed top-24 right-6 z-[9999]";
+    // } else {
+    //   // В обычном режиме - стандартная позиция
+    //   return "fixed top-6 right-6 z-[9999]";
+    // }
   };
 
   return (
