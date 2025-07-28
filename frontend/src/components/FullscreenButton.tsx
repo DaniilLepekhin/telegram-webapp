@@ -147,9 +147,9 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
   };
 
   // Скрываем кнопку, если полноэкранный режим не поддерживается
-  if (!fullscreenSupported) {
-    return null;
-  }
+  // if (!fullscreenSupported) {
+  //   return null;
+  // }
 
   // Определяем позицию кнопки
   const getButtonPosition = () => {
@@ -213,6 +213,8 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
           <div>📏 viewportHeight: {window.Telegram?.WebApp?.viewportHeight || 'N/A'}</div>
           <div>📐 viewportStableHeight: {window.Telegram?.WebApp?.viewportStableHeight || 'N/A'}</div>
           <div>🌐 platform: {window.Telegram?.WebApp?.platform || 'N/A'}</div>
+          <div>🔧 document.fullscreenEnabled: {document.fullscreenEnabled ? '✅' : '❌'}</div>
+          <div>🔧 webkitFullscreenEnabled: {(document as any).webkitFullscreenEnabled ? '✅' : '❌'}</div>
         </div>
         
         {/* Кнопка копирования отладочной информации */}
