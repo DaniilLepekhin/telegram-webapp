@@ -31,9 +31,15 @@ const FullscreenButton: React.FC = () => {
         webApp.expand();
         console.log('🖼️ Расширяем Mini App на весь экран');
       } else {
-        // В Telegram Mini Apps нет API для выхода из полноэкранного режима
-        // Пользователь должен использовать кнопку "Назад" в Telegram
-        console.log('📱 Mini App уже в полноэкранном режиме');
+        // Для выхода из полноэкранного режима используем MainButton
+        // Сначала скрываем MainButton если он есть
+        if (webApp.MainButton.isVisible) {
+          webApp.MainButton.hide();
+        }
+        
+        // Показываем уведомление о том, как выйти
+        webApp.showAlert('Нажмите кнопку "Назад" в Telegram для выхода из полноэкранного режима');
+        console.log('📱 Показываем инструкцию для выхода из полноэкранного режима');
       }
     }
   };
@@ -49,8 +55,8 @@ const FullscreenButton: React.FC = () => {
     <button
       onClick={toggleFullscreen}
       className="fixed top-6 right-6 w-12 h-12 bg-white/95 backdrop-blur-xl border-2 border-white/80 rounded-full shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group z-[9999]"
-      aria-label={isExpanded ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
-      title={isExpanded ? "Используйте кнопку 'Назад' для выхода" : "Развернуть на весь экран"}
+      aria-label={isExpanded ? "Показать инструкцию для выхода" : "Полноэкранный режим"}
+      title={isExpanded ? "Нажмите для показа инструкции выхода" : "Развернуть на весь экран"}
     >
       <div className="flex items-center justify-center w-full h-full">
         {isExpanded ? (
