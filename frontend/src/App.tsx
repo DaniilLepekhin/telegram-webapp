@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import ChannelAnalytics from './components/ChannelAnalytics';
 import Showcase from './components/Showcase';
 import DemoChat from './components/DemoChat';
 import ReferralSystem from './components/ReferralSystem';
 import UserProfile from './components/UserProfile';
 import AnalyticsFeedback from './components/AnalyticsFeedback';
+import ChannelAnalytics from './components/ChannelAnalytics';
 import PostAnalytics from './components/PostAnalytics';
 import TelegramIntegration from './components/TelegramIntegration';
 import PostTracking from './components/PostTracking';
@@ -12,572 +12,186 @@ import PostBuilder from './components/PostBuilder';
 import BackButton from './components/BackButton';
 import FullscreenButton from './components/FullscreenButton';
 
-type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder';
+type Page = 'main' | 'showcase' | 'demo-chat' | 'referral' | 'profile' | 'analytics-feedback' | 'channel-analytics' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder';
 
-function App() {
+const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('main');
   const [previousPage, setPreviousPage] = useState<Page | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Состояние для логов
-  const [logs, setLogs] = useState<string[]>([]);
-
-  // Функция для добавления логов
-  const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    const logMessage = `[${timestamp}] ${message}`;
-    console.log(logMessage);
-    setLogs(prev => [...prev.slice(-9), logMessage]); // Храним последние 10 логов
-  };
-
-  // Инициализация Telegram WebApp
+  // Глобальная функция для навигации назад
   useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      const webApp = window.Telegram.WebApp;
-      webApp.ready();
-      
-      // Синхронизация состояния полноэкранного режима
-      setIsExpanded(webApp.isExpanded);
-      
-      const handleViewportChanged = () => {
-        setIsExpanded(webApp.isExpanded);
-      };
-      
-      webApp.onEvent('viewportChanged', handleViewportChanged);
-      
-      return () => {
-        webApp.offEvent('viewportChanged', handleViewportChanged);
-      };
-    }
+    (window as any).handleGoBack = goBack;
   }, []);
 
-  // Прокрутка к верху при смене страницы
-  useEffect(() => {
-    addLog(`🔄 Смена страницы на: ${currentPage}`);
-    addLog(`📊 Позиция скролла ДО сброса: ${window.scrollY}`);
-    
-    // Максимально агрессивный сброс позиции
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    
-    // Принудительный сброс через requestAnimationFrame
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      addLog(`📊 Позиция после requestAnimationFrame: ${window.scrollY}`);
-    });
-    
-    addLog(`📊 Позиция скролла ПОСЛЕ сброса: ${window.scrollY}`);
-    
-    // Дополнительный сброс через небольшую задержку
-    setTimeout(() => {
-      addLog(`⏰ Сброс через 10мс, позиция: ${window.scrollY}`);
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      addLog(`📊 Позиция после 10мс: ${window.scrollY}`);
-    }, 10);
-    
-    // Еще один сброс для надежности
-    setTimeout(() => {
-      addLog(`⏰ Сброс через 100мс, позиция: ${window.scrollY}`);
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      addLog(`📊 Позиция после 100мс: ${window.scrollY}`);
-    }, 100);
-  }, [currentPage]);
-
-  // Простая функция навигации
   const navigateTo = (page: Page) => {
-    addLog(`🚀 navigateTo вызвана с page: ${page}`);
-    addLog(`📊 Текущая позиция скролла: ${window.scrollY}`);
-    
     if (currentPage !== page) {
       setPreviousPage(currentPage);
       setCurrentPage(page);
-      addLog(`✅ Страница изменена на: ${page}`);
-      
       // Немедленный сброс скролла при навигации
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      addLog(`📊 Сброс скролла при навигации: ${window.scrollY}`);
-    } else {
-      addLog(`⚠️ Страница уже активна: ${page}`);
     }
   };
 
-  // Простая функция возврата назад
   const goBack = () => {
-    if (previousPage && previousPage !== 'main') {
-      setCurrentPage(previousPage);
-      setPreviousPage('main');
-    } else {
-      setCurrentPage('main');
-      setPreviousPage(null);
+    if (currentPage === 'main') {
+      return;
     }
-  };
 
-  // Глобальная функция для кнопки назад
-  useEffect(() => {
-    (window as any).handleGoBack = goBack;
-  }, [previousPage]);
-
-  // Компонент для отображения логов
-  const LogsDisplay = () => {
-    const copyLogs = () => {
-      const logsText = logs.join('\n');
-      navigator.clipboard.writeText(logsText).then(() => {
-        addLog('✅ Логи скопированы в буфер обмена');
-      }).catch(() => {
-        addLog('❌ Ошибка копирования логов');
-      });
-    };
-
-    return (
-      <div className="fixed bottom-32 left-4 right-4 bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-4 z-[9998] max-h-64 overflow-hidden">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-white font-semibold text-sm">🔍 Отладочные логи</h3>
-          <div className="flex gap-2">
-            <button
-              onClick={copyLogs}
-              className="px-3 py-1 bg-green-500/80 text-white text-xs rounded-lg hover:bg-green-500 transition-colors"
-            >
-              📋 Копировать
-            </button>
-            <button
-              onClick={() => setLogs([])}
-              className="px-3 py-1 bg-red-500/80 text-white text-xs rounded-lg hover:bg-red-500 transition-colors"
-            >
-              🗑️ Очистить
-            </button>
-          </div>
-        </div>
-        
-        <div className="overflow-y-auto max-h-32">
-          {logs.map((log, index) => (
-            <div key={index} className="text-white/80 text-xs font-mono mb-1">
-              {log}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Рендер страниц
-  const renderPage = () => {
-    console.log('🎨 Рендерим страницу:', currentPage);
+    setPreviousPage(null); // Clear previous page when going back
+    setCurrentPage('main'); // Always go back to main for simplicity
     
+    // Сброс позиции скролла при возврате
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
+
+  // Агрессивный сброс скролла при смене страницы
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [currentPage]);
+
+  const renderPage = () => {
     switch (currentPage) {
-      case 'main':
+      case 'showcase':
+        return <Showcase />;
+      case 'demo-chat':
+        return <DemoChat />;
+      case 'referral':
+        return <ReferralSystem />;
+      case 'profile':
+        return <UserProfile />;
+      case 'analytics-feedback':
+        return <AnalyticsFeedback />;
+      case 'channel-analytics':
+        return <ChannelAnalytics />;
+      case 'post-analytics':
+        return <PostAnalytics />;
+      case 'telegram-integration':
+        return <TelegramIntegration />;
+      case 'post-tracking':
+        return <PostTracking />;
+      case 'post-builder':
+        return <PostBuilder />;
+      default:
         return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-              <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+          <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+            {/* Animated background */}
+            <div className="absolute inset-0">
+              <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+              <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+              <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
             </div>
 
-            {/* Кнопка полноэкранного режима */}
-            <FullscreenButton onLog={addLog} />
-
-            <div className="relative z-10 p-4 sm:p-6">
-              {/* Header */}
-              <div className="text-center mb-8 fade-in">
-                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl mb-4 shadow-2xl">
-                  <span className="text-2xl sm:text-3xl">🚀</span>
+            {/* Main content */}
+            <div className="relative z-10 container mx-auto px-4 py-8">
+              <div className="text-center mb-12 fade-in">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-purple-600 rounded-3xl mb-6 shadow-2xl animate-pulse">
+                  <span className="text-4xl">🚀</span>
                 </div>
-                <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
-                  Telegram Mini App
+                <h1 className="text-5xl sm:text-7xl font-extrabold text-white mb-4 sm:mb-8 drop-shadow-2xl bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+                  Telegram WebApp
                 </h1>
-                <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
-                  Современная платформа для аналитики каналов и управления контентом
+                <p className="text-2xl sm:text-3xl text-white/80 drop-shadow-lg max-w-3xl mx-auto leading-relaxed">
+                  Современная платформа для управления контентом и аналитики
                 </p>
               </div>
 
-              {/* Main Menu Grid */}
-              <div className="max-w-4xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  {/* Analytics Card */}
-                  <div 
-                    onClick={() => navigateTo('analytics')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📊</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Аналитика каналов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Подробная статистика и аналитика ваших каналов
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Showcase Card */}
-                  <div 
-                    onClick={() => navigateTo('showcase')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">🎯</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Витрина кейсов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Примеры успешных кейсов и результатов работы
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Demo Chat Card */}
-                  <div 
-                    onClick={() => navigateTo('demo-chat')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">💬</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Демо чат</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Интерактивный чат с ИИ-помощником
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* User Profile Card */}
-                  <div 
-                    onClick={() => navigateTo('user-profile')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">👤</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Профиль</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Ваш профиль и персональные настройки
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Analytics Feedback Card */}
-                  <div 
-                    onClick={() => navigateTo('feedback')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📈</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Аналитика отзывов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Анализ обратной связи и отзывов
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Post Analytics Card */}
-                  <div 
-                    onClick={() => navigateTo('post-analytics')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📝</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Аналитика постов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Подробная статистика и анализ ваших постов
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Telegram Integration Card */}
-                  <div 
-                    onClick={() => navigateTo('telegram-integration')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">⚙️</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Интеграция с Telegram</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Управление сообщениями и уведомлениями из Telegram
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Post Tracking Card */}
-                  <div 
-                    onClick={() => navigateTo('post-tracking')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">🔗</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Отслеживание постов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Мониторинг и анализ просмотров ваших постов
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Post Builder Card */}
-                  <div 
-                    onClick={() => navigateTo('post-builder')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📝</span>
-                        </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Пост + кнопка</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        Создание и публикация постов с интерактивными кнопками
-                      </p>
-                    </div>
+              {/* Navigation cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                {/* Showcase */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('showcase')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">💎</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Витрина кейсов</h3>
+                    <p className="text-white/70">Лучшие проекты и инновационные решения</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Quick Stats */}
-              <div className="max-w-4xl mx-auto mt-8">
-                <div className="glass-card p-6">
-                  <h2 className="text-xl font-bold text-white mb-4 text-center">Быстрая статистика</h2>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-400">2.4K</div>
-                      <div className="text-sm text-white/70">Подписчиков</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-400">98%</div>
-                      <div className="text-sm text-white/70">Вовлеченность</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400">1.2M</div>
-                      <div className="text-sm text-white/70">Просмотров</div>
-                    </div>
+                {/* Demo Chat */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('demo-chat')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">💬</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Демо чат</h3>
+                    <p className="text-white/70">Интерактивный AI чат для демонстрации</p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        );
 
-      case 'analytics':
-        console.log('📊 Загружаем ChannelAnalytics');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <ChannelAnalytics />
-          </div>
-        );
-
-      case 'showcase':
-        console.log('🎯 Загружаем Showcase');
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <div className="relative z-10 p-4 sm:p-6">
-              <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-6 text-center">🎯 Витрина кейсов</h1>
-                <div className="glass-card p-6">
-                  <h2 className="text-xl font-bold text-white mb-4">Тестовая страница</h2>
-                  <p className="text-white/70 mb-4">Если вы видите этот текст, значит навигация работает!</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-white/10 rounded-lg p-4">
-                      <h3 className="text-lg font-bold text-white mb-2">Кейс 1</h3>
-                      <p className="text-white/70 text-sm">Описание первого кейса</p>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-4">
-                      <h3 className="text-lg font-bold text-white mb-2">Кейс 2</h3>
-                      <p className="text-white/70 text-sm">Описание второго кейса</p>
-                    </div>
+                {/* Referral System */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('referral')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">🎯</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Реферальная система</h3>
+                    <p className="text-white/70">Статистика и управление рефералами</p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        );
 
-      case 'demo-chat':
-        console.log('💬 Загружаем DemoChat');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <DemoChat />
-          </div>
-        );
+                {/* User Profile */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('profile')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">👤</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Профиль пользователя</h3>
+                    <p className="text-white/70">Управление настройками и данными</p>
+                  </div>
+                </div>
 
-      case 'referral':
-        console.log('👥 Загружаем ReferralSystem');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <ReferralSystem />
-          </div>
-        );
+                {/* Analytics & Feedback */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('analytics-feedback')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">📊</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Аналитика и отзывы</h3>
+                    <p className="text-white/70">Детальная аналитика и обратная связь</p>
+                  </div>
+                </div>
 
-      case 'user-profile':
-        console.log('👤 Загружаем UserProfile');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <UserProfile />
-          </div>
-        );
+                {/* Channel Analytics */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('channel-analytics')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">📈</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Аналитика каналов</h3>
+                    <p className="text-white/70">Статистика и метрики каналов</p>
+                  </div>
+                </div>
 
-      case 'feedback':
-        console.log('📈 Загружаем AnalyticsFeedback');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <AnalyticsFeedback />
-          </div>
-        );
+                {/* Post Analytics */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('post-analytics')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">📝</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Аналитика постов</h3>
+                    <p className="text-white/70">Детальная статистика публикаций</p>
+                  </div>
+                </div>
 
-      case 'post-analytics':
-        console.log('📝 Загружаем PostAnalytics');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <PostAnalytics />
-          </div>
-        );
+                {/* Telegram Integration */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('telegram-integration')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">🔗</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Интеграция Telegram</h3>
+                    <p className="text-white/70">Настройка ботов и веб-приложений</p>
+                  </div>
+                </div>
 
-      case 'telegram-integration':
-        console.log('⚙️ Загружаем TelegramIntegration');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <TelegramIntegration />
-          </div>
-        );
+                {/* Post Tracking */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('post-tracking')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">🎯</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Отслеживание постов</h3>
+                    <p className="text-white/70">Мониторинг производительности контента</p>
+                  </div>
+                </div>
 
-      case 'post-tracking':
-        console.log('🔗 Загружаем PostTracking');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <PostTracking />
-          </div>
-        );
-
-      case 'post-builder':
-        console.log('📝 Загружаем PostBuilder');
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <PostBuilder />
-          </div>
-        );
-
-      default:
-        console.log('❓ Неизвестная страница:', currentPage);
-        return (
-          <div>
-            <BackButton onClick={goBack} />
-            <FullscreenButton onLog={addLog} />
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-              <div className="text-center text-white">
-                <h1 className="text-2xl font-bold mb-4">Страница не найдена</h1>
-                <button 
-                  onClick={() => navigateTo('main')}
-                  className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg transition-colors"
-                >
-                  На главную
-                </button>
+                {/* Post Builder */}
+                <div className="glass-card group cursor-pointer transform hover:scale-105 transition-all duration-300" onClick={() => navigateTo('post-builder')}>
+                  <div className="p-6">
+                    <div className="text-4xl mb-4">✏️</div>
+                    <h3 className="text-xl font-bold text-white mb-2">Пост + кнопка</h3>
+                    <p className="text-white/70">Конструктор постов с интерактивными кнопками</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -587,10 +201,16 @@ function App() {
 
   return (
     <div className="App">
+      {/* Back button - показываем только если не на главной странице */}
+      {currentPage !== 'main' && <BackButton onClick={goBack} />}
+      
+      {/* Fullscreen button */}
+      <FullscreenButton />
+      
+      {/* Main content */}
       {renderPage()}
-      <LogsDisplay />
     </div>
   );
-}
+};
 
 export default App; 

@@ -9,10 +9,6 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
   const [fullscreenSupported, setFullscreenSupported] = useState(false);
 
   useEffect(() => {
-    const logMessage = '🔍 FullscreenButton useEffect - инициализация';
-    console.log(logMessage);
-    onLog?.(logMessage);
-    
     // Проверяем поддержку полноэкранного режима
     const checkFullscreenSupport = () => {
       const supported = !!(
@@ -23,18 +19,10 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       );
       setFullscreenSupported(supported);
       
-      const supportLog = `📱 Поддержка браузерного Fullscreen API: ${supported ? '✅' : '❌'}`;
-      console.log(supportLog);
-      onLog?.(supportLog);
-      
       // Простое определение состояния
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
         setIsFullscreen((webApp as any).isFullscreen);
-        
-        const telegramStateLog = `📱 Telegram isFullscreen: ${(webApp as any).isFullscreen ? '✅' : '❌'}`;
-        console.log(telegramStateLog);
-        onLog?.(telegramStateLog);
       } else {
         const fullscreenElement = 
           document.fullscreenElement ||
@@ -43,10 +31,6 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
           (document as any).msFullscreenElement;
         
         setIsFullscreen(!!fullscreenElement);
-        
-        const browserStateLog = `🖥️ Браузерный Fullscreen: ${!!fullscreenElement ? '✅' : '❌'}`;
-        console.log(browserStateLog);
-        onLog?.(browserStateLog);
       }
     };
 
@@ -57,10 +41,6 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
         setIsFullscreen((webApp as any).isFullscreen);
-        
-        const changeLog = `🔄 Telegram isFullscreen: ${(webApp as any).isFullscreen ? '✅' : '❌'}`;
-        console.log(changeLog);
-        onLog?.(changeLog);
       } else {
         const fullscreenElement = 
           document.fullscreenElement ||
@@ -69,83 +49,49 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
           (document as any).msFullscreenElement;
         
         setIsFullscreen(!!fullscreenElement);
-        
-        const changeLog = `🔄 Браузерный Fullscreen: ${!!fullscreenElement ? '✅' : '❌'}`;
-        console.log(changeLog);
-        onLog?.(changeLog);
       }
     };
 
     // Добавляем слушатели
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.onEvent('fullscreenChanged', handleFullscreenChange);
-      const telegramListenerLog = '✅ Telegram fullscreenChanged listener добавлен';
-      console.log(telegramListenerLog);
-      onLog?.(telegramListenerLog);
     } else {
       document.addEventListener('fullscreenchange', handleFullscreenChange);
       document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.addEventListener('mozfullscreenchange', handleFullscreenChange);
       document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-      
-      const browserListenersLog = '✅ Слушатели браузерного Fullscreen добавлены';
-      console.log(browserListenersLog);
-      onLog?.(browserListenersLog);
     }
 
     return () => {
       if (window.Telegram?.WebApp) {
         window.Telegram.WebApp.offEvent('fullscreenChanged', handleFullscreenChange);
-        const telegramCleanupLog = '🧹 Telegram fullscreenChanged listener удален';
-        console.log(telegramCleanupLog);
-        onLog?.(telegramCleanupLog);
       } else {
         document.removeEventListener('fullscreenchange', handleFullscreenChange);
         document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
         document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
         document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-        
-        const browserCleanupLog = '🧹 Слушатели браузерного Fullscreen удалены';
-        console.log(browserCleanupLog);
-        onLog?.(browserCleanupLog);
       }
     };
   }, [onLog]);
 
   const requestFullscreen = async () => {
     try {
-      const element = document.documentElement;
-      
-      const requestLog = '🖼️ Запрашиваем полноэкранный режим...';
-      console.log(requestLog);
-      onLog?.(requestLog);
-      
-      if (element.requestFullscreen) {
-        await element.requestFullscreen();
-      } else if ((element as any).webkitRequestFullscreen) {
-        await (element as any).webkitRequestFullscreen();
-      } else if ((element as any).mozRequestFullScreen) {
-        await (element as any).mozRequestFullScreen();
-      } else if ((element as any).msRequestFullscreen) {
-        await (element as any).msRequestFullscreen();
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      } else if ((document.documentElement as any).webkitRequestFullscreen) {
+        await (document.documentElement as any).webkitRequestFullscreen();
+      } else if ((document.documentElement as any).mozRequestFullScreen) {
+        await (document.documentElement as any).mozRequestFullScreen();
+      } else if ((document.documentElement as any).msRequestFullscreen) {
+        await (document.documentElement as any).msRequestFullscreen();
       }
-      
-      const successLog = '✅ Полноэкранный режим включен!';
-      console.log(successLog);
-      onLog?.(successLog);
     } catch (error) {
-      const errorLog = `❌ Ошибка при включении полноэкранного режима: ${error}`;
-      console.error(errorLog);
-      onLog?.(errorLog);
+      console.error('Ошибка при входе в полноэкранный режим:', error);
     }
   };
 
   const exitFullscreen = async () => {
     try {
-      const exitLog = '🖼️ Выходим из полноэкранного режима...';
-      console.log(exitLog);
-      onLog?.(exitLog);
-      
       if (document.exitFullscreen) {
         await document.exitFullscreen();
       } else if ((document as any).webkitExitFullscreen) {
@@ -155,48 +101,25 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       } else if ((document as any).msExitFullscreen) {
         await (document as any).msExitFullscreen();
       }
-      
-      const successLog = '✅ Полноэкранный режим выключен!';
-      console.log(successLog);
-      onLog?.(successLog);
     } catch (error) {
-      const errorLog = `❌ Ошибка при выключении полноэкранного режима: ${error}`;
-      console.error(errorLog);
-      onLog?.(errorLog);
+      console.error('Ошибка при выключении полноэкранного режима:', error);
     }
   };
 
   const toggleFullscreen = () => {
-    const toggleLog = `🔘 FullscreenButton toggleFullscreen вызвана, текущее состояние: ${isFullscreen ? '✅' : '❌'}`;
-    console.log(toggleLog);
-    onLog?.(toggleLog);
-    
     // Проверяем, находимся ли мы в Telegram
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
-      const telegramLog = '📱 Используем Telegram WebApp API';
-      console.log(telegramLog);
-      onLog?.(telegramLog);
       
       if (!(webApp as any).isFullscreen) {
         // Входим в полноэкранный режим
-        const requestLog = '🖼️ Вызываем webApp.requestFullscreen()';
-        console.log(requestLog);
-        onLog?.(requestLog);
         (webApp as any).requestFullscreen();
       } else {
         // Выходим из полноэкранного режима
-        const exitLog = '📱 Вызываем webApp.exitFullscreen()';
-        console.log(exitLog);
-        onLog?.(exitLog);
         (webApp as any).exitFullscreen();
       }
     } else {
       // Используем браузерный Fullscreen API
-      const browserLog = '🖥️ Используем браузерный Fullscreen API';
-      console.log(browserLog);
-      onLog?.(browserLog);
-      
       if (isFullscreen) {
         exitFullscreen();
       } else {
@@ -205,19 +128,14 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
     }
   };
 
-  // Скрываем кнопку, если полноэкранный режим не поддерживается
-  // if (!fullscreenSupported) {
-  //   return null;
-  // }
-
   // Определяем позицию кнопки
   const getButtonPosition = () => {
     return "fixed bottom-6 right-6 z-[9999]";
   };
 
   return (
-    <div className={`${getButtonPosition()} flex flex-col items-center gap-2`}>
-      {/* Большая кнопка полноэкранного режима */}
+    <div className={`${getButtonPosition()}`}>
+      {/* Кнопка полноэкранного режима */}
       <button
         onClick={toggleFullscreen}
         className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group"
@@ -265,58 +183,7 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
             );
           })()}
         </div>
-        
-        {/* Hover effect */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/20 to-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        
-        {/* Glow effect */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/10 to-orange-400/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </button>
-
-      {/* Отладочная информация */}
-      <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-xl p-3 text-white text-xs max-w-48">
-        <div className="font-bold mb-2">🔍 Отладка Fullscreen</div>
-        <div className="space-y-1">
-          <div>🖥️ isFullscreen: {isFullscreen ? '✅' : '❌'}</div>
-          <div>📱 Поддержка браузера: {fullscreenSupported ? '✅' : '❌'}</div>
-          <div>📱 Telegram WebApp: {window.Telegram?.WebApp ? '✅' : '❌'}</div>
-          <div>📱 Telegram isExpanded: {window.Telegram?.WebApp?.isExpanded ? '✅' : '❌'}</div>
-          <div>📏 viewportHeight: {window.Telegram?.WebApp?.viewportHeight || 'N/A'}</div>
-          <div>📐 viewportStableHeight: {window.Telegram?.WebApp?.viewportStableHeight || 'N/A'}</div>
-          <div>🌐 platform: {window.Telegram?.WebApp?.platform || 'N/A'}</div>
-          <div>🔧 document.fullscreenEnabled: {document.fullscreenEnabled ? '✅' : '❌'}</div>
-          <div>🔧 webkitFullscreenEnabled: {(document as any).webkitFullscreenEnabled ? '✅' : '❌'}</div>
-        </div>
-        
-        {/* Кнопка копирования отладочной информации */}
-        <button
-          onClick={() => {
-            const debugInfo = [
-              `🔍 Fullscreen Debug Info - ${new Date().toLocaleTimeString()}`,
-              `🖥️ isFullscreen: ${isFullscreen}`,
-              `📱 Поддержка браузера: ${fullscreenSupported}`,
-              `📱 Telegram WebApp: ${window.Telegram?.WebApp ? '✅' : '❌'}`,
-              `📱 Telegram isExpanded: ${window.Telegram?.WebApp?.isExpanded ? '✅' : '❌'}`,
-              `📏 viewportHeight: ${window.Telegram?.WebApp?.viewportHeight || 'N/A'}`,
-              `📐 viewportStableHeight: ${window.Telegram?.WebApp?.viewportStableHeight || 'N/A'}`,
-              `🌐 platform: ${window.Telegram?.WebApp?.platform || 'N/A'}`,
-              `🔧 webApp.version: ${window.Telegram?.WebApp?.version || 'N/A'}`,
-              `🎨 webApp.colorScheme: ${window.Telegram?.WebApp?.colorScheme || 'N/A'}`,
-              `🔧 document.fullscreenEnabled: ${document.fullscreenEnabled ? '✅' : '❌'}`,
-              `🔧 webkitFullscreenEnabled: ${(document as any).webkitFullscreenEnabled ? '✅' : '❌'}`
-            ].join('\n');
-            
-            navigator.clipboard.writeText(debugInfo).then(() => {
-              onLog?.('📋 Отладочная информация скопирована');
-            }).catch(() => {
-              onLog?.('❌ Ошибка копирования отладочной информации');
-            });
-          }}
-          className="mt-2 w-full px-2 py-1 bg-green-500/80 text-white text-xs rounded-lg hover:bg-green-500 transition-colors"
-        >
-          📋 Копировать отладку
-        </button>
-      </div>
     </div>
   );
 };
