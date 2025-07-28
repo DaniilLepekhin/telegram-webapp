@@ -204,49 +204,95 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
   };
 
   return (
-    <button
-      onClick={toggleFullscreen}
-      className={`${getButtonPosition()} w-12 h-12 bg-white/95 backdrop-blur-xl border-2 border-white/80 rounded-full shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group`}
-      aria-label={isExpanded ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
-    >
-      <div className="flex items-center justify-center w-full h-full">
-        {isExpanded ? (
-          <svg 
-            className="w-5 h-5 text-gray-800 group-hover:text-purple-600 transition-colors duration-300" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2.5} 
-              d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" 
-            />
-          </svg>
-        ) : (
-          <svg 
-            className="w-5 h-5 text-gray-800 group-hover:text-purple-600 transition-colors duration-300" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2.5} 
-              d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0l5.25 5.25M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15m-11.25 5.25h4.5m-4.5 0v-4.5m0 4.5L9 15" 
-            />
-          </svg>
-        )}
+    <div className={`${getButtonPosition()} flex flex-col items-center gap-2`}>
+      {/* Большая кнопка полноэкранного режима */}
+      <button
+        onClick={toggleFullscreen}
+        className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group"
+        aria-label={isExpanded ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
+        title={isExpanded ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
+      >
+        <div className="flex items-center justify-center w-full h-full">
+          {isExpanded ? (
+            <svg 
+              className="w-8 h-8 text-white group-hover:text-yellow-200 transition-colors duration-300" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2.5} 
+                d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" 
+              />
+            </svg>
+          ) : (
+            <svg 
+              className="w-8 h-8 text-white group-hover:text-yellow-200 transition-colors duration-300" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2.5} 
+                d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0l5.25 5.25M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15m-11.25 5.25h4.5m-4.5 0v-4.5m0 4.5L9 15" 
+              />
+            </svg>
+          )}
+        </div>
+        
+        {/* Hover effect */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/20 to-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        
+        {/* Glow effect */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/10 to-orange-400/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </button>
+
+      {/* Отладочная информация */}
+      <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-xl p-3 text-white text-xs max-w-48">
+        <div className="font-bold mb-2">🔍 Отладка Fullscreen</div>
+        <div className="space-y-1">
+          <div>📱 isExpanded: {isExpanded ? '✅' : '❌'}</div>
+          <div>🖥️ isFullscreen: {isFullscreen ? '✅' : '❌'}</div>
+          {window.Telegram?.WebApp && (
+            <>
+              <div>📏 viewportHeight: {window.Telegram.WebApp.viewportHeight}</div>
+              <div>📐 viewportStableHeight: {window.Telegram.WebApp.viewportStableHeight}</div>
+              <div>🌐 platform: {window.Telegram.WebApp.platform}</div>
+            </>
+          )}
+        </div>
+        
+        {/* Кнопка копирования отладочной информации */}
+        <button
+          onClick={() => {
+            const debugInfo = [
+              `🔍 Fullscreen Debug Info - ${new Date().toLocaleTimeString()}`,
+              `📱 isExpanded: ${isExpanded}`,
+              `🖥️ isFullscreen: ${isFullscreen}`,
+              `📏 viewportHeight: ${window.Telegram?.WebApp?.viewportHeight || 'N/A'}`,
+              `📐 viewportStableHeight: ${window.Telegram?.WebApp?.viewportStableHeight || 'N/A'}`,
+              `🌐 platform: ${window.Telegram?.WebApp?.platform || 'N/A'}`,
+              `📱 webApp.isExpanded: ${window.Telegram?.WebApp?.isExpanded || 'N/A'}`,
+              `🔧 webApp.version: ${window.Telegram?.WebApp?.version || 'N/A'}`,
+              `🎨 webApp.colorScheme: ${window.Telegram?.WebApp?.colorScheme || 'N/A'}`
+            ].join('\n');
+            
+            navigator.clipboard.writeText(debugInfo).then(() => {
+              onLog?.('📋 Отладочная информация скопирована');
+            }).catch(() => {
+              onLog?.('❌ Ошибка копирования отладочной информации');
+            });
+          }}
+          className="mt-2 w-full px-2 py-1 bg-green-500/80 text-white text-xs rounded-lg hover:bg-green-500 transition-colors"
+        >
+          📋 Копировать отладку
+        </button>
       </div>
-      
-      {/* Hover effect */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      
-      {/* Glow effect */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400/10 to-pink-400/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-    </button>
+    </div>
   );
 };
 
