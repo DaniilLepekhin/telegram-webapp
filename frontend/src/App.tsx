@@ -113,17 +113,36 @@ function App() {
   }, [previousPage]);
 
   // Компонент для отображения логов
-  const LogsDisplay = () => (
-    <div className="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg max-w-sm text-xs z-50">
-      <div className="font-bold mb-2">📊 Диагностика скролла:</div>
-      {logs.map((log, index) => (
-        <div key={index} className="mb-1 text-green-300">{log}</div>
-      ))}
-      {logs.length === 0 && (
-        <div className="text-gray-400">Ожидание логов...</div>
-      )}
-    </div>
-  );
+  const LogsDisplay = () => {
+    const copyLogs = () => {
+      const logsText = logs.join('\n');
+      navigator.clipboard.writeText(logsText).then(() => {
+        addLog('✅ Логи скопированы в буфер обмена');
+      }).catch(() => {
+        addLog('❌ Ошибка копирования логов');
+      });
+    };
+
+    return (
+      <div className="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg max-w-sm text-xs z-50">
+        <div className="flex justify-between items-center mb-2">
+          <div className="font-bold">📊 Диагностика скролла:</div>
+          <button 
+            onClick={copyLogs}
+            className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs"
+          >
+            📋 Копировать
+          </button>
+        </div>
+        {logs.map((log, index) => (
+          <div key={index} className="mb-1 text-green-300">{log}</div>
+        ))}
+        {logs.length === 0 && (
+          <div className="text-gray-400">Ожидание логов...</div>
+        )}
+      </div>
+    );
+  };
 
   // Рендер страниц
   const renderPage = () => {
