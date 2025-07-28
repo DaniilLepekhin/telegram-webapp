@@ -194,6 +194,11 @@ function AppContent() {
 
   // Функция навигации
   const navigateTo = (page: Page) => {
+    console.log('🚀 navigateTo вызвана с page:', page);
+    console.log('🚀 Текущий currentPage до изменения:', currentPage);
+    addLog(`🚀 navigateTo вызвана с page: ${page}`);
+    addLog(`🚀 Текущий currentPage до изменения: ${currentPage}`);
+    
     if (currentPage === page) {
       const message = `🚫 Попытка перехода на текущую страницу: ${page}`;
       console.log(message);
@@ -213,10 +218,19 @@ function AppContent() {
     console.log('📝 Новая история:', newHistory);
     addLog(`📝 Новая история: [${newHistory.join(', ')}]`);
     
+    // Сначала обновляем историю
     setNavigationHistory(newHistory);
     
-    // Устанавливаем новую страницу
+    // Затем устанавливаем новую страницу
+    console.log('📌 Устанавливаем currentPage в:', page);
+    addLog(`📌 Устанавливаем currentPage в: ${page}`);
     setCurrentPage(page);
+    
+    // Проверяем через небольшую задержку
+    setTimeout(() => {
+      console.log('✅ Проверка после setCurrentPage - currentPage должен быть:', page);
+      addLog(`✅ Проверка после setCurrentPage - currentPage должен быть: ${page}`);
+    }, 100);
     
     // Дополнительная прокрутка к верху для надежности
     setTimeout(() => {
@@ -230,6 +244,11 @@ function AppContent() {
 
   // Функция возврата назад
   const goBack = () => {
+    console.log('🔙 goBack вызвана');
+    console.log('🔙 Текущий currentPage:', currentPage);
+    addLog('🔙 goBack вызвана');
+    addLog(`🔙 Текущий currentPage: ${currentPage}`);
+    
     const message = `🔄 Возврат назад с страницы: ${currentPage}`;
     console.log(message);
     addLog(message);
@@ -260,6 +279,8 @@ function AppContent() {
       addLog(`📝 Новая история: [${newHistory.join(', ')}]`);
       
       setNavigationHistory(newHistory);
+      console.log('📌 Устанавливаем currentPage в:', previousPage);
+      addLog(`📌 Устанавливаем currentPage в: ${previousPage}`);
       setCurrentPage(previousPage);
       
       // Дополнительная прокрутка к верху для надежности
