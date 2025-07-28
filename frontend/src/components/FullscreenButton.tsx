@@ -8,25 +8,12 @@ const FullscreenButton: React.FC = () => {
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       
-      // Добавляем отладочную информацию
-      console.log('🔍 Инициализация FullscreenButton:');
-      console.log('📱 webApp.isExpanded:', webApp.isExpanded);
-      console.log('📱 webApp.viewportHeight:', webApp.viewportHeight);
-      console.log('📱 webApp.viewportStableHeight:', webApp.viewportStableHeight);
-      
-      // Проверяем реальное состояние
-      const isActuallyExpanded = webApp.isExpanded || webApp.viewportHeight > webApp.viewportStableHeight;
-      setIsExpanded(isActuallyExpanded);
+      // Простая проверка состояния
+      setIsExpanded(webApp.isExpanded);
       
       // Слушаем изменения viewport
       const handleViewportChange = () => {
-        console.log('🔄 viewportChanged event:');
-        console.log('📱 webApp.isExpanded:', webApp.isExpanded);
-        console.log('📱 webApp.viewportHeight:', webApp.viewportHeight);
-        console.log('📱 webApp.viewportStableHeight:', webApp.viewportStableHeight);
-        
-        const newIsExpanded = webApp.isExpanded || webApp.viewportHeight > webApp.viewportStableHeight;
-        setIsExpanded(newIsExpanded);
+        setIsExpanded(webApp.isExpanded);
       };
       
       webApp.onEvent('viewportChanged', handleViewportChange);
@@ -41,16 +28,9 @@ const FullscreenButton: React.FC = () => {
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       
-      // Проверяем реальное состояние
-      const isActuallyExpanded = webApp.isExpanded || webApp.viewportHeight > webApp.viewportStableHeight;
+      console.log('🔘 toggleFullscreen - isExpanded:', webApp.isExpanded);
       
-      console.log('🔘 toggleFullscreen вызвана:');
-      console.log('📱 webApp.isExpanded:', webApp.isExpanded);
-      console.log('📱 webApp.viewportHeight:', webApp.viewportHeight);
-      console.log('📱 webApp.viewportStableHeight:', webApp.viewportStableHeight);
-      console.log('📱 isActuallyExpanded:', isActuallyExpanded);
-      
-      if (!isActuallyExpanded) {
+      if (!webApp.isExpanded) {
         // Расширяем на весь экран
         webApp.expand();
         console.log('🖼️ Расширяем Mini App на весь экран');
@@ -62,11 +42,9 @@ const FullscreenButton: React.FC = () => {
             if (confirmed) {
               // Показываем инструкцию как выйти
               webApp.showAlert('Нажмите кнопку "Назад" в Telegram для выхода из полноэкранного режима');
-              console.log('📱 Пользователь подтвердил выход из полноэкранного режима');
             }
           }
         );
-        console.log('📱 Показываем диалог подтверждения выхода');
       }
     }
   };
