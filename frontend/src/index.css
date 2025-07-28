@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reset scroll position on page change */
+html {
+  scroll-behavior: auto;
+}
+
+/* Force scroll to top on page transitions */
+body {
+  scroll-behavior: auto;
+}
+
+/* Additional scroll reset for better compatibility */
+* {
+  scroll-behavior: auto;
+}
+
 /* Глобальные стили для полноэкранного режима */
 html, body, #root {
   margin: 0;

@@ -42,6 +42,7 @@ function App() {
 
   // Прокрутка к верху при смене страницы
   useEffect(() => {
+    // Простой сброс позиции скролла
     window.scrollTo(0, 0);
   }, [currentPage]);
 
@@ -50,6 +51,9 @@ function App() {
     if (currentPage !== page) {
       setPreviousPage(currentPage);
       setCurrentPage(page);
+      
+      // Принудительная прокрутка к верху при переходе
+      window.scrollTo(0, 0);
     }
   };
 
