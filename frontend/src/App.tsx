@@ -8,6 +8,7 @@ import AnalyticsFeedback from './components/AnalyticsFeedback';
 import PostAnalytics from './components/PostAnalytics';
 import TelegramIntegration from './components/TelegramIntegration';
 import PostTracking from './components/PostTracking';
+import PostBuilder from './components/PostBuilder';
 import BackButton from './components/BackButton';
 import FullscreenButton from './components/FullscreenButton';
 
@@ -548,17 +549,7 @@ function App() {
           <div>
             <BackButton onClick={goBack} />
             <FullscreenButton />
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-              <div className="text-center text-white">
-                <h1 className="text-2xl font-bold mb-4">Страница не найдена</h1>
-                <button 
-                  onClick={() => navigateTo('main')}
-                  className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg transition-colors"
-                >
-                  На главную
-                </button>
-              </div>
-            </div>
+            <PostBuilder />
           </div>
         );
 
