@@ -42,8 +42,24 @@ function App() {
 
   // Прокрутка к верху при смене страницы
   useEffect(() => {
-    // Простой и надежный сброс позиции
+    // Максимально агрессивный сброс позиции
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
+    // Дополнительный сброс через небольшую задержку
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 10);
+    
+    // Еще один сброс для надежности
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 100);
   }, [currentPage]);
 
   // Простая функция навигации

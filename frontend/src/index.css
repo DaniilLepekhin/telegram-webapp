@@ -42,6 +42,24 @@ body {
   scroll-padding-bottom: 0 !important;
 }
 
+/* МАКСИМАЛЬНО АГРЕССИВНЫЙ СБРОС */
+html, body, * {
+  scroll-behavior: auto !important;
+  scroll-padding-top: 0 !important;
+  scroll-padding-bottom: 0 !important;
+  scroll-padding-left: 0 !important;
+  scroll-padding-right: 0 !important;
+}
+
+/* Принудительный сброс для всех возможных элементов */
+html, body, div, section, main, article, aside, nav, header, footer, form, table, tr, td, th, ul, ol, li, p, span, a, img, video, audio, canvas, svg, iframe, object, embed, param, source, track, map, area, fieldset, legend, label, input, textarea, select, option, optgroup, button, datalist, keygen, output, progress, meter, details, summary, menu, menuitem, dialog, slot, template, portal, picture, source, img, video, audio, track, map, area, svg, math, foreignObject, desc, metadata, title, defs, pattern, mask, clipPath, filter, feGaussianBlur, feOffset, feMerge, feMergeNode, feColorMatrix, feComponentTransfer, feFuncR, feFuncG, feFuncB, feFuncA, feComposite, feConvolveMatrix, feDisplacementMap, feFlood, feGaussianBlur, feImage, feMerge, feMorphology, feOffset, feSpecularLighting, feTile, feTurbulence, feDistantLight, fePointLight, feSpotLight, feDiffuseLighting, feSpecularLighting, feDropShadow, feBlend, feColorMatrix, feComponentTransfer, feComposite, feConvolveMatrix, feDisplacementMap, feFlood, feGaussianBlur, feImage, feMerge, feMorphology, feOffset, feSpecularLighting, feTile, feTurbulence, feDistantLight, fePointLight, feSpotLight, feDiffuseLighting, feSpecularLighting, feDropShadow, feBlend {
+  scroll-behavior: auto !important;
+  scroll-padding-top: 0 !important;
+  scroll-padding-bottom: 0 !important;
+  scroll-padding-left: 0 !important;
+  scroll-padding-right: 0 !important;
+}
+
 /* Глобальные стили для полноэкранного режима */
 html, body, #root {
   margin: 0;
