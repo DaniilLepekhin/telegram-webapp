@@ -305,8 +305,13 @@ function AppContent() {
   };
 
   const renderPage = () => {
+    console.log('🎨 renderPage вызван с currentPage:', currentPage);
+    addLog(`🎨 renderPage вызван с currentPage: ${currentPage}`);
+    
     switch (currentPage) {
       case 'main':
+        console.log('🏠 Рендерим главную страницу');
+        addLog('🏠 Рендерим главную страницу');
         return (
           <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
             {/* Animated background elements */}
@@ -507,6 +512,8 @@ function AppContent() {
         );
 
       case 'analytics':
+        console.log('📊 Рендерим страницу аналитики');
+        addLog('📊 Рендерим страницу аналитики');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -516,6 +523,8 @@ function AppContent() {
         );
 
       case 'showcase':
+        console.log('🎯 Рендерим витрину кейсов');
+        addLog('🎯 Рендерим витрину кейсов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -525,6 +534,8 @@ function AppContent() {
         );
 
       case 'demo-chat':
+        console.log('💬 Рендерим демо чат');
+        addLog('💬 Рендерим демо чат');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -534,6 +545,8 @@ function AppContent() {
         );
 
       case 'referral':
+        console.log('👥 Рендерим реферальную систему');
+        addLog('👥 Рендерим реферальную систему');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -543,6 +556,8 @@ function AppContent() {
         );
 
       case 'user-profile':
+        console.log('👤 Рендерим профиль пользователя');
+        addLog('👤 Рендерим профиль пользователя');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -552,6 +567,8 @@ function AppContent() {
         );
 
       case 'feedback':
+        console.log('📈 Рендерим аналитику отзывов');
+        addLog('📈 Рендерим аналитику отзывов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -561,6 +578,8 @@ function AppContent() {
         );
 
       case 'post-analytics':
+        console.log('📝 Рендерим аналитику постов');
+        addLog('📝 Рендерим аналитику постов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -570,6 +589,8 @@ function AppContent() {
         );
 
       case 'telegram-integration':
+        console.log('⚙️ Рендерим интеграцию с Telegram');
+        addLog('⚙️ Рендерим интеграцию с Telegram');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -579,6 +600,8 @@ function AppContent() {
         );
 
       case 'post-tracking':
+        console.log('🔗 Рендерим отслеживание постов');
+        addLog('🔗 Рендерим отслеживание постов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -588,6 +611,8 @@ function AppContent() {
         );
 
       case 'post-builder':
+        console.log('🛠️ Рендерим конструктор постов');
+        addLog('🛠️ Рендерим конструктор постов');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -597,6 +622,8 @@ function AppContent() {
         );
 
       default:
+        console.log('❓ Рендерим неизвестную страницу:', currentPage);
+        addLog(`❓ Рендерим неизвестную страницу: ${currentPage}`);
         return (
           <div>
             <BackButton onClick={goBack} />
