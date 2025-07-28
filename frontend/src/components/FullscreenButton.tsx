@@ -27,56 +27,93 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       console.log(supportLog);
       onLog?.(supportLog);
       
-      // Проверяем текущее состояние
-      const fullscreenElement = 
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement;
-      
-      setIsFullscreen(!!fullscreenElement);
-      
-      const stateLog = `🖥️ Текущее состояние браузерного Fullscreen: ${!!fullscreenElement ? '✅' : '❌'}`;
-      console.log(stateLog);
-      onLog?.(stateLog);
+      // В Telegram используем webApp.isExpanded как источник истины
+      if (window.Telegram?.WebApp) {
+        const webApp = window.Telegram.WebApp;
+        setIsFullscreen(webApp.isExpanded);
+        
+        const telegramStateLog = `📱 Telegram isExpanded: ${webApp.isExpanded ? '✅' : '❌'}`;
+        console.log(telegramStateLog);
+        onLog?.(telegramStateLog);
+      } else {
+        // В браузере используем document.fullscreenElement
+        const fullscreenElement = 
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement ||
+          (document as any).mozFullScreenElement ||
+          (document as any).msFullscreenElement;
+        
+        setIsFullscreen(!!fullscreenElement);
+        
+        const browserStateLog = `🖥️ Браузерный Fullscreen: ${!!fullscreenElement ? '✅' : '❌'}`;
+        console.log(browserStateLog);
+        onLog?.(browserStateLog);
+      }
     };
 
     checkFullscreenSupport();
 
     // Слушаем изменения полноэкранного режима
     const handleFullscreenChange = () => {
-      const fullscreenElement = 
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement;
-      
-      const newState = !!fullscreenElement;
-      setIsFullscreen(newState);
-      
-      const changeLog = `🔄 Изменение браузерного Fullscreen: ${newState ? '✅' : '❌'}`;
-      console.log(changeLog);
-      onLog?.(changeLog);
+      if (window.Telegram?.WebApp) {
+        // В Telegram слушаем viewportChanged
+        const webApp = window.Telegram.WebApp;
+        const newState = webApp.isExpanded;
+        setIsFullscreen(newState);
+        
+        const changeLog = `🔄 Telegram isExpanded изменился: ${newState ? '✅' : '❌'}`;
+        console.log(changeLog);
+        onLog?.(changeLog);
+      } else {
+        // В браузере слушаем fullscreenchange
+        const fullscreenElement = 
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement ||
+          (document as any).mozFullScreenElement ||
+          (document as any).msFullscreenElement;
+        
+        const newState = !!fullscreenElement;
+        setIsFullscreen(newState);
+        
+        const changeLog = `🔄 Браузерный Fullscreen изменился: ${newState ? '✅' : '❌'}`;
+        console.log(changeLog);
+        onLog?.(changeLog);
+      }
     };
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    const listenersLog = '✅ Слушатели событий браузерного Fullscreen добавлены';
-    console.log(listenersLog);
-    onLog?.(listenersLog);
+    // Добавляем слушатели в зависимости от среды
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.onEvent('viewportChanged', handleFullscreenChange);
+      const telegramListenerLog = '✅ Telegram viewportChanged listener добавлен';
+      console.log(telegramListenerLog);
+      onLog?.(telegramListenerLog);
+    } else {
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+      
+      const browserListenersLog = '✅ Слушатели браузерного Fullscreen добавлены';
+      console.log(browserListenersLog);
+      onLog?.(browserListenersLog);
+    }
 
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-      
-      const cleanupLog = '🧹 Слушатели событий браузерного Fullscreen удалены';
-      console.log(cleanupLog);
-      onLog?.(cleanupLog);
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.offEvent('viewportChanged', handleFullscreenChange);
+        const telegramCleanupLog = '🧹 Telegram viewportChanged listener удален';
+        console.log(telegramCleanupLog);
+        onLog?.(telegramCleanupLog);
+      } else {
+        document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+        
+        const browserCleanupLog = '🧹 Слушатели браузерного Fullscreen удалены';
+        console.log(browserCleanupLog);
+        onLog?.(browserCleanupLog);
+      }
     };
   }, [onLog]);
 
@@ -193,35 +230,45 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
         title={isFullscreen ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
       >
         <div className="flex items-center justify-center w-full h-full">
-          {isFullscreen ? (
-            <svg 
-              className="w-8 h-8 text-white group-hover:text-yellow-200 transition-colors duration-300" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2.5} 
-                d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" 
-              />
-            </svg>
-          ) : (
-            <svg 
-              className="w-8 h-8 text-white group-hover:text-yellow-200 transition-colors duration-300" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2.5} 
-                d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0l5.25 5.25M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15m-11.25 5.25h4.5m-4.5 0v-4.5m0 4.5L9 15" 
-              />
-            </svg>
-          )}
+          {(() => {
+            // Определяем состояние для отображения иконки
+            let shouldShowExitIcon = isFullscreen;
+            
+            // В Telegram используем webApp.isExpanded как источник истины
+            if (window.Telegram?.WebApp) {
+              shouldShowExitIcon = window.Telegram.WebApp.isExpanded;
+            }
+            
+            return shouldShowExitIcon ? (
+              <svg 
+                className="w-8 h-8 text-white group-hover:text-yellow-200 transition-colors duration-300" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2.5} 
+                  d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" 
+                />
+              </svg>
+            ) : (
+              <svg 
+                className="w-8 h-8 text-white group-hover:text-yellow-200 transition-colors duration-300" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2.5} 
+                  d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0l5.25 5.25M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15m-11.25 5.25h4.5m-4.5 0v-4.5m0 4.5L9 15" 
+                />
+              </svg>
+            );
+          })()}
         </div>
         
         {/* Hover effect */}
