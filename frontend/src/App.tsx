@@ -1,243 +1,73 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ChannelAnalytics from './components/ChannelAnalytics';
 import Showcase from './components/Showcase';
 import DemoChat from './components/DemoChat';
 import ReferralSystem from './components/ReferralSystem';
 import UserProfile from './components/UserProfile';
 import AnalyticsFeedback from './components/AnalyticsFeedback';
-import ChannelAnalytics from './components/ChannelAnalytics';
 import PostAnalytics from './components/PostAnalytics';
 import TelegramIntegration from './components/TelegramIntegration';
 import PostTracking from './components/PostTracking';
 import PostBuilder from './components/PostBuilder';
-import FullscreenButton from './components/FullscreenButton';
 import BackButton from './components/BackButton';
-import { LogsProvider, useLogs } from './contexts/LogsContext';
+import FullscreenButton from './components/FullscreenButton';
 
-// Компонент для отображения логов
-const LogsDisplay: React.FC = () => {
-  const { logs } = useLogs();
-  
-  const copyLogs = () => {
-    const logsText = logs.join('\n');
-    navigator.clipboard.writeText(logsText).then(() => {
-      console.log('📋 Логи скопированы в буфер обмена');
-    });
-  };
+type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder';
 
-  if (logs.length === 0) return null;
-
-  return (
-    <div className="fixed bottom-4 left-4 right-4 bg-black/90 backdrop-blur-xl border border-white/20 rounded-lg p-4 z-[10000] max-h-48 overflow-y-auto">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-white text-sm font-bold">Логи навигации:</h3>
-        <button
-          onClick={copyLogs}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs transition-colors"
-        >
-          📋 Копировать
-        </button>
-      </div>
-      <div className="text-green-400 text-xs font-mono whitespace-pre-wrap">
-        {logs.join('\n')}
-      </div>
-    </div>
-  );
-};
-
-// Глобальная переменная для Telegram WebApp
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        ready: () => void;
-        expand: () => void;
-        close: () => void;
-        isExpanded: boolean;
-        viewportHeight: number;
-        colorScheme: 'light' | 'dark';
-        initData: string;
-        platform: string;
-        version: string;
-        isVersionAtLeast: (version: string) => boolean;
-        MainButton: {
-          text: string;
-          color: string;
-          textColor: string;
-          isVisible: boolean;
-          isActive: boolean;
-          isProgressVisible: boolean;
-          setText: (text: string) => void;
-          onClick: (callback: () => void) => void;
-          offClick: (callback: () => void) => void;
-          show: () => void;
-          hide: () => void;
-          enable: () => void;
-          disable: () => void;
-          showProgress: (leaveActive?: boolean) => void;
-          hideProgress: () => void;
-        };
-        BackButton: {
-          isVisible: boolean;
-          onClick: (callback: () => void) => void;
-          offClick: (callback: () => void) => void;
-          show: () => void;
-          hide: () => void;
-        };
-        onEvent: (eventType: string, eventHandler: () => void) => void;
-        offEvent: (eventType: string, eventHandler: () => void) => void;
-        showAlert: (message: string) => void;
-        showConfirm: (message: string, callback: (confirmed: boolean) => void) => void;
-        enableClosingConfirmation: () => void;
-        disableClosingConfirmation: () => void;
-        HapticFeedback: {
-          impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
-          notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
-          selectionChanged: () => void;
-        };
-        setHeaderColor: (color: string) => void;
-        setBackgroundColor: (color: string) => void;
-      };
-    };
-  }
-}
-
-type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test-back-button';
-
-function AppContent() {
+function App() {
   const [currentPage, setCurrentPage] = useState<Page>('main');
-  const [navigationHistory, setNavigationHistory] = useState<Page[]>(['main']);
-  const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
+  const [previousPage, setPreviousPage] = useState<Page | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  
-  const { logs, addLog } = useLogs();
-
-  // Эффект для прокрутки к верху при смене страницы
-  useEffect(() => {
-    // Прокрутка к верху с небольшой задержкой для надежности
-    const scrollToTop = () => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-      });
-      console.log('📄 Страница изменена на:', currentPage, 'Прокрутка к верху выполнена');
-    };
-
-    // Мгновенная прокрутка
-    scrollToTop();
-    
-    // Дополнительная прокрутка с задержкой для надежности
-    const timeoutId = setTimeout(scrollToTop, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [currentPage]);
 
   // Инициализация Telegram WebApp
   useEffect(() => {
-    const initializeTelegramWebApp = () => {
-      if (window.Telegram?.WebApp) {
-        const webApp = window.Telegram.WebApp;
-        console.log('🚀 Инициализация Telegram WebApp...');
-        
-        // Готовим WebApp
-        webApp.ready();
-        
-        // НЕ расширяем автоматически - только по кнопке
-        // webApp.expand();
-        
-        // Устанавливаем состояние
-        setIsTelegramWebApp(true);
-        setIsExpanded(webApp.isExpanded);
-        
-        // Скрываем MainButton
-        webApp.MainButton.hide();
-        
-        // Слушаем изменения viewport
-        const handleViewportChange = () => {
-          setIsExpanded(webApp.isExpanded);
-          console.log('📱 Viewport изменен, isExpanded:', webApp.isExpanded);
-        };
-        
-        webApp.onEvent('viewportChanged', handleViewportChange);
-        
-        // Глобальная функция для кнопки "Назад"
-        (window as any).handleGoBack = () => {
-          goBack();
-        };
-        
-        console.log('✅ Telegram WebApp инициализирован');
-        
-        return () => {
-          webApp.offEvent('viewportChanged', handleViewportChange);
-        };
-      } else {
-        console.log('⚠️ Telegram WebApp не найден, запуск в режиме браузера');
-        setIsTelegramWebApp(false);
-      }
-    };
-
-    // Пытаемся инициализировать WebApp
     if (window.Telegram?.WebApp) {
-      initializeTelegramWebApp();
-    } else {
-      // Ждем загрузки скрипта Telegram
-      const checkTelegram = () => {
-        if (window.Telegram?.WebApp) {
-          initializeTelegramWebApp();
-        } else {
-          setTimeout(checkTelegram, 100);
-        }
+      const webApp = window.Telegram.WebApp;
+      webApp.ready();
+      
+      // Синхронизация состояния полноэкранного режима
+      setIsExpanded(webApp.isExpanded);
+      
+      const handleViewportChanged = () => {
+        setIsExpanded(webApp.isExpanded);
       };
-      checkTelegram();
+      
+      webApp.onEvent('viewportChanged', handleViewportChanged);
+      
+      return () => {
+        webApp.offEvent('viewportChanged', handleViewportChanged);
+      };
     }
   }, []);
 
-  // Функция навигации
+  // Прокрутка к верху при смене страницы
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
+  // Простая функция навигации
   const navigateTo = (page: Page) => {
-    if (currentPage === page) {
-      return;
+    if (currentPage !== page) {
+      setPreviousPage(currentPage);
+      setCurrentPage(page);
     }
-
-    setNavigationHistory(prevHistory => [...prevHistory, page]);
-    setCurrentPage(page);
-    
-    // Прокрутка к верху
-    setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-      });
-    }, 50);
   };
 
-  // Функция возврата назад
+  // Простая функция возврата назад
   const goBack = () => {
-    if (currentPage === 'main') {
-      return;
+    if (previousPage && previousPage !== 'main') {
+      setCurrentPage(previousPage);
+      setPreviousPage('main');
+    } else {
+      setCurrentPage('main');
+      setPreviousPage(null);
     }
-
-    setNavigationHistory(prevHistory => {
-      if (prevHistory.length > 1) {
-        const newHistory = prevHistory.slice(0, -1);
-        const previousPage = newHistory[newHistory.length - 1];
-        setCurrentPage(previousPage);
-        return newHistory;
-      } else {
-        setCurrentPage('main');
-        return ['main'];
-      }
-    });
-    
-    // Прокрутка к верху
-    setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant'
-      });
-    }, 50);
   };
+
+  // Глобальная функция для кнопки назад
+  useEffect(() => {
+    (window as any).handleGoBack = goBack;
+  }, [previousPage]);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -553,18 +383,9 @@ function AppContent() {
   };
 
   return (
-    <div className="app">
+    <div className="App">
       {renderPage()}
-      <LogsDisplay />
     </div>
-  );
-}
-
-function App() {
-  return (
-    <LogsProvider>
-      <AppContent />
-    </LogsProvider>
   );
 }
 
