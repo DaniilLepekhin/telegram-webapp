@@ -17,6 +17,31 @@ body {
   scroll-behavior: auto;
 }
 
+/* АГРЕССИВНЫЙ СБРОС ПОЗИЦИИ СКРОЛЛА */
+html, body {
+  scroll-behavior: auto !important;
+  scroll-padding-top: 0 !important;
+  scroll-padding-bottom: 0 !important;
+}
+
+/* Принудительный сброс для всех элементов */
+* {
+  scroll-behavior: auto !important;
+}
+
+/* Отключение сохранения позиции для всех контейнеров */
+div, section, main, article {
+  scroll-behavior: auto !important;
+  scroll-padding-top: 0 !important;
+}
+
+/* Сброс позиции при загрузке страницы */
+body {
+  scroll-behavior: auto !important;
+  scroll-padding-top: 0 !important;
+  scroll-padding-bottom: 0 !important;
+}
+
 /* Глобальные стили для полноэкранного режима */
 html, body, #root {
   margin: 0;

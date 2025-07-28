@@ -42,21 +42,8 @@ function App() {
 
   // Прокрутка к верху при смене страницы
   useEffect(() => {
-    // Агрессивный сброс позиции скролла
+    // Простой и надежный сброс позиции
     window.scrollTo(0, 0);
-    
-    // Дополнительные методы для надежности
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }, 0);
-    
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }, 50);
   }, [currentPage]);
 
   // Простая функция навигации
@@ -64,11 +51,6 @@ function App() {
     if (currentPage !== page) {
       setPreviousPage(currentPage);
       setCurrentPage(page);
-      
-      // Сброс позиции скролла при переходе
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
     }
   };
 
@@ -77,19 +59,9 @@ function App() {
     if (previousPage && previousPage !== 'main') {
       setCurrentPage(previousPage);
       setPreviousPage('main');
-      
-      // Сброс позиции скролла при возврате
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
     } else {
       setCurrentPage('main');
       setPreviousPage(null);
-      
-      // Сброс позиции скролла при возврате на главную
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
     }
   };
 
