@@ -30,9 +30,9 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       // Простое определение состояния
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
-        setIsFullscreen(webApp.isExpanded);
+        setIsFullscreen((webApp as any).isFullscreen);
         
-        const telegramStateLog = `📱 Telegram isExpanded: ${webApp.isExpanded ? '✅' : '❌'}`;
+        const telegramStateLog = `📱 Telegram isFullscreen: ${(webApp as any).isFullscreen ? '✅' : '❌'}`;
         console.log(telegramStateLog);
         onLog?.(telegramStateLog);
       } else {
@@ -56,9 +56,9 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
     const handleFullscreenChange = () => {
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
-        setIsFullscreen(webApp.isExpanded);
+        setIsFullscreen((webApp as any).isFullscreen);
         
-        const changeLog = `🔄 Telegram isExpanded: ${webApp.isExpanded ? '✅' : '❌'}`;
+        const changeLog = `🔄 Telegram isFullscreen: ${(webApp as any).isFullscreen ? '✅' : '❌'}`;
         console.log(changeLog);
         onLog?.(changeLog);
       } else {
@@ -78,8 +78,8 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
 
     // Добавляем слушатели
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.onEvent('viewportChanged', handleFullscreenChange);
-      const telegramListenerLog = '✅ Telegram viewportChanged listener добавлен';
+      window.Telegram.WebApp.onEvent('fullscreenChanged', handleFullscreenChange);
+      const telegramListenerLog = '✅ Telegram fullscreenChanged listener добавлен';
       console.log(telegramListenerLog);
       onLog?.(telegramListenerLog);
     } else {
@@ -95,8 +95,8 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
 
     return () => {
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.offEvent('viewportChanged', handleFullscreenChange);
-        const telegramCleanupLog = '🧹 Telegram viewportChanged listener удален';
+        window.Telegram.WebApp.offEvent('fullscreenChanged', handleFullscreenChange);
+        const telegramCleanupLog = '🧹 Telegram fullscreenChanged listener удален';
         console.log(telegramCleanupLog);
         onLog?.(telegramCleanupLog);
       } else {
@@ -178,18 +178,18 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       console.log(telegramLog);
       onLog?.(telegramLog);
       
-      if (!webApp.isExpanded) {
-        // Расширяем в Telegram
-        const expandLog = '🖼️ Вызываем webApp.expand()';
-        console.log(expandLog);
-        onLog?.(expandLog);
-        webApp.expand();
+      if (!(webApp as any).isFullscreen) {
+        // Входим в полноэкранный режим
+        const requestLog = '🖼️ Вызываем webApp.requestFullscreen()';
+        console.log(requestLog);
+        onLog?.(requestLog);
+        (webApp as any).requestFullscreen();
       } else {
-        // Закрываем в Telegram
-        const closeLog = '📱 Вызываем webApp.close()';
-        console.log(closeLog);
-        onLog?.(closeLog);
-        webApp.close();
+        // Выходим из полноэкранного режима
+        const exitLog = '📱 Вызываем webApp.exitFullscreen()';
+        console.log(exitLog);
+        onLog?.(exitLog);
+        (webApp as any).exitFullscreen();
       }
     } else {
       // Используем браузерный Fullscreen API
@@ -229,9 +229,9 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
             // Определяем состояние для отображения иконки
             let shouldShowExitIcon = isFullscreen;
             
-            // В Telegram используем webApp.isExpanded как источник истины
+            // В Telegram используем webApp.isFullscreen как источник истины
             if (window.Telegram?.WebApp) {
-              shouldShowExitIcon = window.Telegram.WebApp.isExpanded;
+              shouldShowExitIcon = (window.Telegram.WebApp as any).isFullscreen;
             }
             
             return shouldShowExitIcon ? (
