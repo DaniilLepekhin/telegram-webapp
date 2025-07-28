@@ -459,6 +459,7 @@ function App() {
 
       case 'post-builder':
         console.log('🛠️ Загружаем PostBuilder');
+        addLog('🛠️ Загружаем PostBuilder');
         return (
           <div>
             <BackButton onClick={goBack} />

@@ -49,6 +49,8 @@ interface PostHistory {
 }
 
 const PostBuilder: React.FC = () => {
+  console.log('🛠️ PostBuilder компонент инициализируется');
+  
   const [postContent, setPostContent] = useState<PostContent>({
     text: '',
     media: [],
@@ -401,6 +403,8 @@ const PostBuilder: React.FC = () => {
   };
 
   const availableChannels = channels.filter(channel => channel.isAdmin && channel.botIsAdmin);
+
+  console.log('🛠️ PostBuilder рендерится, activeTab:', activeTab);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
