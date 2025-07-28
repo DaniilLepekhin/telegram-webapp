@@ -198,16 +198,7 @@ function AppContent() {
       return;
     }
 
-    console.log('🔄 Переход к странице:', page);
-    addLog(`🔄 Переход к странице: ${page}`);
-    
-    // Используем функциональные обновления для синхронности
-    setNavigationHistory(prevHistory => {
-      const newHistory = [...prevHistory, page];
-      return newHistory;
-    });
-    
-    // Устанавливаем новую страницу
+    setNavigationHistory(prevHistory => [...prevHistory, page]);
     setCurrentPage(page);
     
     // Прокрутка к верху
@@ -222,33 +213,17 @@ function AppContent() {
 
   // Функция возврата назад
   const goBack = () => {
-    console.log('🔙 goBack вызвана, currentPage:', currentPage);
-    addLog(`🔙 goBack вызвана, currentPage: ${currentPage}`);
-    
-    // Если мы на главной странице, не показываем кнопку "Назад" вообще
     if (currentPage === 'main') {
-      console.log('🏠 Уже на главной странице');
-      addLog('🏠 Уже на главной странице');
       return;
     }
 
-    // Используем функциональные обновления для синхронности
     setNavigationHistory(prevHistory => {
       if (prevHistory.length > 1) {
         const newHistory = prevHistory.slice(0, -1);
         const previousPage = newHistory[newHistory.length - 1];
-        
-        console.log('⬅️ Возвращаемся к:', previousPage);
-        addLog(`⬅️ Возвращаемся к: ${previousPage}`);
-        
-        // Устанавливаем предыдущую страницу
         setCurrentPage(previousPage);
-        
         return newHistory;
       } else {
-        console.log('🏠 Возвращаемся на главную');
-        addLog('🏠 Возвращаемся на главную');
-        
         setCurrentPage('main');
         return ['main'];
       }
@@ -265,9 +240,6 @@ function AppContent() {
   };
 
   const renderPage = () => {
-    console.log('🎨 renderPage:', currentPage);
-    addLog(`🎨 renderPage: ${currentPage}`);
-    
     switch (currentPage) {
       case 'main':
         return (
