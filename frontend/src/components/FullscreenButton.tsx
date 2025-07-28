@@ -27,7 +27,7 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       console.log(supportLog);
       onLog?.(supportLog);
       
-      // В Telegram используем webApp.isExpanded как источник истины
+      // Простое определение состояния
       if (window.Telegram?.WebApp) {
         const webApp = window.Telegram.WebApp;
         setIsFullscreen(webApp.isExpanded);
@@ -36,7 +36,6 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
         console.log(telegramStateLog);
         onLog?.(telegramStateLog);
       } else {
-        // В браузере используем document.fullscreenElement
         const fullscreenElement = 
           document.fullscreenElement ||
           (document as any).webkitFullscreenElement ||
@@ -53,35 +52,31 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
 
     checkFullscreenSupport();
 
-    // Слушаем изменения полноэкранного режима
+    // Простой слушатель изменений
     const handleFullscreenChange = () => {
       if (window.Telegram?.WebApp) {
-        // В Telegram слушаем viewportChanged
         const webApp = window.Telegram.WebApp;
-        const newState = webApp.isExpanded;
-        setIsFullscreen(newState);
+        setIsFullscreen(webApp.isExpanded);
         
-        const changeLog = `🔄 Telegram isExpanded изменился: ${newState ? '✅' : '❌'}`;
+        const changeLog = `🔄 Telegram isExpanded: ${webApp.isExpanded ? '✅' : '❌'}`;
         console.log(changeLog);
         onLog?.(changeLog);
       } else {
-        // В браузере слушаем fullscreenchange
         const fullscreenElement = 
           document.fullscreenElement ||
           (document as any).webkitFullscreenElement ||
           (document as any).mozFullScreenElement ||
           (document as any).msFullscreenElement;
         
-        const newState = !!fullscreenElement;
-        setIsFullscreen(newState);
+        setIsFullscreen(!!fullscreenElement);
         
-        const changeLog = `🔄 Браузерный Fullscreen изменился: ${newState ? '✅' : '❌'}`;
+        const changeLog = `🔄 Браузерный Fullscreen: ${!!fullscreenElement ? '✅' : '❌'}`;
         console.log(changeLog);
         onLog?.(changeLog);
       }
     };
 
-    // Добавляем слушатели в зависимости от среды
+    // Добавляем слушатели
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.onEvent('viewportChanged', handleFullscreenChange);
       const telegramListenerLog = '✅ Telegram viewportChanged listener добавлен';
@@ -190,11 +185,11 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
         onLog?.(expandLog);
         webApp.expand();
       } else {
-        // Показываем инструкцию для выхода из Telegram
-        const exitLog = '📱 Показываем инструкцию для выхода из Telegram';
-        console.log(exitLog);
-        onLog?.(exitLog);
-        webApp.showAlert('Нажмите кнопку "Назад" в Telegram для выхода из полноэкранного режима');
+        // Закрываем в Telegram
+        const closeLog = '📱 Вызываем webApp.close()';
+        console.log(closeLog);
+        onLog?.(closeLog);
+        webApp.close();
       }
     } else {
       // Используем браузерный Fullscreen API
