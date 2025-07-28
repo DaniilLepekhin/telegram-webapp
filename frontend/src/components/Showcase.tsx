@@ -103,7 +103,7 @@ const Showcase: React.FC = () => {
               <span className="text-2xl sm:text-3xl">💎</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
-              Витрина кейсов
+              Витрина кейсов ✨
             </h1>
             <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
               Лучшие примеры успешных проектов и кейсы
