@@ -213,15 +213,15 @@ function AppContent() {
     console.log('📚 Текущая история:', navigationHistory);
     addLog(`📚 Текущая история: [${navigationHistory.join(', ')}]`);
     
-    // Обновляем историю навигации
-    const newHistory = [...navigationHistory, page];
-    console.log('📝 Новая история:', newHistory);
-    addLog(`📝 Новая история: [${newHistory.join(', ')}]`);
+    // Используем функциональные обновления для синхронности
+    setNavigationHistory(prevHistory => {
+      const newHistory = [...prevHistory, page];
+      console.log('📝 Новая история (внутри setState):', newHistory);
+      addLog(`📝 Новая история (внутри setState): [${newHistory.join(', ')}]`);
+      return newHistory;
+    });
     
-    // Сначала обновляем историю
-    setNavigationHistory(newHistory);
-    
-    // Затем устанавливаем новую страницу
+    // Устанавливаем новую страницу
     console.log('📌 Устанавливаем currentPage в:', page);
     addLog(`📌 Устанавливаем currentPage в: ${page}`);
     setCurrentPage(page);
@@ -267,47 +267,41 @@ function AppContent() {
       return;
     }
 
-    if (navigationHistory.length > 1) {
-      const newHistory = navigationHistory.slice(0, -1);
-      const previousPage = newHistory[newHistory.length - 1];
-      
-      const message = `⬅️ Возвращаемся к: ${previousPage}`;
-      console.log(message);
-      addLog(message);
-      
-      console.log('📝 Новая история:', newHistory);
-      addLog(`📝 Новая история: [${newHistory.join(', ')}]`);
-      
-      setNavigationHistory(newHistory);
-      console.log('📌 Устанавливаем currentPage в:', previousPage);
-      addLog(`📌 Устанавливаем currentPage в: ${previousPage}`);
-      setCurrentPage(previousPage);
-      
-      // Дополнительная прокрутка к верху для надежности
-      setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'instant'
-        });
-      }, 50);
-    } else {
-      const message = '🏠 Возвращаемся на главную (история пуста)';
-      console.log(message);
-      addLog(message);
-      
-      setCurrentPage('main');
-      setNavigationHistory(['main']);
-      
-      // Дополнительная прокрутка к верху для надежности
-      setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'instant'
-        });
-      }, 50);
-    }
+    // Используем функциональные обновления для синхронности
+    setNavigationHistory(prevHistory => {
+      if (prevHistory.length > 1) {
+        const newHistory = prevHistory.slice(0, -1);
+        const previousPage = newHistory[newHistory.length - 1];
+        
+        const message = `⬅️ Возвращаемся к: ${previousPage}`;
+        console.log(message);
+        addLog(message);
+        
+        console.log('📝 Новая история (внутри setState):', newHistory);
+        addLog(`📝 Новая история (внутри setState): [${newHistory.join(', ')}]`);
+        
+        // Устанавливаем предыдущую страницу
+        setCurrentPage(previousPage);
+        
+        return newHistory;
+      } else {
+        const message = '🏠 Возвращаемся на главную (история пуста)';
+        console.log(message);
+        addLog(message);
+        
+        setCurrentPage('main');
+        return ['main'];
+      }
+    });
+    
+    // Дополнительная прокрутка к верху для надежности
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant'
+      });
+    }, 50);
   };
 
   const renderPage = () => {
