@@ -261,7 +261,7 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
               `🔧 webApp.version: ${window.Telegram?.WebApp?.version || 'N/A'}`,
               `🎨 webApp.colorScheme: ${window.Telegram?.WebApp?.colorScheme || 'N/A'}`,
               `🔧 document.fullscreenEnabled: ${document.fullscreenEnabled ? '✅' : '❌'}`,
-              `🔧 webkitFullscreenEnabled: {(document as any).webkitFullscreenEnabled ? '✅' : '❌'}`
+              `🔧 webkitFullscreenEnabled: ${(document as any).webkitFullscreenEnabled ? '✅' : '❌'}`
             ].join('\n');
             
             navigator.clipboard.writeText(debugInfo).then(() => {
