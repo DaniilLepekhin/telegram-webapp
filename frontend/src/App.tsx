@@ -19,6 +19,17 @@ function App() {
   const [previousPage, setPreviousPage] = useState<Page | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Состояние для логов
+  const [logs, setLogs] = useState<string[]>([]);
+
+  // Функция для добавления логов
+  const addLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logMessage = `[${timestamp}] ${message}`;
+    console.log(logMessage);
+    setLogs(prev => [...prev.slice(-9), logMessage]); // Храним последние 10 логов
+  };
+
   // Инициализация Telegram WebApp
   useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -42,31 +53,46 @@ function App() {
 
   // Прокрутка к верху при смене страницы
   useEffect(() => {
+    addLog(`🔄 Смена страницы на: ${currentPage}`);
+    addLog(`📊 Позиция скролла ДО сброса: ${window.scrollY}`);
+    
     // Максимально агрессивный сброс позиции
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     
+    addLog(`📊 Позиция скролла ПОСЛЕ сброса: ${window.scrollY}`);
+    
     // Дополнительный сброс через небольшую задержку
     setTimeout(() => {
+      addLog(`⏰ Сброс через 10мс, позиция: ${window.scrollY}`);
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+      addLog(`📊 Позиция после 10мс: ${window.scrollY}`);
     }, 10);
     
     // Еще один сброс для надежности
     setTimeout(() => {
+      addLog(`⏰ Сброс через 100мс, позиция: ${window.scrollY}`);
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+      addLog(`📊 Позиция после 100мс: ${window.scrollY}`);
     }, 100);
   }, [currentPage]);
 
   // Простая функция навигации
   const navigateTo = (page: Page) => {
+    addLog(`🚀 navigateTo вызвана с page: ${page}`);
+    addLog(`📊 Текущая позиция скролла: ${window.scrollY}`);
+    
     if (currentPage !== page) {
       setPreviousPage(currentPage);
       setCurrentPage(page);
+      addLog(`✅ Страница изменена на: ${page}`);
+    } else {
+      addLog(`⚠️ Страница уже активна: ${page}`);
     }
   };
 
@@ -86,6 +112,20 @@ function App() {
     (window as any).handleGoBack = goBack;
   }, [previousPage]);
 
+  // Компонент для отображения логов
+  const LogsDisplay = () => (
+    <div className="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg max-w-sm text-xs z-50">
+      <div className="font-bold mb-2">📊 Диагностика скролла:</div>
+      {logs.map((log, index) => (
+        <div key={index} className="mb-1 text-green-300">{log}</div>
+      ))}
+      {logs.length === 0 && (
+        <div className="text-gray-400">Ожидание логов...</div>
+      )}
+    </div>
+  );
+
+  // Рендер страниц
   const renderPage = () => {
     console.log('🎨 Рендерим страницу:', currentPage);
     
@@ -433,6 +473,7 @@ function App() {
   return (
     <div className="App">
       {renderPage()}
+      <LogsDisplay />
     </div>
   );
 }
