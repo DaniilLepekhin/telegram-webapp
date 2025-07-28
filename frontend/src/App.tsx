@@ -70,6 +70,8 @@ function App() {
   }, [previousPage]);
 
   const renderPage = () => {
+    console.log('🎨 Рендерим страницу:', currentPage);
+    
     switch (currentPage) {
       case 'main':
         return (
@@ -272,6 +274,7 @@ function App() {
         );
 
       case 'analytics':
+        console.log('📊 Загружаем ChannelAnalytics');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -281,15 +284,35 @@ function App() {
         );
 
       case 'showcase':
+        console.log('🎯 Загружаем Showcase');
         return (
-          <div>
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
             <BackButton onClick={goBack} />
             <FullscreenButton />
-            <Showcase />
+            <div className="relative z-10 p-4 sm:p-6">
+              <div className="max-w-4xl mx-auto">
+                <h1 className="text-3xl font-bold text-white mb-6 text-center">🎯 Витрина кейсов</h1>
+                <div className="glass-card p-6">
+                  <h2 className="text-xl font-bold text-white mb-4">Тестовая страница</h2>
+                  <p className="text-white/70 mb-4">Если вы видите этот текст, значит навигация работает!</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-white/10 rounded-lg p-4">
+                      <h3 className="text-lg font-bold text-white mb-2">Кейс 1</h3>
+                      <p className="text-white/70 text-sm">Описание первого кейса</p>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-4">
+                      <h3 className="text-lg font-bold text-white mb-2">Кейс 2</h3>
+                      <p className="text-white/70 text-sm">Описание второго кейса</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
       case 'demo-chat':
+        console.log('💬 Загружаем DemoChat');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -299,6 +322,7 @@ function App() {
         );
 
       case 'referral':
+        console.log('👥 Загружаем ReferralSystem');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -308,6 +332,7 @@ function App() {
         );
 
       case 'user-profile':
+        console.log('👤 Загружаем UserProfile');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -317,6 +342,7 @@ function App() {
         );
 
       case 'feedback':
+        console.log('📈 Загружаем AnalyticsFeedback');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -326,6 +352,7 @@ function App() {
         );
 
       case 'post-analytics':
+        console.log('📝 Загружаем PostAnalytics');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -335,6 +362,7 @@ function App() {
         );
 
       case 'telegram-integration':
+        console.log('⚙️ Загружаем TelegramIntegration');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -344,6 +372,7 @@ function App() {
         );
 
       case 'post-tracking':
+        console.log('🔗 Загружаем PostTracking');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -353,6 +382,7 @@ function App() {
         );
 
       case 'post-builder':
+        console.log('🛠️ Загружаем PostBuilder');
         return (
           <div>
             <BackButton onClick={goBack} />
@@ -362,6 +392,7 @@ function App() {
         );
 
       default:
+        console.log('❓ Неизвестная страница:', currentPage);
         return (
           <div>
             <BackButton onClick={goBack} />
