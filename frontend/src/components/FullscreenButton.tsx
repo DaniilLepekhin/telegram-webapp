@@ -142,14 +142,27 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
           
           webApp.expand();
         } else {
-          // В Telegram Mini Apps нет прямого API для выхода из полноэкранного режима
-          // Пользователь должен использовать кнопку "Назад" в Telegram
-          const alreadyExpandedLog = '📱 Mini App уже в полноэкранном режиме. Используйте кнопку "Назад" в Telegram для выхода.';
-          console.log(alreadyExpandedLog);
-          onLog?.(alreadyExpandedLog);
+          // Показываем диалог для выхода из полноэкранного режима
+          const exitLog = '📱 Mini App в полноэкранном режиме. Показываем диалог выхода.';
+          console.log(exitLog);
+          onLog?.(exitLog);
           
-          // НЕ показываем уведомление - это раздражает пользователя
-          // webApp.showAlert('Используйте кнопку "Назад" в Telegram для выхода из полноэкранного режима');
+          webApp.showConfirm(
+            'Хотите выйти из полноэкранного режима?',
+            (confirmed: boolean) => {
+              if (confirmed) {
+                const confirmLog = '✅ Пользователь подтвердил выход из полноэкранного режима';
+                console.log(confirmLog);
+                onLog?.(confirmLog);
+                
+                webApp.showAlert('Нажмите кнопку "Назад" в Telegram для выхода из полноэкранного режима');
+              } else {
+                const cancelLog = '❌ Пользователь отменил выход из полноэкранного режима';
+                console.log(cancelLog);
+                onLog?.(cancelLog);
+              }
+            }
+          );
         }
       } else {
         // Fallback для браузера
@@ -189,19 +202,22 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
 
   // Определяем позицию кнопки в зависимости от состояния
   const getButtonPosition = () => {
-    // Для тестирования - кнопка всегда внизу
+    // Кнопка всегда внизу для удобства тестирования
     return "fixed bottom-6 right-6 z-[9999]";
-    
-    // Оригинальная логика (закомментирована для тестирования):
-    // if (isExpanded) {
-    //   // В полноэкранном режиме Telegram - кнопка ниже, чтобы не мешать верхней панели
-    //   // Согласно документации, нужно учитывать высоту верхней панели
-    //   return "fixed top-24 right-6 z-[9999]";
-    // } else {
-    //   // В обычном режиме - стандартная позиция
-    //   return "fixed top-6 right-6 z-[9999]";
-    // }
   };
+
+  // Определяем правильное состояние кнопки
+  // Если viewportHeight === viewportStableHeight, то это обычный режим
+  // Если viewportHeight > viewportStableHeight, то это полноэкранный режим
+  const webApp = window.Telegram.WebApp;
+  const isActuallyExpanded = webApp.viewportHeight > webApp.viewportStableHeight;
+  
+  // Обновляем состояние, если оно не соответствует реальности
+  if (isActuallyExpanded !== isExpanded) {
+    console.log(`🔄 Корректируем состояние: isExpanded=${isExpanded} -> ${isActuallyExpanded}`);
+    onLog?.(`🔄 Корректируем состояние: isExpanded=${isExpanded} -> ${isActuallyExpanded}`);
+    setIsExpanded(isActuallyExpanded);
+  }
 
   return (
     <div className={`${getButtonPosition()} flex flex-col items-center gap-2`}>
@@ -251,35 +267,38 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/10 to-orange-400/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </button>
 
-      {/* Отладочная информация */}
-      <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-xl p-3 text-white text-xs max-w-48">
-        <div className="font-bold mb-2">🔍 Отладка Fullscreen</div>
-        <div className="space-y-1">
-          <div>📱 isExpanded: {isExpanded ? '✅' : '❌'}</div>
-          <div>🖥️ isFullscreen: {isFullscreen ? '✅' : '❌'}</div>
-          {window.Telegram?.WebApp && (
-            <>
-              <div>📏 viewportHeight: {window.Telegram.WebApp.viewportHeight}</div>
-              <div>📐 viewportStableHeight: {window.Telegram.WebApp.viewportStableHeight}</div>
-              <div>🌐 platform: {window.Telegram.WebApp.platform}</div>
-            </>
-          )}
-        </div>
+             {/* Отладочная информация */}
+       <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-xl p-3 text-white text-xs max-w-48">
+         <div className="font-bold mb-2">🔍 Отладка Fullscreen</div>
+         <div className="space-y-1">
+           <div>📱 isExpanded: {isExpanded ? '✅' : '❌'}</div>
+           <div>🖥️ isFullscreen: {isFullscreen ? '✅' : '❌'}</div>
+           <div>🔍 isActuallyExpanded: {isActuallyExpanded ? '✅' : '❌'}</div>
+           {window.Telegram?.WebApp && (
+             <>
+               <div>📏 viewportHeight: {window.Telegram.WebApp.viewportHeight}</div>
+               <div>📐 viewportStableHeight: {window.Telegram.WebApp.viewportStableHeight}</div>
+               <div>🌐 platform: {window.Telegram.WebApp.platform}</div>
+               <div>📱 webApp.isExpanded: {window.Telegram.WebApp.isExpanded ? '✅' : '❌'}</div>
+             </>
+           )}
+         </div>
         
-        {/* Кнопка копирования отладочной информации */}
-        <button
-          onClick={() => {
-            const debugInfo = [
-              `🔍 Fullscreen Debug Info - ${new Date().toLocaleTimeString()}`,
-              `📱 isExpanded: ${isExpanded}`,
-              `🖥️ isFullscreen: ${isFullscreen}`,
-              `📏 viewportHeight: ${window.Telegram?.WebApp?.viewportHeight || 'N/A'}`,
-              `📐 viewportStableHeight: ${window.Telegram?.WebApp?.viewportStableHeight || 'N/A'}`,
-              `🌐 platform: ${window.Telegram?.WebApp?.platform || 'N/A'}`,
-              `📱 webApp.isExpanded: ${window.Telegram?.WebApp?.isExpanded || 'N/A'}`,
-              `🔧 webApp.version: ${window.Telegram?.WebApp?.version || 'N/A'}`,
-              `🎨 webApp.colorScheme: ${window.Telegram?.WebApp?.colorScheme || 'N/A'}`
-            ].join('\n');
+                 {/* Кнопка копирования отладочной информации */}
+         <button
+           onClick={() => {
+             const debugInfo = [
+               `🔍 Fullscreen Debug Info - ${new Date().toLocaleTimeString()}`,
+               `📱 isExpanded: ${isExpanded}`,
+               `🖥️ isFullscreen: ${isFullscreen}`,
+               `🔍 isActuallyExpanded: ${isActuallyExpanded}`,
+               `📏 viewportHeight: ${window.Telegram?.WebApp?.viewportHeight || 'N/A'}`,
+               `📐 viewportStableHeight: ${window.Telegram?.WebApp?.viewportStableHeight || 'N/A'}`,
+               `🌐 platform: ${window.Telegram?.WebApp?.platform || 'N/A'}`,
+               `📱 webApp.isExpanded: ${window.Telegram?.WebApp?.isExpanded || 'N/A'}`,
+               `🔧 webApp.version: ${window.Telegram?.WebApp?.version || 'N/A'}`,
+               `🎨 webApp.colorScheme: ${window.Telegram?.WebApp?.colorScheme || 'N/A'}`
+             ].join('\n');
             
             navigator.clipboard.writeText(debugInfo).then(() => {
               onLog?.('📋 Отладочная информация скопирована');
