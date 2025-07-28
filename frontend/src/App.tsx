@@ -11,7 +11,7 @@ import PostTracking from './components/PostTracking';
 import BackButton from './components/BackButton';
 import FullscreenButton from './components/FullscreenButton';
 
-type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking';
+type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('main');
@@ -60,6 +60,14 @@ function App() {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     
+    // Принудительный сброс через requestAnimationFrame
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      addLog(`📊 Позиция после requestAnimationFrame: ${window.scrollY}`);
+    });
+    
     addLog(`📊 Позиция скролла ПОСЛЕ сброса: ${window.scrollY}`);
     
     // Дополнительный сброс через небольшую задержку
@@ -90,6 +98,12 @@ function App() {
       setPreviousPage(currentPage);
       setCurrentPage(page);
       addLog(`✅ Страница изменена на: ${page}`);
+      
+      // Немедленный сброс скролла при навигации
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      addLog(`📊 Сброс скролла при навигации: ${window.scrollY}`);
     } else {
       addLog(`⚠️ Страница уже активна: ${page}`);
     }
@@ -369,6 +383,30 @@ function App() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Post Builder Card */}
+                  <div 
+                    onClick={() => navigateTo('post-builder')}
+                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <span className="text-xl">📝</span>
+                        </div>
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Пост + кнопка</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
+                        Создание и публикация постов с интерактивными кнопками
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -501,6 +539,26 @@ function App() {
             <BackButton onClick={goBack} />
             <FullscreenButton />
             <PostTracking />
+          </div>
+        );
+
+      case 'post-builder':
+        console.log('📝 Загружаем PostBuilder');
+        return (
+          <div>
+            <BackButton onClick={goBack} />
+            <FullscreenButton />
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+              <div className="text-center text-white">
+                <h1 className="text-2xl font-bold mb-4">Страница не найдена</h1>
+                <button 
+                  onClick={() => navigateTo('main')}
+                  className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg transition-colors"
+                >
+                  На главную
+                </button>
+              </div>
+            </div>
           </div>
         );
 
