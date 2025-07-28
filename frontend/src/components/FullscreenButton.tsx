@@ -7,11 +7,26 @@ const FullscreenButton: React.FC = () => {
     // Инициализация состояния
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
-      setIsExpanded(webApp.isExpanded);
+      
+      // Добавляем отладочную информацию
+      console.log('🔍 Инициализация FullscreenButton:');
+      console.log('📱 webApp.isExpanded:', webApp.isExpanded);
+      console.log('📱 webApp.viewportHeight:', webApp.viewportHeight);
+      console.log('📱 webApp.viewportStableHeight:', webApp.viewportStableHeight);
+      
+      // Проверяем реальное состояние
+      const isActuallyExpanded = webApp.isExpanded || webApp.viewportHeight > webApp.viewportStableHeight;
+      setIsExpanded(isActuallyExpanded);
       
       // Слушаем изменения viewport
       const handleViewportChange = () => {
-        setIsExpanded(webApp.isExpanded);
+        console.log('🔄 viewportChanged event:');
+        console.log('📱 webApp.isExpanded:', webApp.isExpanded);
+        console.log('📱 webApp.viewportHeight:', webApp.viewportHeight);
+        console.log('📱 webApp.viewportStableHeight:', webApp.viewportStableHeight);
+        
+        const newIsExpanded = webApp.isExpanded || webApp.viewportHeight > webApp.viewportStableHeight;
+        setIsExpanded(newIsExpanded);
       };
       
       webApp.onEvent('viewportChanged', handleViewportChange);
@@ -26,7 +41,16 @@ const FullscreenButton: React.FC = () => {
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       
-      if (!webApp.isExpanded) {
+      // Проверяем реальное состояние
+      const isActuallyExpanded = webApp.isExpanded || webApp.viewportHeight > webApp.viewportStableHeight;
+      
+      console.log('🔘 toggleFullscreen вызвана:');
+      console.log('📱 webApp.isExpanded:', webApp.isExpanded);
+      console.log('📱 webApp.viewportHeight:', webApp.viewportHeight);
+      console.log('📱 webApp.viewportStableHeight:', webApp.viewportStableHeight);
+      console.log('📱 isActuallyExpanded:', isActuallyExpanded);
+      
+      if (!isActuallyExpanded) {
         // Расширяем на весь экран
         webApp.expand();
         console.log('🖼️ Расширяем Mini App на весь экран');
