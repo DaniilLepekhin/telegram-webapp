@@ -104,52 +104,53 @@ function App() {
       case 'main':
         return (
           <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-            {/* Animated background elements */}
+            {/* Enhanced Animated Background */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-              <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+              <div className="absolute top-40 left-40 w-80 h-80 bg-gradient-to-br from-pink-500 to-red-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+              <div className="absolute top-1/2 right-1/4 w-60 h-60 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-blob animation-delay-3000"></div>
             </div>
 
             {/* Кнопка полноэкранного режима */}
             <FullscreenButton />
 
-            <div className="relative z-10 p-4 sm:p-6">
-              {/* Header */}
-              <div className="text-center mb-8 fade-in">
-                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl mb-4 shadow-2xl">
-                  <span className="text-2xl sm:text-3xl">🚀</span>
+            <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+              {/* Enhanced Header */}
+              <div className="text-center mb-8 sm:mb-12 fade-in">
+                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-purple-600 rounded-3xl mb-4 sm:mb-6 shadow-2xl animate-pulse-glow">
+                  <span className="text-2xl sm:text-3xl lg:text-4xl">🚀</span>
                 </div>
-                <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
                   Telegram Mini App
                 </h1>
-                <p className="text-lg sm:text-xl text-white/80 drop-shadow-lg max-w-2xl mx-auto">
+                <p className="text-lg sm:text-xl lg:text-2xl text-white/80 drop-shadow-lg max-w-3xl mx-auto leading-relaxed">
                   Современная платформа для аналитики каналов и управления контентом
                 </p>
               </div>
 
-              {/* Main Menu Grid */}
-              <div className="max-w-4xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {/* Enhanced Main Menu Grid */}
+              <div className="max-w-6xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                   {/* Analytics Card */}
                   <div 
                     onClick={() => navigateTo('analytics')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📊</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">📊</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Аналитика каналов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors duration-300">Аналитика каналов</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Подробная статистика и аналитика ваших каналов
                       </p>
                     </div>
@@ -158,22 +159,22 @@ function App() {
                   {/* Showcase Card */}
                   <div 
                     onClick={() => navigateTo('showcase')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">🎯</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">🎯</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Витрина кейсов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-green-200 transition-colors duration-300">Витрина кейсов</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Примеры успешных кейсов и результатов работы
                       </p>
                     </div>
@@ -182,22 +183,22 @@ function App() {
                   {/* Demo Chat Card */}
                   <div 
                     onClick={() => navigateTo('demo-chat')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">💬</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">💬</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Демо чат</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-orange-200 transition-colors duration-300">Демо чат</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Интерактивный чат с ИИ-помощником
                       </p>
                     </div>
@@ -206,22 +207,22 @@ function App() {
                   {/* User Profile Card */}
                   <div 
                     onClick={() => navigateTo('user-profile')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">👤</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">👤</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Профиль</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors duration-300">Профиль</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Ваш профиль и персональные настройки
                       </p>
                     </div>
@@ -230,22 +231,22 @@ function App() {
                   {/* Analytics Feedback Card */}
                   <div 
                     onClick={() => navigateTo('feedback')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📈</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">📈</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Аналитика отзывов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-cyan-200 transition-colors duration-300">Аналитика отзывов</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Анализ обратной связи и отзывов
                       </p>
                     </div>
@@ -254,22 +255,22 @@ function App() {
                   {/* Post Analytics Card */}
                   <div 
                     onClick={() => navigateTo('post-analytics')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📝</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">📝</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Аналитика постов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-indigo-200 transition-colors duration-300">Аналитика постов</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Подробная статистика и анализ ваших постов
                       </p>
                     </div>
@@ -278,22 +279,22 @@ function App() {
                   {/* Telegram Integration Card */}
                   <div 
                     onClick={() => navigateTo('telegram-integration')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">⚙️</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-teal-400 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">⚙️</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Интеграция с Telegram</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-teal-200 transition-colors duration-300">Интеграция с Telegram</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Управление сообщениями и уведомлениями из Telegram
                       </p>
                     </div>
@@ -302,22 +303,22 @@ function App() {
                   {/* Post Tracking Card */}
                   <div 
                     onClick={() => navigateTo('post-tracking')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">🔗</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">🔗</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Отслеживание постов</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-red-200 transition-colors duration-300">Отслеживание постов</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Мониторинг и анализ просмотров ваших постов
                       </p>
                     </div>
@@ -326,22 +327,22 @@ function App() {
                   {/* Post Builder Card */}
                   <div 
                     onClick={() => navigateTo('post-builder')}
-                    className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer"
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-xl">📝</span>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">📝</span>
                         </div>
-                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Пост + кнопка</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors duration-300">Пост + кнопка</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                         Создание и публикация постов с интерактивными кнопками
                       </p>
                     </div>
@@ -349,22 +350,22 @@ function App() {
                 </div>
               </div>
 
-              {/* Quick Stats */}
-              <div className="max-w-4xl mx-auto mt-8">
-                <div className="glass-card p-6">
-                  <h2 className="text-xl font-bold text-white mb-4 text-center">Быстрая статистика</h2>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-400">2.4K</div>
-                      <div className="text-sm text-white/70">Подписчиков</div>
+              {/* Enhanced Quick Stats */}
+              <div className="max-w-4xl mx-auto mt-8 sm:mt-12">
+                <div className="glass-card p-6 sm:p-8 rounded-3xl">
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 text-center">Быстрая статистика</h2>
+                  <div className="grid grid-cols-3 gap-4 sm:gap-6">
+                    <div className="text-center group">
+                      <div className="text-2xl sm:text-3xl font-bold text-purple-400 group-hover:text-purple-300 transition-colors duration-300">2.4K</div>
+                      <div className="text-sm sm:text-base text-white/70">Подписчиков</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-400">98%</div>
-                      <div className="text-sm text-white/70">Вовлеченность</div>
+                    <div className="text-center group">
+                      <div className="text-2xl sm:text-3xl font-bold text-green-400 group-hover:text-green-300 transition-colors duration-300">98%</div>
+                      <div className="text-sm sm:text-base text-white/70">Вовлеченность</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400">1.2M</div>
-                      <div className="text-sm text-white/70">Просмотров</div>
+                    <div className="text-center group">
+                      <div className="text-2xl sm:text-3xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors duration-300">1.2M</div>
+                      <div className="text-sm sm:text-base text-white/70">Просмотров</div>
                     </div>
                   </div>
                 </div>
