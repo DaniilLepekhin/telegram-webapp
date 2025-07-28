@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useLogs } from '../contexts/LogsContext';
 
 interface BackButtonProps {
   onClick: () => void;
@@ -7,7 +6,6 @@ interface BackButtonProps {
 
 const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { addLog } = useLogs();
 
   useEffect(() => {
     // Проверяем Telegram WebApp API
@@ -33,7 +31,6 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
   const getButtonPosition = () => {
     if (isExpanded) {
       // В полноэкранном режиме Telegram - кнопка ниже, чтобы не мешать верхней панели
-      // Согласно документации, нужно учитывать высоту верхней панели
       return "fixed top-24 left-6 z-[9999]";
     } else {
       // В обычном режиме - стандартная позиция
@@ -44,9 +41,7 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
   return (
     <button
       onClick={() => {
-        const message = '🔘 BackButton clicked!';
-        console.log(message);
-        addLog(message);
+        console.log('🔘 BackButton clicked!');
         onClick();
       }}
       className={`${getButtonPosition()} w-12 h-12 bg-white/95 backdrop-blur-xl border-2 border-white/80 rounded-full shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group`}
