@@ -1,70 +1,40 @@
 import React, { useState, useEffect } from 'react';
 
 const FullscreenButton: React.FC = () => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    // Проверяем Telegram WebApp API
+    // Инициализация состояния
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       setIsExpanded(webApp.isExpanded);
-    }
-
-    // Слушаем изменения полноэкранного режима
-    const handleViewportChange = () => {
-      if (window.Telegram?.WebApp) {
-        const webApp = window.Telegram.WebApp;
+      
+      // Слушаем изменения viewport
+      const handleViewportChange = () => {
         setIsExpanded(webApp.isExpanded);
-      }
-    };
-
-    // Слушаем изменения браузерного полноэкранного режима
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.onEvent('viewportChanged', handleViewportChange);
+      };
+      
+      webApp.onEvent('viewportChanged', handleViewportChange);
+      
+      return () => {
+        webApp.offEvent('viewportChanged', handleViewportChange);
+      };
     }
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-
-    return () => {
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.offEvent('viewportChanged', handleViewportChange);
-      }
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
   }, []);
 
   const toggleFullscreen = () => {
-    try {
-      if (window.Telegram?.WebApp) {
-        const webApp = window.Telegram.WebApp;
-        
-        if (!webApp.isExpanded) {
-          // Расширяем на весь экран
-          webApp.expand();
-          console.log('🖼️ Расширяем Mini App на весь экран');
-        } else {
-          // В Telegram Mini Apps нет прямого API для выхода из полноэкранного режима
-          // Пользователь должен использовать кнопку "Назад" в Telegram
-          console.log('📱 Mini App уже в полноэкранном режиме. Используйте кнопку "Назад" в Telegram для выхода.');
-          
-          // НЕ показываем уведомление - это раздражает пользователя
-          // webApp.showAlert('Используйте кнопку "Назад" в Telegram для выхода из полноэкранного режима');
-        }
+    if (window.Telegram?.WebApp) {
+      const webApp = window.Telegram.WebApp;
+      
+      if (!webApp.isExpanded) {
+        // Расширяем на весь экран
+        webApp.expand();
+        console.log('🖼️ Расширяем Mini App на весь экран');
       } else {
-        // Fallback для браузера
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen();
-        } else {
-          document.exitFullscreen();
-        }
+        // В Telegram Mini Apps нет API для выхода из полноэкранного режима
+        // Пользователь должен использовать кнопку "Назад" в Telegram
+        console.log('📱 Mini App уже в полноэкранном режиме');
       }
-    } catch (error) {
-      console.error('Ошибка переключения полноэкранного режима:', error);
     }
   };
 
@@ -73,23 +43,14 @@ const FullscreenButton: React.FC = () => {
     return null;
   }
 
-  // Определяем позицию кнопки в зависимости от состояния
-  const getButtonPosition = () => {
-    if (isExpanded) {
-      // В полноэкранном режиме Telegram - кнопка ниже, чтобы не мешать верхней панели
-      // Согласно документации, нужно учитывать высоту верхней панели
-      return "fixed top-24 right-6 z-[9999]";
-    } else {
-      // В обычном режиме - стандартная позиция
-      return "fixed top-6 right-6 z-[9999]";
-    }
-  };
+  // Позиция кнопки - всегда в правом верхнем углу
 
   return (
     <button
       onClick={toggleFullscreen}
-      className={`${getButtonPosition()} w-12 h-12 bg-white/95 backdrop-blur-xl border-2 border-white/80 rounded-full shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group`}
+      className="fixed top-6 right-6 w-12 h-12 bg-white/95 backdrop-blur-xl border-2 border-white/80 rounded-full shadow-2xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 transition-all duration-300 transform hover:scale-110 group z-[9999]"
       aria-label={isExpanded ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
+      title={isExpanded ? "Используйте кнопку 'Назад' для выхода" : "Развернуть на весь экран"}
     >
       <div className="flex items-center justify-center w-full h-full">
         {isExpanded ? (
