@@ -59,7 +59,7 @@ services:
       - DATABASE_URL=postgresql://webapp_user:U3SfZ2cru@postgres:5432/telegram_analytics
       - REDIS_URL=redis://:U3SfZ2cru@redis:6379
       - JWT_SECRET=U3SfZ2cru
-      - TELEGRAM_BOT_TOKEN=your_bot_token_here
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-your_bot_token_here}
     volumes:
       - ./backend/logs:/app/logs
       - ./backend/uploads:/app/uploads

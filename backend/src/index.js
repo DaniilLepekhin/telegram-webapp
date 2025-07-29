@@ -1,21 +1,96 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import pg from 'pg';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-dotenv.config();
-
-const { Pool } = pg;
-const pool = new Pool();
+const express = require('express');
+const cors = require('cors');
+const { Pool } = require('pg');
+const TelegramBotAPI = require('./telegram-api');
+const TrackingSystem = require('./tracking-system');
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
+
+// Подключение к базе данных
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Инициализация Telegram Bot API
+const telegramAPI = new TelegramBotAPI(process.env.TELEGRAM_BOT_TOKEN);
+
+// Инициализация системы трекинга
+const trackingSystem = new TrackingSystem(pool);
+
+// API для получения каналов пользователя
+app.post('/api/telegram/get-channels', async (req, res) => {
+  try {
+    const { initData, user } = req.body;
+
+    if (!initData || !user) {
+      return res.status(400).json({
+        success: false,
+        error: 'Отсутствуют данные от Telegram WebApp'
+      });
+    }
+
+    // Валидируем initData через Telegram Bot API
+    const isValid = await telegramAPI.validateInitData(initData);
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        error: 'Недействительные данные от Telegram WebApp'
+      });
+    }
+
+    const userId = user.id;
+
+    // Получаем каналы пользователя из базы данных
+    const query = `
+      SELECT
+        c.id,
+        c.title,
+        c.username,
+        c.type,
+        c.member_count as "memberCount",
+        c.created_at,
+        c.updated_at,
+        uc.is_admin as "isAdmin",
+        uc.bot_is_admin as "botIsAdmin",
+        uc.can_invite_users as "canInviteUsers",
+        uc.last_checked_at
+      FROM channels c
+      INNER JOIN user_channels uc ON c.id = uc.channel_id
+      WHERE uc.user_id = $1 AND uc.is_admin = true
+      ORDER BY c.title ASC
+    `;
+
+    const result = await pool.query(query, [userId]);
+
+    // Преобразуем данные в формат, ожидаемый фронтендом
+    const channels = result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      username: row.username,
+      type: row.type,
+      memberCount: row.memberCount,
+      isAdmin: row.isAdmin,
+      canInviteUsers: row.canInviteUsers || false,
+      botIsAdmin: row.botIsAdmin
+    }));
+
+    res.json({
+      success: true,
+      channels: channels
+    });
+  } catch (error) {
+    console.error('Ошибка получения каналов:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
 
 app.get('/', (req, res) => {
   res.json({ message: 'Backend работает!' });
@@ -200,95 +275,36 @@ app.get('/api/channels/:userId', async (req, res) => {
   }
 });
 
-// Эндпоинт для получения каналов через Telegram WebApp
-app.post('/api/telegram/get-channels', async (req, res) => {
-  try {
-    const { initData, user } = req.body;
-
-    if (!initData || !user) {
-      return res.status(400).json({
-        success: false,
-        error: 'Отсутствуют данные от Telegram WebApp'
-      });
-    }
-
-    // Здесь должна быть валидация initData через Telegram Bot API
-    // Пока что используем данные пользователя напрямую
-    const userId = user.id;
-
-    // Получаем каналы пользователя из базы данных
-    const query = `
-      SELECT
-        c.id,
-        c.title,
-        c.username,
-        c.type,
-        c.member_count as "memberCount",
-        c.created_at,
-        c.updated_at,
-        uc.is_admin as "isAdmin",
-        uc.bot_is_admin as "botIsAdmin",
-        uc.can_invite_users as "canInviteUsers",
-        uc.last_checked_at
-      FROM channels c
-      INNER JOIN user_channels uc ON c.id = uc.channel_id
-      WHERE uc.user_id = $1 AND uc.is_admin = true
-      ORDER BY c.title ASC
-    `;
-
-    const result = await pool.query(query, [userId]);
-
-    // Преобразуем данные в формат, ожидаемый фронтендом
-    const channels = result.rows.map(row => ({
-      id: row.id,
-      title: row.title,
-      username: row.username,
-      type: row.type,
-      memberCount: row.memberCount,
-      isAdmin: row.isAdmin,
-      canInviteUsers: row.canInviteUsers || false,
-      botIsAdmin: row.botIsAdmin
-    }));
-
-    res.json({
-      success: true,
-      channels: channels
-    });
-  } catch (error) {
-    console.error('Ошибка получения каналов:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Внутренняя ошибка сервера'
-    });
-  }
-});
-
 // Эндпоинт для добавления бота в канал
 app.post('/api/telegram/add-bot', async (req, res) => {
   try {
-    const { channelId, channelTitle, initData } = req.body;
-    
-    // Проверяем, что есть данные от Telegram WebApp
-    if (!initData) {
+    const { channelId, permissions } = req.body;
+
+    if (!channelId) {
       return res.status(400).json({
         success: false,
-        error: 'Отсутствуют данные от Telegram WebApp'
+        error: 'Необходим channelId'
       });
     }
 
-    // Здесь должна быть логика добавления бота в канал через Telegram Bot API
-    // Пока что возвращаем успешный ответ
+    const result = await telegramAPI.addBotToChannel(channelId, permissions);
     
+    if (!result) {
+      return res.status(500).json({
+        success: false,
+        error: 'Ошибка добавления бота в канал'
+      });
+    }
+
     res.json({
       success: true,
-      message: `Бот успешно добавлен в канал "${channelTitle}"`,
-      channelId: channelId
+      message: 'Бот успешно добавлен в канал'
     });
   } catch (error) {
-    console.error('Error adding bot to channel:', error);
+    console.error('Ошибка добавления бота:', error);
     res.status(500).json({
       success: false,
-      error: 'Ошибка при добавлении бота в канал'
+      error: 'Внутренняя ошибка сервера'
     });
   }
 });
@@ -949,7 +965,7 @@ app.post('/api/telegram/create-tracking-link', async (req, res) => {
     }
 
     // Генерируем уникальный хеш для ссылки
-    const linkHash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const linkHash = trackingSystem.generateLinkHash();
 
     const query = `
       INSERT INTO tracking_links 
@@ -1069,48 +1085,139 @@ app.get('/api/telegram/channel-stats/:channelId', async (req, res) => {
   try {
     const { channelId } = req.params;
 
-    // Получаем информацию о канале
-    const channelQuery = 'SELECT * FROM channels WHERE id = $1';
-    const channelResult = await pool.query(channelQuery, [channelId]);
-
-    if (channelResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Канал не найден'
-      });
+    // Получаем статистику через систему трекинга
+    const stats = await trackingSystem.getChannelStats(channelId);
+    
+    if (!stats.success) {
+      return res.status(500).json(stats);
     }
-
-    const channel = channelResult.rows[0];
-
-    // Получаем количество трекинговых ссылок
-    const linksQuery = 'SELECT COUNT(*) as links_count FROM tracking_links WHERE channel_id = $1';
-    const linksResult = await pool.query(linksQuery, [channelId]);
-
-    // Получаем статистику по источникам трафика (пока заглушка)
-    const sources = [
-      { name: 'Органический трафик', count: Math.floor(channel.member_count * 0.6), percentage: 60, color: '#10B981' },
-      { name: 'Реклама ВКонтакте', count: Math.floor(channel.member_count * 0.2), percentage: 20, color: '#3B82F6' },
-      { name: 'Instagram Ads', count: Math.floor(channel.member_count * 0.15), percentage: 15, color: '#F59E0B' },
-      { name: 'Google Ads', count: Math.floor(channel.member_count * 0.05), percentage: 5, color: '#EF4444' }
-    ];
 
     res.json({
       success: true,
-      stats: {
-        channel: {
-          id: channel.id,
-          title: channel.title,
-          username: channel.username,
-          memberCount: channel.member_count,
-          type: channel.type
-        },
-        linksCount: linksResult.rows[0].links_count,
-        sources: sources,
-        dailyStats: [] // Будет заполнено позже
-      }
+      stats: stats.stats
     });
   } catch (error) {
     console.error('Ошибка получения статистики канала:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
+
+// API для получения ежедневной статистики
+app.get('/api/telegram/daily-stats/:channelId', async (req, res) => {
+  try {
+    const { channelId } = req.params;
+    const { days = 30 } = req.query;
+
+    const stats = await trackingSystem.getDailyStats(channelId, parseInt(days));
+    
+    if (!stats.success) {
+      return res.status(500).json(stats);
+    }
+
+    res.json({
+      success: true,
+      dailyStats: stats.dailyStats
+    });
+  } catch (error) {
+    console.error('Ошибка получения ежедневной статистики:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
+
+// API для трекинга клика по ссылке
+app.post('/api/track/:linkHash', async (req, res) => {
+  try {
+    const { linkHash } = req.params;
+    const userData = {
+      userId: req.body.userId,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      referer: req.get('Referer')
+    };
+
+    const result = await trackingSystem.trackClick(linkHash, userData);
+    
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    // Перенаправляем на канал или пост
+    const link = result.link;
+    let redirectUrl = `https://t.me/${link.channelId}`;
+    
+    if (link.postId) {
+      redirectUrl += `/${link.postId}`;
+    }
+
+    res.json({
+      success: true,
+      clickId: result.clickId,
+      redirectUrl: redirectUrl
+    });
+  } catch (error) {
+    console.error('Ошибка трекинга клика:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
+
+// API для отметки конверсии
+app.post('/api/conversion', async (req, res) => {
+  try {
+    const { clickId, userId, channelId } = req.body;
+
+    if (!clickId || !userId || !channelId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Необходимы clickId, userId и channelId'
+      });
+    }
+
+    const result = await trackingSystem.markConversion(clickId, userId, channelId);
+    
+    if (!result.success) {
+      return res.status(500).json(result);
+    }
+
+    res.json({
+      success: true,
+      message: 'Конверсия отмечена'
+    });
+  } catch (error) {
+    console.error('Ошибка отметки конверсии:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
+
+// API для получения информации о боте
+app.get('/api/telegram/bot-info', async (req, res) => {
+  try {
+    const botInfo = await telegramAPI.getBotInfo();
+    
+    if (!botInfo) {
+      return res.status(500).json({
+        success: false,
+        error: 'Ошибка получения информации о боте'
+      });
+    }
+
+    res.json({
+      success: true,
+      bot: botInfo
+    });
+  } catch (error) {
+    console.error('Ошибка получения информации о боте:', error);
     res.status(500).json({
       success: false,
       error: 'Внутренняя ошибка сервера'

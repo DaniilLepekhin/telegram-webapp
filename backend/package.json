@@ -1,20 +1,22 @@
 {
-  "name": "backend",
+  "name": "telegram-webapp-backend",
   "version": "1.0.0",
-  "private": true,
+  "description": "Backend for Telegram WebApp Analytics",
   "main": "src/index.js",
-  "type": "module",
   "scripts": {
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "pg": "^8.11.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5"
+    "pg": "^8.11.3",
+    "axios": "^1.6.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
-  }
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["telegram", "webapp", "analytics", "bot"],
+  "author": "Your Name",
+  "license": "MIT"
 } 
