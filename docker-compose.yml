@@ -56,7 +56,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=4000
-      - DATABASE_URL=postgresql://webapp_user:U3SfZ2cru@postgres:5432/telegram_webapp
+      - DATABASE_URL=postgresql://webapp_user:U3SfZ2cru@postgres:5432/telegram_analytics
       - REDIS_URL=redis://:U3SfZ2cru@redis:6379
       - JWT_SECRET=U3SfZ2cru
       - TELEGRAM_BOT_TOKEN=your_bot_token_here
