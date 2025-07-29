@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import TrackingLinkCreator from './TrackingLinkCreator';
 
 interface TrackingLink {
   id: string;
@@ -98,10 +99,11 @@ const TrackingLinksManager: React.FC = () => {
               ✕
             </button>
           </div>
-          {/* Здесь будет компонент TrackingLinkCreator */}
-          <div className="text-white/60 text-center py-8">
-            Компонент создания ссылок будет добавлен
-          </div>
+          <TrackingLinkCreator
+            channelId="default"
+            channelName="Мой канал"
+            onLinkCreated={handleLinkCreated}
+          />
         </div>
       )}
 
