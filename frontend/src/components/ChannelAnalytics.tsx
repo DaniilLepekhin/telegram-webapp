@@ -257,7 +257,9 @@ const ChannelAnalytics: React.FC = () => {
                   )}
 
                   {activeTab === 'tracking' && (
-                    <TrackingLinksManager />
+                    <div className="mt-6">
+                      <TrackingLinksManager channelId={selectedTelegramChannel?.id || 0} />
+                    </div>
                   )}
 
                   {activeTab === 'daily' && (

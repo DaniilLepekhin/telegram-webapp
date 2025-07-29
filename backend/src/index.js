@@ -936,6 +936,188 @@ app.put('/api/channels/update-post-stats/:postId', async (req, res) => {
   }
 });
 
+// API для создания трекинговой ссылки
+app.post('/api/telegram/create-tracking-link', async (req, res) => {
+  try {
+    const { channelId, userId, name, postId, utmSource, utmMedium, utmCampaign, utmTerm, utmContent, tag } = req.body;
+
+    if (!channelId || !userId || !name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Необходимы channelId, userId и name'
+      });
+    }
+
+    // Генерируем уникальный хеш для ссылки
+    const linkHash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    const query = `
+      INSERT INTO tracking_links 
+      (channel_id, user_id, name, link_hash, post_id, utm_source, utm_medium, utm_campaign, utm_term, utm_content, tag)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *
+    `;
+
+    const values = [
+      channelId, userId, name, linkHash, postId || null,
+      utmSource || null, utmMedium || null, utmCampaign || null,
+      utmTerm || null, utmContent || null, tag || null
+    ];
+
+    const result = await pool.query(query, values);
+    const newLink = result.rows[0];
+
+    res.json({
+      success: true,
+      link: {
+        id: newLink.id,
+        name: newLink.name,
+        linkHash: newLink.link_hash,
+        postId: newLink.post_id,
+        utmSource: newLink.utm_source,
+        utmMedium: newLink.utm_medium,
+        utmCampaign: newLink.utm_campaign,
+        utmTerm: newLink.utm_term,
+        utmContent: newLink.utm_content,
+        tag: newLink.tag,
+        isActive: newLink.is_active,
+        createdAt: newLink.created_at
+      }
+    });
+  } catch (error) {
+    console.error('Ошибка создания трекинговой ссылки:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
+
+// API для получения трекинговых ссылок канала
+app.get('/api/telegram/tracking-links/:channelId', async (req, res) => {
+  try {
+    const { channelId } = req.params;
+
+    const query = `
+      SELECT 
+        id, name, link_hash, post_id, utm_source, utm_medium, 
+        utm_campaign, utm_term, utm_content, tag, is_active, created_at
+      FROM tracking_links 
+      WHERE channel_id = $1 
+      ORDER BY created_at DESC
+    `;
+
+    const result = await pool.query(query, [channelId]);
+    const links = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      linkHash: row.link_hash,
+      postId: row.post_id,
+      utmSource: row.utm_source,
+      utmMedium: row.utm_medium,
+      utmCampaign: row.utm_campaign,
+      utmTerm: row.utm_term,
+      utmContent: row.utm_content,
+      tag: row.tag,
+      isActive: row.is_active,
+      createdAt: row.created_at
+    }));
+
+    res.json({
+      success: true,
+      links: links
+    });
+  } catch (error) {
+    console.error('Ошибка получения трекинговых ссылок:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
+
+// API для удаления трекинговой ссылки
+app.delete('/api/telegram/tracking-links/:linkId', async (req, res) => {
+  try {
+    const { linkId } = req.params;
+
+    const query = 'DELETE FROM tracking_links WHERE id = $1 RETURNING *';
+    const result = await pool.query(query, [linkId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Ссылка не найдена'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Ссылка успешно удалена'
+    });
+  } catch (error) {
+    console.error('Ошибка удаления трекинговой ссылки:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
+
+// API для получения статистики канала
+app.get('/api/telegram/channel-stats/:channelId', async (req, res) => {
+  try {
+    const { channelId } = req.params;
+
+    // Получаем информацию о канале
+    const channelQuery = 'SELECT * FROM channels WHERE id = $1';
+    const channelResult = await pool.query(channelQuery, [channelId]);
+
+    if (channelResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Канал не найден'
+      });
+    }
+
+    const channel = channelResult.rows[0];
+
+    // Получаем количество трекинговых ссылок
+    const linksQuery = 'SELECT COUNT(*) as links_count FROM tracking_links WHERE channel_id = $1';
+    const linksResult = await pool.query(linksQuery, [channelId]);
+
+    // Получаем статистику по источникам трафика (пока заглушка)
+    const sources = [
+      { name: 'Органический трафик', count: Math.floor(channel.member_count * 0.6), percentage: 60, color: '#10B981' },
+      { name: 'Реклама ВКонтакте', count: Math.floor(channel.member_count * 0.2), percentage: 20, color: '#3B82F6' },
+      { name: 'Instagram Ads', count: Math.floor(channel.member_count * 0.15), percentage: 15, color: '#F59E0B' },
+      { name: 'Google Ads', count: Math.floor(channel.member_count * 0.05), percentage: 5, color: '#EF4444' }
+    ];
+
+    res.json({
+      success: true,
+      stats: {
+        channel: {
+          id: channel.id,
+          title: channel.title,
+          username: channel.username,
+          memberCount: channel.member_count,
+          type: channel.type
+        },
+        linksCount: linksResult.rows[0].links_count,
+        sources: sources,
+        dailyStats: [] // Будет заполнено позже
+      }
+    });
+  } catch (error) {
+    console.error('Ошибка получения статистики канала:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Внутренняя ошибка сервера'
+    });
+  }
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
