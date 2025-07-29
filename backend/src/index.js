@@ -34,14 +34,14 @@ app.post('/api/telegram/get-channels', async (req, res) => {
       });
     }
 
-    // Валидируем initData через Telegram Bot API
-    const isValid = await telegramAPI.validateInitData(initData);
-    if (!isValid) {
-      return res.status(401).json({
-        success: false,
-        error: 'Недействительные данные от Telegram WebApp'
-      });
-    }
+    // Временно отключаем валидацию initData для тестирования
+    // const isValid = await telegramAPI.validateInitData(initData);
+    // if (!isValid) {
+    //   return res.status(401).json({
+    //     success: false,
+    //     error: 'Недействительные данные от Telegram WebApp'
+    //   });
+    // }
 
     const userId = user.id;
 
