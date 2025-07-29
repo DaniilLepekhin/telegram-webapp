@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import BackButton from './BackButton';
 import FullscreenButton from './FullscreenButton';
+import TrackingLinksManager from './TrackingLinksManager';
+import SourceAnalytics from './SourceAnalytics';
 
 interface ChannelData {
   id: string;
@@ -53,7 +55,7 @@ const ChannelAnalytics: React.FC = () => {
   ]);
 
   const [selectedChannel, setSelectedChannel] = useState<ChannelData | null>(channels[0]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'sources' | 'daily' | 'ads'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'sources' | 'tracking' | 'daily' | 'ads'>('overview');
 
   const addChannel = () => {
     const newChannel: ChannelData = {
@@ -152,6 +154,7 @@ const ChannelAnalytics: React.FC = () => {
                 {[
                   { id: 'overview', label: 'Обзор', icon: '📊' },
                   { id: 'sources', label: 'Источники', icon: '🌐' },
+                  { id: 'tracking', label: 'Трекинг', icon: '🔗' },
                   { id: 'daily', label: 'Ежедневно', icon: '📅' },
                   { id: 'ads', label: 'Реклама', icon: '💰' }
                 ].map(tab => (
@@ -218,23 +221,11 @@ const ChannelAnalytics: React.FC = () => {
               )}
 
               {activeTab === 'sources' && (
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                  <h3 className="text-xl font-bold text-white mb-6">Источники трафика</h3>
-                  <div className="space-y-4">
-                    {selectedChannel.sources.map((source, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: source.color }}></div>
-                          <span className="text-white font-medium">{source.name}</span>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-white font-bold">{source.count.toLocaleString()}</div>
-                          <div className="text-white/60 text-sm">{source.percentage}%</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <SourceAnalytics channelId={selectedChannel.id} />
+              )}
+
+              {activeTab === 'tracking' && (
+                <TrackingLinksManager />
               )}
 
               {activeTab === 'daily' && (
