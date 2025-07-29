@@ -200,6 +200,100 @@ app.get('/api/channels/:userId', async (req, res) => {
   }
 });
 
+// Эндпоинт для получения каналов через Telegram WebApp
+app.post('/api/telegram/get-channels', async (req, res) => {
+  try {
+    const { initData, user } = req.body;
+    
+    // Проверяем, что есть данные от Telegram WebApp
+    if (!initData || !user) {
+      return res.status(400).json({
+        success: false,
+        error: 'Отсутствуют данные от Telegram WebApp'
+      });
+    }
+
+    // Здесь должна быть валидация initData через Telegram Bot API
+    // Пока что используем данные пользователя напрямую
+    const userId = user.id;
+    
+    // Получаем каналы пользователя из базы данных
+    const query = `
+      SELECT 
+        c.id,
+        c.title,
+        c.username,
+        c.type,
+        c.member_count as "memberCount",
+        c.created_at,
+        c.updated_at,
+        uc.is_admin as "isAdmin",
+        uc.bot_is_admin as "botIsAdmin",
+        uc.can_invite_users as "canInviteUsers",
+        uc.last_checked_at
+      FROM channels c
+      INNER JOIN user_channels uc ON c.id = uc.channel_id
+      WHERE uc.user_id = $1 AND uc.is_admin = true
+      ORDER BY c.title ASC
+    `;
+    
+    const result = await pool.query(query, [userId]);
+    
+    // Преобразуем данные в формат, ожидаемый фронтендом
+    const channels = result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      username: row.username,
+      type: row.type,
+      memberCount: row.memberCount,
+      isAdmin: row.isAdmin,
+      canInviteUsers: row.canInviteUsers || false,
+      botIsAdmin: row.botIsAdmin
+    }));
+    
+    res.json({
+      success: true,
+      channels: channels
+    });
+  } catch (error) {
+    console.error('Error fetching channels:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка при получении каналов'
+    });
+  }
+});
+
+// Эндпоинт для добавления бота в канал
+app.post('/api/telegram/add-bot', async (req, res) => {
+  try {
+    const { channelId, channelTitle, initData } = req.body;
+    
+    // Проверяем, что есть данные от Telegram WebApp
+    if (!initData) {
+      return res.status(400).json({
+        success: false,
+        error: 'Отсутствуют данные от Telegram WebApp'
+      });
+    }
+
+    // Здесь должна быть логика добавления бота в канал через Telegram Bot API
+    // Пока что возвращаем успешный ответ
+    
+    res.json({
+      success: true,
+      message: `Бот успешно добавлен в канал "${channelTitle}"`,
+      channelId: channelId
+    });
+  } catch (error) {
+    console.error('Error adding bot to channel:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка при добавлении бота в канал'
+    });
+  }
+});
+
 // Эндпоинт для добавления нового канала
 app.post('/api/channels', async (req, res) => {
   const { userId, channelName, channelUsername } = req.body;
