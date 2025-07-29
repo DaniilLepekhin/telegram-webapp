@@ -46,9 +46,11 @@ const ChannelAnalytics: React.FC = () => {
   const [selectedChannel, setSelectedChannel] = useState<ChannelData | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sources' | 'tracking' | 'daily' | 'ads'>('overview');
   const [showChannelDetector, setShowChannelDetector] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const handleChannelsDetected = (channels: TelegramChannel[]) => {
     setDetectedChannels(channels);
+    setIsInitialized(true);
     
     // Преобразуем Telegram каналы в формат ChannelData
     const channelData: ChannelData[] = channels.map(channel => ({
@@ -123,25 +125,26 @@ const ChannelAnalytics: React.FC = () => {
           </p>
         </div>
 
-        {/* Channel Detection */}
-        {detectedChannels.length === 0 ? (
-          <div className="mb-8">
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🔍</span>
-                </div>
-                <h2 className="text-xl font-bold text-white mb-2">Автоматическое определение каналов</h2>
-                <p className="text-white/60">Найдем все каналы, где вы являетесь администратором</p>
+        {/* Channel Detection - Показываем всегда новый интерфейс */}
+        <div className="mb-8">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🔍</span>
               </div>
-              
-              <ChannelDetector
-                onChannelsDetected={handleChannelsDetected}
-                onChannelSelected={handleChannelSelected}
-              />
+              <h2 className="text-xl font-bold text-white mb-2">Автоматическое определение каналов</h2>
+              <p className="text-white/60">Найдем все каналы, где вы являетесь администратором</p>
             </div>
+            
+            <ChannelDetector
+              onChannelsDetected={handleChannelsDetected}
+              onChannelSelected={handleChannelSelected}
+            />
           </div>
-        ) : (
+        </div>
+
+        {/* Показываем каналы только если они найдены */}
+        {isInitialized && channels.length > 0 && (
           <>
             {/* Channel Selector */}
             <div className="mb-8">
