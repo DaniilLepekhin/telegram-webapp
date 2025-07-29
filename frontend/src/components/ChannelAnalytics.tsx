@@ -59,13 +59,8 @@ const ChannelAnalytics: React.FC = () => {
       username: channel.username ? `@${channel.username}` : '',
       subscribers: channel.memberCount || 0,
       growth: 0, // Будет рассчитываться после подключения бота
-      sources: [
-        { name: 'Органический трафик', count: Math.floor((channel.memberCount || 0) * 0.6), percentage: 60, color: '#10B981' },
-        { name: 'Реклама ВКонтакте', count: Math.floor((channel.memberCount || 0) * 0.2), percentage: 20, color: '#3B82F6' },
-        { name: 'Instagram Ads', count: Math.floor((channel.memberCount || 0) * 0.15), percentage: 15, color: '#F59E0B' },
-        { name: 'Google Ads', count: Math.floor((channel.memberCount || 0) * 0.05), percentage: 5, color: '#EF4444' }
-      ],
-      dailyStats: []
+      sources: [], // Пустой массив - реальные данные будут загружены позже
+      dailyStats: [] // Пустой массив - реальные данные будут загружены позже
     }));
     
     setChannels(channelData);

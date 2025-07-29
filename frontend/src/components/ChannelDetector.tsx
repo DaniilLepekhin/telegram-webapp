@@ -52,15 +52,15 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
-        const detectedChannels = data.channels.filter((channel: TelegramChannel) => 
+        const detectedChannels = data.channels.filter((channel: TelegramChannel) =>
           channel.isAdmin && channel.canInviteUsers
         );
-        
+
         setChannels(detectedChannels);
         onChannelsDetected(detectedChannels);
-        
+
         if (detectedChannels.length === 0) {
           setError('Не найдено каналов, где вы являетесь администратором с правами добавления пользователей');
         }
@@ -70,31 +70,10 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
     } catch (err) {
       console.error('Ошибка определения каналов:', err);
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
-      
-      // Fallback: показываем демо-данные
-      const demoChannels: TelegramChannel[] = [
-        {
-          id: 1,
-          title: 'Мой канал',
-          username: 'my_channel',
-          type: 'channel',
-          isAdmin: true,
-          canInviteUsers: true,
-          memberCount: 15420
-        },
-        {
-          id: 2,
-          title: 'Группа поддержки',
-          username: 'support_group',
-          type: 'supergroup',
-          isAdmin: true,
-          canInviteUsers: true,
-          memberCount: 2340
-        }
-      ];
-      
-      setChannels(demoChannels);
-      onChannelsDetected(demoChannels);
+
+      // Не показываем демо-данные, только ошибку
+      setChannels([]);
+      onChannelsDetected([]);
     } finally {
       setLoading(false);
     }
@@ -125,7 +104,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         alert(`Бот успешно добавлен в канал "${channel.title}"!`);
         // Здесь можно обновить статус канала
@@ -174,7 +153,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
       )}
 
       {/* Error State */}
-      {error && (
+      {error && !loading && (
         <div className="bg-red-500/20 backdrop-blur-xl rounded-2xl p-6 border border-red-400/30">
           <div className="flex items-start space-x-3">
             <span className="text-red-400 text-xl">⚠️</span>
@@ -198,7 +177,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
           <h4 className="text-lg font-semibold text-white mb-4">
             Найдено каналов: {channels.length}
           </h4>
-          
+
           {channels.map((channel) => (
             <div
               key={channel.id}
@@ -223,7 +202,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-4 text-sm">
                     <span className="text-white/60">
                       Тип: {channel.type === 'channel' ? 'Канал' : 'Группа'}
@@ -236,7 +215,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
                     <span className="text-green-400">✅ Администратор</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => handleChannelSelect(channel)}
@@ -257,7 +236,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
                   </button>
                 </div>
               </div>
-              
+
               {/* Bot Status */}
               <div className="pt-4 border-t border-white/10">
                 <div className="flex items-center justify-between">
