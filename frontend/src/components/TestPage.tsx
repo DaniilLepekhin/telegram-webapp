@@ -81,7 +81,7 @@ const TestPage: React.FC = () => {
                 </div>
                 
                 <div className="text-white/70">
-                  <div>URL: <span className="text-white font-mono text-sm">http://217.114.13.102:3001</span></div>
+                  <div>Backend: <span className="text-white font-mono text-sm">Проксируется через nginx</span></div>
                   <div>Health: <span className="text-white font-mono text-sm">/api/telegram/stats/users</span></div>
                 </div>
               </div>
