@@ -14,6 +14,7 @@
             overflow-x: hidden !important;
             scroll-restoration: manual !important;
             position: relative !important;
+            background: #000000 !important; /* Черный фон вместо градиента */
         }
         
         /* Плавное обнуление скроллов */
@@ -26,6 +27,7 @@
         #root {
             min-height: 100vh !important;
             position: relative !important;
+            background: #000000 !important;
         }
         
         .App {
@@ -34,6 +36,8 @@
             will-change: transform, opacity, filter;
             backface-visibility: hidden;
             perspective: 1000px;
+            background: #000000 !important;
+            min-height: 100vh !important;
         }
         
         /* Плавные переходы */
@@ -45,6 +49,55 @@
         body.tg-viewport {
             scroll-behavior: auto !important;
             overflow-y: auto !important;
+        }
+        
+        /* РЕВОЛЮЦИОННЫЕ АНИМАЦИИ */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(3deg); }
+            66% { transform: translateY(-15px) rotate(-3deg); }
+        }
+        
+        @keyframes textGlow {
+            0% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
+            100% { text-shadow: 0 0 40px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 107, 107, 0.4); }
+        }
+        
+        @keyframes orbit {
+            0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* 3D эффекты для карточек */
+        .card-3d {
+            transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+        }
+        
+        .card-3d:hover {
+            transform: rotateY(10deg) rotateX(10deg) translateZ(20px);
+        }
+        
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>

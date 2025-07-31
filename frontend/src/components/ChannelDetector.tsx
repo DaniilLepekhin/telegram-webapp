@@ -45,34 +45,8 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
       
       // Проверяем, есть ли доступ к Telegram WebApp
       if (!window.Telegram?.WebApp) {
-        addLog('Telegram WebApp недоступен, показываем демо-данные');
-        // Демо-данные для тестирования
-        const demoChannels: TelegramChannel[] = [
-          {
-            id: 1,
-            title: 'Мой канал',
-            username: 'my_channel',
-            type: 'channel',
-            isAdmin: true,
-            canInviteUsers: true,
-            memberCount: 15420
-          },
-          {
-            id: 2,
-            title: 'Группа поддержки',
-            username: 'support_group',
-            type: 'supergroup',
-            isAdmin: true,
-            canInviteUsers: true,
-            memberCount: 2340
-          }
-        ];
-        
-        addLog(`Устанавливаем демо-каналы: ${JSON.stringify(demoChannels, null, 2)}`);
-        setChannels(demoChannels);
-        onChannelsDetected(demoChannels);
-        setLoading(false);
-        return;
+        addLog('Telegram WebApp недоступен');
+        throw new Error('Telegram WebApp недоступен. Откройте приложение через Telegram бота.');
       }
 
       // Проверяем, есть ли данные пользователя
@@ -80,34 +54,8 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
       addLog(`user: ${JSON.stringify(window.Telegram.WebApp.initDataUnsafe?.user)}`);
       
       if (!window.Telegram.WebApp.initDataUnsafe?.user) {
-        addLog('Данные пользователя недоступны, показываем демо-данные');
-        // Демо-данные для тестирования
-        const demoChannels: TelegramChannel[] = [
-          {
-            id: 1,
-            title: 'Мой канал',
-            username: 'my_channel',
-            type: 'channel',
-            isAdmin: true,
-            canInviteUsers: true,
-            memberCount: 15420
-          },
-          {
-            id: 2,
-            title: 'Группа поддержки',
-            username: 'support_group',
-            type: 'supergroup',
-            isAdmin: true,
-            canInviteUsers: true,
-            memberCount: 2340
-          }
-        ];
-        
-        addLog(`Устанавливаем демо-каналы: ${JSON.stringify(demoChannels, null, 2)}`);
-        setChannels(demoChannels);
-        onChannelsDetected(demoChannels);
-        setLoading(false);
-        return;
+        addLog('Данные пользователя недоступны');
+        throw new Error('Данные пользователя недоступны. Попробуйте перезапустить приложение.');
       }
 
       addLog('Отправляем запрос к API...');
@@ -150,8 +98,6 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
     } catch (err) {
       addLog(`Ошибка определения каналов: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
-
-      // Не показываем демо-данные, только ошибку
       setChannels([]);
       onChannelsDetected([]);
     } finally {

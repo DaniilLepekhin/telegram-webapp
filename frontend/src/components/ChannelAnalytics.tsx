@@ -31,39 +31,51 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
     setLoading(true);
     setLogs([]);
     
-    addLog('🔍 Начинаем поиск каналов...');
-    
-    // Имитация задержки
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Демо-данные
-    const demoChannels: TelegramChannel[] = [
-      {
-        id: 1,
-        title: 'Мой Телеграм Канал',
-        username: 'my_channel',
-        type: 'channel',
-        isAdmin: true,
-        canInviteUsers: true,
-        memberCount: 15420,
-        botIsAdmin: false
-      },
-      {
-        id: 2,
-        title: 'Группа Поддержки',
-        username: 'support_group',
-        type: 'supergroup',
-        isAdmin: true,
-        canInviteUsers: true,
-        memberCount: 2340,
-        botIsAdmin: true
+    try {
+      addLog('🔍 Начинаем поиск каналов...');
+      
+      if (!window.Telegram?.WebApp) {
+        throw new Error('Telegram WebApp недоступен');
       }
-    ];
-    
-    addLog(`✅ Найдено каналов: ${demoChannels.length}`);
-    setChannels(demoChannels);
-    setSelectedChannel(demoChannels[0]);
-    setLoading(false);
+
+      if (!window.Telegram.WebApp.initDataUnsafe?.user) {
+        throw new Error('Данные пользователя недоступны');
+      }
+
+      addLog('📡 Отправляем запрос к API...');
+      const response = await fetch('/api/telegram/get-channels', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          initData: window.Telegram.WebApp.initData,
+          user: window.Telegram.WebApp.initDataUnsafe?.user
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка получения каналов');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.channels.length > 0) {
+        addLog(`✅ Найдено каналов: ${data.channels.length}`);
+        setChannels(data.channels);
+        setSelectedChannel(data.channels[0]);
+      } else {
+        addLog('⚠️ Каналы не найдены');
+        setChannels([]);
+        setSelectedChannel(null);
+      }
+    } catch (err) {
+      addLog(`❌ Ошибка: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
+      setChannels([]);
+      setSelectedChannel(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
