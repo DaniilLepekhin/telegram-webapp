@@ -376,10 +376,10 @@ function App() {
 
       case 'analytics':
         return (
-          <div>
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
             <BackButton onClick={goBack} />
             <FullscreenButton />
-            <ChannelAnalytics />
+            <ChannelAnalytics onBack={goBack} />
           </div>
         );
 

@@ -23,18 +23,94 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<TelegramChannel | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+
+  const addLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logMessage = `[${timestamp}] ${message}`;
+    setLogs(prev => [...prev, logMessage]);
+    console.log(logMessage);
+  };
 
   // Функция для получения каналов через Telegram Bot API
   const detectChannels = async () => {
     setLoading(true);
     setError(null);
+    setLogs([]); // Очищаем логи
 
     try {
+      addLog('Начинаем определение каналов...');
+      addLog(`window.Telegram: ${window.Telegram ? 'доступен' : 'недоступен'}`);
+      addLog(`window.Telegram?.WebApp: ${window.Telegram?.WebApp ? 'доступен' : 'недоступен'}`);
+      
       // Проверяем, есть ли доступ к Telegram WebApp
       if (!window.Telegram?.WebApp) {
-        throw new Error('Telegram WebApp не доступен');
+        addLog('Telegram WebApp недоступен, показываем демо-данные');
+        // Демо-данные для тестирования
+        const demoChannels: TelegramChannel[] = [
+          {
+            id: 1,
+            title: 'Мой канал',
+            username: 'my_channel',
+            type: 'channel',
+            isAdmin: true,
+            canInviteUsers: true,
+            memberCount: 15420
+          },
+          {
+            id: 2,
+            title: 'Группа поддержки',
+            username: 'support_group',
+            type: 'supergroup',
+            isAdmin: true,
+            canInviteUsers: true,
+            memberCount: 2340
+          }
+        ];
+        
+        addLog(`Устанавливаем демо-каналы: ${JSON.stringify(demoChannels, null, 2)}`);
+        setChannels(demoChannels);
+        onChannelsDetected(demoChannels);
+        setLoading(false);
+        return;
       }
 
+      // Проверяем, есть ли данные пользователя
+      addLog(`initDataUnsafe: ${JSON.stringify(window.Telegram.WebApp.initDataUnsafe)}`);
+      addLog(`user: ${JSON.stringify(window.Telegram.WebApp.initDataUnsafe?.user)}`);
+      
+      if (!window.Telegram.WebApp.initDataUnsafe?.user) {
+        addLog('Данные пользователя недоступны, показываем демо-данные');
+        // Демо-данные для тестирования
+        const demoChannels: TelegramChannel[] = [
+          {
+            id: 1,
+            title: 'Мой канал',
+            username: 'my_channel',
+            type: 'channel',
+            isAdmin: true,
+            canInviteUsers: true,
+            memberCount: 15420
+          },
+          {
+            id: 2,
+            title: 'Группа поддержки',
+            username: 'support_group',
+            type: 'supergroup',
+            isAdmin: true,
+            canInviteUsers: true,
+            memberCount: 2340
+          }
+        ];
+        
+        addLog(`Устанавливаем демо-каналы: ${JSON.stringify(demoChannels, null, 2)}`);
+        setChannels(demoChannels);
+        onChannelsDetected(demoChannels);
+        setLoading(false);
+        return;
+      }
+
+      addLog('Отправляем запрос к API...');
       // Отправляем запрос на получение каналов
       const response = await fetch('/api/telegram/get-channels', {
         method: 'POST',
@@ -47,17 +123,21 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
         })
       });
 
+      addLog(`Ответ от API: ${response.status} ${response.statusText}`);
+      
       if (!response.ok) {
         throw new Error('Ошибка получения каналов');
       }
 
       const data = await response.json();
+      addLog(`Данные от API: ${JSON.stringify(data, null, 2)}`);
 
       if (data.success) {
         const detectedChannels = data.channels.filter((channel: TelegramChannel) =>
           channel.isAdmin && channel.canInviteUsers
         );
 
+        addLog(`Отфильтрованные каналы: ${JSON.stringify(detectedChannels, null, 2)}`);
         setChannels(detectedChannels);
         onChannelsDetected(detectedChannels);
 
@@ -68,7 +148,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
         throw new Error(data.error || 'Ошибка получения каналов');
       }
     } catch (err) {
-      console.error('Ошибка определения каналов:', err);
+      addLog(`Ошибка определения каналов: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
 
       // Не показываем демо-данные, только ошибку
@@ -139,6 +219,15 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
         >
           {loading ? '🔍 Поиск...' : '🔄 Обновить'}
         </button>
+        <button
+          onClick={() => {
+            setLogs([]);
+            detectChannels();
+          }}
+          className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-4 py-2 rounded-xl font-semibold hover:from-green-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 ml-2"
+        >
+          🔍 Отладка
+        </button>
       </div>
 
       {/* Loading State */}
@@ -149,6 +238,34 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">Поиск каналов...</h3>
           <p className="text-white/60">Анализируем ваши права в Telegram каналах</p>
+        </div>
+      )}
+
+      {/* Debug Logs - Always show when logs exist */}
+      {logs.length > 0 && (
+        <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-semibold text-white">🔍 Логи отладки</h4>
+            <button
+              onClick={() => {
+                const logText = logs.join('\n');
+                navigator.clipboard.writeText(logText);
+                alert('Логи скопированы в буфер обмена!');
+              }}
+              className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
+            >
+              📋 Копировать
+            </button>
+          </div>
+          <div className="bg-black/50 rounded-lg p-4 max-h-60 overflow-y-auto">
+            <div className="space-y-1 text-xs font-mono">
+              {logs.map((log, index) => (
+                <div key={index} className="text-green-400">
+                  {log}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
