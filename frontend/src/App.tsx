@@ -43,23 +43,20 @@ function App() {
     }
   }, []);
 
-  // АБСОЛЮТНЫЙ СБРОС СКРОЛЛА - РАЗ И НАВСЕГДА
-  const forceScrollReset = useCallback(() => {
-    // 1. МНОЖЕСТВЕННЫЙ принудительный сброс всех возможных элементов
+  // ПЛАВНЫЙ И НЕЗАМЕТНЫЙ СБРОС СКРОЛЛА
+  const silentScrollReset = useCallback(() => {
+    // 1. Тихий сброс всех элементов (без console.log)
     const resetTargets = [
       window,
       document.documentElement,
       document.body,
       document.getElementById('root'),
-      document.querySelector('.App'),
-      document.querySelector('body'),
-      document.querySelector('html')
+      document.querySelector('.App')
     ];
     
     resetTargets.forEach(target => {
       if (target && 'scrollTo' in target) {
         try {
-          target.scrollTo(0, 0);
           target.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         } catch(e) {}
       }
@@ -71,69 +68,47 @@ function App() {
       }
     });
     
-    // 2. Telegram WebApp принудительно
+    // 2. Telegram WebApp тихо
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       webApp.expand();
-      
-      // Дополнительные методы Telegram WebApp
-      if (webApp.viewportHeight) {
-        webApp.expand();
+    }
+    
+    // 3. Мягкое CSS позиционирование
+    requestAnimationFrame(() => {
+      document.documentElement.style.transform = 'translateY(0px)';
+      document.body.style.transform = 'translateY(0px)';
+      const root = document.getElementById('root');
+      if (root) {
+        root.style.transform = 'translateY(0px)';
       }
-    }
-    
-    // 3. CSS принудительное позиционирование
-    document.documentElement.style.transform = 'translateY(0px)';
-    document.body.style.transform = 'translateY(0px)';
-    const root = document.getElementById('root');
-    if (root) {
-      root.style.transform = 'translateY(0px)';
-    }
-    
-    // 4. Принудительное обновление layout
-    document.documentElement.style.scrollBehavior = 'auto';
-    document.body.style.scrollBehavior = 'auto';
-    
-    // 5. Все элементы с прокруткой
-    const allScrollableElements = document.querySelectorAll('*');
-    allScrollableElements.forEach(el => {
-      if (el.scrollTop) el.scrollTop = 0;
-      if (el.scrollLeft) el.scrollLeft = 0;
     });
-    
-    // 6. Принудительный reflow
-    document.documentElement.offsetHeight; // force reflow
-    
-    console.log('🔥 АБСОЛЮТНЫЙ СБРОС СКРОЛЛА ВЫПОЛНЕН');
   }, []);
 
-  // Скролл вверх при первой загрузке
+  // Тихий скролл вверх при первой загрузке
   useEffect(() => {
-    forceScrollReset();
+    silentScrollReset();
   }, []); // Только при первой загрузке
 
-  // АБСОЛЮТНАЯ НАВИГАЦИЯ: Принудительный сброс + переход
+  // ПЛАВНАЯ НАВИГАЦИЯ: Незаметный сброс + элегантный переход
   const navigateTo = (page: Page) => {
     if (currentPage !== page) {
-      console.log(`🚀 Навигация: ${currentPage} → ${page}`);
-      
-      // 1. АБСОЛЮТНЫЙ сброс скролла
-      forceScrollReset();
+      // 1. Тихий сброс скролла БЕЗ логов
+      silentScrollReset();
       
       setIsTransitioning(true);
       
-      // 2. Немедленная смена страницы (скролл уже сброшен)
+      // 2. Плавная смена страницы
       setTimeout(() => {
         setPreviousPage(currentPage);
         setCurrentPage(page);
         
-        // 3. Еще один сброс после смены страницы для гарантии
+        // 3. Финальный тихий сброс для гарантии
         setTimeout(() => {
-          forceScrollReset();
+          silentScrollReset();
           setIsTransitioning(false);
-          console.log('✅ Навигация завершена');
-        }, 50);
-      }, 100);
+        }, 200); // Совпадает с анимацией
+      }, 200); // Половина анимации для плавности
     }
   };
 
@@ -589,9 +564,10 @@ function App() {
     <div 
       className="App"
       style={{ 
-        transform: isTransitioning ? 'translateX(-10px)' : 'translateX(0)',
-        opacity: isTransitioning ? 0.9 : 1,
-        transition: 'all 0.2s ease-out',
+        transform: isTransitioning ? 'translateY(-5px) scale(0.98)' : 'translateY(0px) scale(1)',
+        opacity: isTransitioning ? 0.85 : 1,
+        filter: isTransitioning ? 'blur(1px)' : 'blur(0px)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         scrollBehavior: 'auto'
       }}
     >
