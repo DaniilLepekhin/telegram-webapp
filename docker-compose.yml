@@ -28,7 +28,7 @@ services:
       - DB_NAME=telegram_webapp
       - DB_USER=postgres
       - DB_PASSWORD=password
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-your_bot_token_here}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-5466303727:AAGauSz23_We8iTGjRhbaL5LJobgs3e9V0E}
       - CORS_ORIGIN=https://app.daniillepekhin.ru
     depends_on:
       postgres:
