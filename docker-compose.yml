@@ -7,6 +7,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     environment:
       - REACT_APP_API_URL=http://localhost:3001
     depends_on:
@@ -29,7 +32,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=password
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-your_bot_token_here}
-      - CORS_ORIGIN=*
+      - CORS_ORIGIN=https://app.daniillepekhin.ru
     depends_on:
       postgres:
         condition: service_healthy

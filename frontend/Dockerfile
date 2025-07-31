@@ -29,7 +29,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Копируем кастомную конфигурацию Nginx
-COPY ../nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Создаём директории для логов
 RUN mkdir -p /var/log/nginx && \
