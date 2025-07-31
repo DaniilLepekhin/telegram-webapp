@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ChannelAnalytics from './components/ChannelAnalytics';
 import Showcase from './components/Showcase';
 import DemoChat from './components/DemoChat';
@@ -16,14 +16,12 @@ import FullscreenButton from './components/FullscreenButton';
 type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test';
 
 function App() {
-  // Используем hash для навигации (как в обычных веб-приложениях)
-  const [currentPage, setCurrentPage] = useState<Page>(() => {
-    const hash = window.location.hash.slice(1) as Page;
-    return ['analytics', 'showcase', 'demo-chat', 'referral', 'user-profile', 'feedback', 'post-analytics', 'telegram-integration', 'post-tracking', 'post-builder', 'test'].includes(hash) 
-      ? hash : 'main';
-  });
+  // РАДИКАЛЬНОЕ РЕШЕНИЕ: Принудительная перезагрузка
+  const [currentPage, setCurrentPage] = useState<Page>('main');
   const [previousPage, setPreviousPage] = useState<Page | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [pageRenderKey, setPageRenderKey] = useState(0); // Принудительный перерендер ВСЕГО
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Инициализация Telegram WebApp
   useEffect(() => {
@@ -46,30 +44,42 @@ function App() {
     }
   }, []);
 
-  // Слушатель изменения hash (стандартная веб-навигация)
-  useEffect(() => {
-    const handleHashChange = () => {
-      // Немедленный сброс скролла при изменении hash
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      
-      const hash = window.location.hash.slice(1) as Page;
-      const validPage = ['analytics', 'showcase', 'demo-chat', 'referral', 'user-profile', 'feedback', 'post-analytics', 'telegram-integration', 'post-tracking', 'post-builder', 'test'].includes(hash) 
-        ? hash : 'main';
-      
-      if (validPage !== currentPage) {
-        setPreviousPage(currentPage);
-        setCurrentPage(validPage);
+  // РАДИКАЛЬНЫЙ СБРОС СКРОЛЛА - максимально агрессивный
+  const forceScrollReset = useCallback(() => {
+    // Множественный сброс скролла
+    const resetActions = [
+      () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }),
+      () => window.scrollTo(0, 0),
+      () => { document.documentElement.scrollTop = 0; },
+      () => { document.body.scrollTop = 0; },
+      () => { 
+        if (window.Telegram?.WebApp) {
+          window.Telegram.WebApp.expand();
+        }
+      },
+      () => {
+        // Принудительный сброс через DOM
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(el => {
+          if (el.scrollTop) el.scrollTop = 0;
+          if (el.scrollLeft) el.scrollLeft = 0;
+        });
       }
-    };
+    ];
 
-    window.addEventListener('hashchange', handleHashChange);
+    // Выполняем сброс немедленно
+    resetActions.forEach(action => action());
     
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, [currentPage]);
+    // Повторяем через RAF
+    requestAnimationFrame(() => {
+      resetActions.forEach(action => action());
+      
+      // И еще раз через timeout
+      setTimeout(() => {
+        resetActions.forEach(action => action());
+      }, 0);
+    });
+  }, []);
 
   // Улучшенная прокрутка к верху при смене страницы
   useEffect(() => {
@@ -117,24 +127,67 @@ function App() {
     };
   }, [currentPage]);
 
-  // Стандартная веб-навигация через hash
+  // РАДИКАЛЬНАЯ НАВИГАЦИЯ: Полная перезагрузка страницы
   const navigateTo = (page: Page) => {
     if (currentPage !== page) {
-      // Используем стандартный hash для навигации
-      window.location.hash = page === 'main' ? '' : page;
+      setIsNavigating(true);
+      
+      // 1. Принудительный сброс скролла
+      forceScrollReset();
+      
+      // 2. Полное обнуление состояния
+      setTimeout(() => {
+        setPreviousPage(currentPage);
+        setCurrentPage(page);
+        setPageRenderKey(prev => prev + 1000); // Большое изменение ключа
+        
+        // 3. Еще один сброс после смены состояния
+        setTimeout(() => {
+          forceScrollReset();
+          setIsNavigating(false);
+        }, 10);
+      }, 10);
     }
   };
 
-  // Стандартная функция возврата назад
+  // РАДИКАЛЬНЫЙ ВОЗВРАТ
   const goBack = () => {
-    // Просто возвращаемся на главную через hash
-    window.location.hash = '';
+    navigateTo('main');
   };
 
   // Глобальная функция для кнопки назад
   useEffect(() => {
     (window as any).handleGoBack = goBack;
   }, []);
+
+  // ПРИНУДИТЕЛЬНЫЙ СБРОС ПРИ КАЖДОМ РЕНДЕРЕ
+  useEffect(() => {
+    forceScrollReset();
+  }, [currentPage, pageRenderKey, forceScrollReset]);
+
+  // БЛОКИРОВКА СКРОЛЛА ВО ВРЕМЯ НАВИГАЦИИ
+  useEffect(() => {
+    if (isNavigating) {
+      const preventScroll = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        forceScrollReset();
+      };
+
+      // Блокируем все события скролла
+      window.addEventListener('scroll', preventScroll, { passive: false });
+      document.addEventListener('scroll', preventScroll, { passive: false });
+      window.addEventListener('wheel', preventScroll, { passive: false });
+      window.addEventListener('touchmove', preventScroll, { passive: false });
+
+      return () => {
+        window.removeEventListener('scroll', preventScroll);
+        document.removeEventListener('scroll', preventScroll);
+        window.removeEventListener('wheel', preventScroll);
+        window.removeEventListener('touchmove', preventScroll);
+      };
+    }
+  }, [isNavigating, forceScrollReset]);
 
   // Рендер страниц
   const renderPage = () => {
@@ -574,8 +627,30 @@ function App() {
     }
   };
 
+  // ПОЛНАЯ ПЕРЕЗАГРУЗКА ВСЕГО ПРИЛОЖЕНИЯ
+  if (isNavigating) {
+    return (
+      <div className="App" key={`loading-${pageRenderKey}`}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '18px',
+          color: '#007AFF'
+        }}>
+          Загрузка...
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="App">
+    <div 
+      className="App" 
+      key={`page-${currentPage}-${pageRenderKey}`}
+      style={{ transform: 'translateY(0)', scrollBehavior: 'auto' }}
+    >
       {renderPage()}
     </div>
   );
