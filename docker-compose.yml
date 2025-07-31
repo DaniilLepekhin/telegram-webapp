@@ -21,17 +21,18 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=3001
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=telegram_webapp
       - DB_USER=postgres
       - DB_PASSWORD=password
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-your_bot_token_here}
       - CORS_ORIGIN=https://app.daniillepekhin.ru
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - webapp-network
 
@@ -46,6 +47,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/src/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - webapp-network
 
