@@ -16,12 +16,11 @@ import FullscreenButton from './components/FullscreenButton';
 type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test';
 
 function App() {
-  // РАДИКАЛЬНОЕ РЕШЕНИЕ: Принудительная перезагрузка
+  // ЭЛЕГАНТНОЕ РЕШЕНИЕ: Telegram WebApp History API + плавные переходы
   const [currentPage, setCurrentPage] = useState<Page>('main');
   const [previousPage, setPreviousPage] = useState<Page | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [pageRenderKey, setPageRenderKey] = useState(0); // Принудительный перерендер ВСЕГО
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Инициализация Telegram WebApp
   useEffect(() => {
@@ -44,109 +43,56 @@ function App() {
     }
   }, []);
 
-  // РАДИКАЛЬНЫЙ СБРОС СКРОЛЛА - максимально агрессивный
-  const forceScrollReset = useCallback(() => {
-    // Множественный сброс скролла
-    const resetActions = [
-      () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }),
-      () => window.scrollTo(0, 0),
-      () => { document.documentElement.scrollTop = 0; },
-      () => { document.body.scrollTop = 0; },
-      () => { 
-        if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.expand();
-        }
-      },
-      () => {
-        // Принудительный сброс через DOM
-        const allElements = document.querySelectorAll('*');
-        allElements.forEach(el => {
-          if (el.scrollTop) el.scrollTop = 0;
-          if (el.scrollLeft) el.scrollLeft = 0;
-        });
-      }
-    ];
-
-    // Выполняем сброс немедленно
-    resetActions.forEach(action => action());
-    
-    // Повторяем через RAF
-    requestAnimationFrame(() => {
-      resetActions.forEach(action => action());
+  // ЭЛЕГАНТНЫЙ СБРОС СКРОЛЛА
+  const smoothScrollReset = useCallback(() => {
+    // Используем Telegram WebApp методы если доступны
+    if (window.Telegram?.WebApp) {
+      const webApp = window.Telegram.WebApp;
       
-      // И еще раз через timeout
-      setTimeout(() => {
-        resetActions.forEach(action => action());
-      }, 0);
+      // Telegram WebApp expand() автоматически сбрасывает скролл
+      webApp.expand();
+      
+      // Дополнительно используем BackButton API для истории
+      if (webApp.BackButton) {
+        webApp.BackButton.hide();
+      }
+    }
+    
+    // Плавный сброс через CSS transition
+    document.documentElement.style.scrollBehavior = 'auto';
+    document.body.style.scrollBehavior = 'auto';
+    
+    // Мгновенный сброс позиции
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    
+    // Возвращаем smooth behavior обратно через микрозадачу
+    requestAnimationFrame(() => {
+      document.documentElement.style.scrollBehavior = '';
+      document.body.style.scrollBehavior = '';
     });
   }, []);
 
-  // Улучшенная прокрутка к верху при смене страницы
+  // ЭЛЕГАНТНАЯ НАВИГАЦИЯ через Telegram WebApp API
   useEffect(() => {
-    // Функция для сброса скролла
-    const resetScroll = () => {
-      // Добавляем класс для принудительного сброса
-      document.body.classList.add('scroll-reset');
-      
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      
-      // Для Telegram WebApp
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.expand();
-      }
-      
-      // Убираем класс через короткое время
-      setTimeout(() => {
-        document.body.classList.remove('scroll-reset');
-      }, 100);
-    };
+    smoothScrollReset();
+  }, [currentPage, smoothScrollReset]);
 
-    // Немедленный сброс
-    resetScroll();
-    
-    // Сброс после рендера
-    requestAnimationFrame(() => {
-      resetScroll();
-      
-      // Еще один сброс после следующего фрейма
-      requestAnimationFrame(() => {
-        resetScroll();
-      });
-    });
-    
-    // Дополнительные сбросы с разными задержками
-    const timeouts = [50, 100, 200, 500].map(delay => 
-      setTimeout(resetScroll, delay)
-    );
-    
-    // Очистка таймаутов при размонтировании
-    return () => {
-      timeouts.forEach(clearTimeout);
-    };
-  }, [currentPage]);
-
-  // РАДИКАЛЬНАЯ НАВИГАЦИЯ: Полная перезагрузка страницы
+  // ЭЛЕГАНТНАЯ НАВИГАЦИЯ: Плавные переходы + Telegram WebApp API
   const navigateTo = (page: Page) => {
     if (currentPage !== page) {
-      setIsNavigating(true);
+      setIsTransitioning(true);
       
-      // 1. Принудительный сброс скролла
-      forceScrollReset();
-      
-      // 2. Полное обнуление состояния
+      // 1. Плавный fade-out
       setTimeout(() => {
         setPreviousPage(currentPage);
         setCurrentPage(page);
-        setPageRenderKey(prev => prev + 1000); // Большое изменение ключа
         
-        // 3. Еще один сброс после смены состояния
+        // 2. Сброс скролла и fade-in
         setTimeout(() => {
-          forceScrollReset();
-          setIsNavigating(false);
-        }, 10);
-      }, 10);
+          smoothScrollReset();
+          setIsTransitioning(false);
+        }, 50);
+      }, 150); // Время для fade-out анимации
     }
   };
 
@@ -158,36 +104,7 @@ function App() {
   // Глобальная функция для кнопки назад
   useEffect(() => {
     (window as any).handleGoBack = goBack;
-  }, []);
-
-  // ПРИНУДИТЕЛЬНЫЙ СБРОС ПРИ КАЖДОМ РЕНДЕРЕ
-  useEffect(() => {
-    forceScrollReset();
-  }, [currentPage, pageRenderKey, forceScrollReset]);
-
-  // БЛОКИРОВКА СКРОЛЛА ВО ВРЕМЯ НАВИГАЦИИ
-  useEffect(() => {
-    if (isNavigating) {
-      const preventScroll = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        forceScrollReset();
-      };
-
-      // Блокируем все события скролла
-      window.addEventListener('scroll', preventScroll, { passive: false });
-      document.addEventListener('scroll', preventScroll, { passive: false });
-      window.addEventListener('wheel', preventScroll, { passive: false });
-      window.addEventListener('touchmove', preventScroll, { passive: false });
-
-      return () => {
-        window.removeEventListener('scroll', preventScroll);
-        document.removeEventListener('scroll', preventScroll);
-        window.removeEventListener('wheel', preventScroll);
-        window.removeEventListener('touchmove', preventScroll);
-      };
-    }
-  }, [isNavigating, forceScrollReset]);
+  }, [goBack]);
 
   // Рендер страниц
   const renderPage = () => {
@@ -627,29 +544,15 @@ function App() {
     }
   };
 
-  // ПОЛНАЯ ПЕРЕЗАГРУЗКА ВСЕГО ПРИЛОЖЕНИЯ
-  if (isNavigating) {
-    return (
-      <div className="App" key={`loading-${pageRenderKey}`}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh',
-          fontSize: '18px',
-          color: '#007AFF'
-        }}>
-          Загрузка...
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div 
-      className="App" 
-      key={`page-${currentPage}-${pageRenderKey}`}
-      style={{ transform: 'translateY(0)', scrollBehavior: 'auto' }}
+      className="App"
+      style={{ 
+        opacity: isTransitioning ? 0.7 : 1,
+        transform: 'translateY(0)',
+        transition: 'opacity 0.15s ease-in-out',
+        scrollBehavior: 'auto'
+      }}
     >
       {renderPage()}
     </div>
