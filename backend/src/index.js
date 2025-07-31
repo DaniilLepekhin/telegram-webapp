@@ -32,7 +32,7 @@ pool.query('SELECT NOW()', (err, res) => {
 });
 
 // Routes
-app.use('/api/telegram', require('./routes/telegram'));
+app.use('/api/telegram', require('./routes/telegram.js'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
