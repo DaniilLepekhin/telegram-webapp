@@ -107,36 +107,66 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
   };
 
   const toggleFullscreen = () => {
-    // Сброс позиции прокрутки ПЕРЕД переключением режима
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    // РАДИКАЛЬНЫЙ сброс позиции прокрутки
+    const forceScrollReset = () => {
+      // Множественные попытки сброса
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      
+      // Принудительный сброс всех скроллабельных элементов
+      const scrollableElements = document.querySelectorAll('*');
+      scrollableElements.forEach(element => {
+        if (element.scrollTop !== undefined) {
+          element.scrollTop = 0;
+        }
+        if (element.scrollLeft !== undefined) {
+          element.scrollLeft = 0;
+        }
+      });
+      
+      // Принудительный CSS transform
+      document.documentElement.style.transform = 'translateY(0px)';
+      document.body.style.transform = 'translateY(0px)';
+      const root = document.getElementById('root');
+      if (root) {
+        root.style.transform = 'translateY(0px)';
+      }
+    };
+
+    // Первый сброс
+    forceScrollReset();
     
     // Проверяем, находимся ли мы в Telegram
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       
       if (!(webApp as any).isFullscreen) {
-        // Расширяем WebApp перед fullscreen
+        // Расширяем WebApp и принудительно сбрасываем viewport
         webApp.expand();
+        webApp.requestViewport();
+        
+        // Множественные сбросы с разными таймингами
+        setTimeout(() => forceScrollReset(), 10);
+        setTimeout(() => forceScrollReset(), 50);
+        
         setTimeout(() => {
           (webApp as any).requestFullscreen();
-          // Дополнительный сброс после перехода
-          setTimeout(() => {
-            window.scrollTo(0, 0);
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-          }, 100);
-        }, 50);
+          
+          // Агрессивные сбросы после fullscreen
+          setTimeout(() => forceScrollReset(), 50);
+          setTimeout(() => forceScrollReset(), 100);
+          setTimeout(() => forceScrollReset(), 200);
+          setTimeout(() => forceScrollReset(), 500);
+        }, 100);
       } else {
         // Выходим из полноэкранного режима
         (webApp as any).exitFullscreen();
-        // Сброс после выхода
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-          document.documentElement.scrollTop = 0;
-          document.body.scrollTop = 0;
-        }, 100);
+        
+        // Сбросы после выхода
+        setTimeout(() => forceScrollReset(), 50);
+        setTimeout(() => forceScrollReset(), 100);
+        setTimeout(() => forceScrollReset(), 200);
       }
     } else {
       // Используем браузерный Fullscreen API
@@ -145,12 +175,11 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       } else {
         requestFullscreen();
       }
-      // Дополнительный сброс для браузера
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      }, 200);
+      
+      // Множественные сбросы для браузера
+      setTimeout(() => forceScrollReset(), 100);
+      setTimeout(() => forceScrollReset(), 300);
+      setTimeout(() => forceScrollReset(), 500);
     }
   };
 
