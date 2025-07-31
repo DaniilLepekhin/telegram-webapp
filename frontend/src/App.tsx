@@ -43,51 +43,62 @@ function App() {
     }
   }, []);
 
-  // ПЛАВНАЯ ПРОКРУТКА ВВЕРХ
+  // ГАРАНТИРОВАННЫЙ СБРОС СКРОЛЛА
   const smoothScrollToTop = useCallback(() => {
-    // Включаем плавную прокрутку через CSS класс
-    document.documentElement.classList.add('smooth-scroll');
+    // 1. Принудительный мгновенный сброс для гарантии
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
     
-    // Плавно прокручиваем вверх
-    window.scrollTo({ 
-      top: 0, 
-      left: 0, 
-      behavior: 'smooth' 
-    });
-    
-    // Дополнительно для Telegram WebApp
+    // 2. Telegram WebApp expand
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       webApp.expand();
     }
     
-    // Убираем smooth класс через время анимации
-    setTimeout(() => {
-      document.documentElement.classList.remove('smooth-scroll');
-    }, 800); // 800ms на плавную анимацию прокрутки
+    // 3. Включаем плавную прокрутку для красоты
+    requestAnimationFrame(() => {
+      document.documentElement.classList.add('smooth-scroll');
+      
+      // Еще раз плавно прокручиваем для визуального эффекта
+      window.scrollTo({ 
+        top: 0, 
+        left: 0, 
+        behavior: 'smooth' 
+      });
+      
+      // Убираем smooth класс
+      setTimeout(() => {
+        document.documentElement.classList.remove('smooth-scroll');
+      }, 500);
+    });
   }, []);
 
-  // ПЛАВНАЯ ПРОКРУТКА ПРИ СМЕНЕ СТРАНИЦЫ
+  // Скролл вверх при первой загрузке
   useEffect(() => {
-    smoothScrollToTop();
-  }, [currentPage, smoothScrollToTop]);
+    if (currentPage === 'main') {
+      smoothScrollToTop();
+    }
+  }, []); // Только при первой загрузке
 
-  // ПЛАВНАЯ НАВИГАЦИЯ: Слайд-переходы
+  // ПЛАВНАЯ НАВИГАЦИЯ: Сначала скролл, потом переход
   const navigateTo = (page: Page) => {
     if (currentPage !== page) {
+      // 1. СНАЧАЛА сбрасываем скролл плавно
+      smoothScrollToTop();
+      
       setIsTransitioning(true);
       
-      // 1. Начинаем переход
+      // 2. Потом меняем страницу (после начала прокрутки)
       setTimeout(() => {
         setPreviousPage(currentPage);
         setCurrentPage(page);
         
-        // 2. Завершаем переход и плавно прокручиваем вверх
+        // 3. Завершаем переход
         setTimeout(() => {
           setIsTransitioning(false);
-          // smoothScrollToTop будет вызван через useEffect
         }, 100);
-      }, 200); // Время для slide-out анимации
+      }, 300); // Даем время для прокрутки
     }
   };
 
