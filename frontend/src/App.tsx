@@ -41,50 +41,73 @@ function App() {
     }
   }, []);
 
-  // Прокрутка к верху при смене страницы
+  // Улучшенная прокрутка к верху при смене страницы
   useEffect(() => {
-    // Максимально агрессивный сброс позиции
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    
-    // Принудительный сброс через requestAnimationFrame
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
+    // Функция для сброса скролла
+    const resetScroll = () => {
+      // Добавляем класс для принудительного сброса
+      document.body.classList.add('scroll-reset');
+      
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+      
+      // Для Telegram WebApp
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.expand();
+      }
+      
+      // Убираем класс через короткое время
+      setTimeout(() => {
+        document.body.classList.remove('scroll-reset');
+      }, 100);
+    };
+
+    // Немедленный сброс
+    resetScroll();
+    
+    // Сброс после рендера
+    requestAnimationFrame(() => {
+      resetScroll();
+      
+      // Еще один сброс после следующего фрейма
+      requestAnimationFrame(() => {
+        resetScroll();
+      });
     });
     
-    // Дополнительный сброс через небольшую задержку
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }, 10);
+    // Дополнительные сбросы с разными задержками
+    const timeouts = [50, 100, 200, 500].map(delay => 
+      setTimeout(resetScroll, delay)
+    );
     
-    // Еще один сброс для надежности
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }, 100);
+    // Очистка таймаутов при размонтировании
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
   }, [currentPage]);
 
-  // Простая функция навигации
+  // Улучшенная функция навигации
   const navigateTo = (page: Page) => {
     if (currentPage !== page) {
-      setPreviousPage(currentPage);
-      setCurrentPage(page);
-      
-      // Немедленный сброс скролла при навигации
-      window.scrollTo(0, 0);
+      // Сначала сбрасываем скролл
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+      
+      // Затем меняем страницу
+      setPreviousPage(currentPage);
+      setCurrentPage(page);
     }
   };
 
-  // Простая функция возврата назад
+  // Улучшенная функция возврата назад
   const goBack = () => {
+    // Сбрасываем скролл перед навигацией
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
     if (previousPage && previousPage !== 'main') {
       setCurrentPage(previousPage);
       setPreviousPage('main');

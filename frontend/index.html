@@ -11,8 +11,31 @@
             scroll-behavior: auto !important;
             scroll-padding-top: 0 !important;
             scroll-padding-bottom: 0 !important;
+            scroll-snap-type: none !important;
+            overscroll-behavior: none !important;
+            height: 100%;
+            margin: 0;
+            padding: 0;
         }
+        
         * {
+            scroll-behavior: auto !important;
+            scroll-snap-type: none !important;
+        }
+        
+        /* Для Telegram WebApp */
+        body {
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        #root {
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Класс для сброса скролла */
+        .scroll-reset {
             scroll-behavior: auto !important;
         }
     </style>
