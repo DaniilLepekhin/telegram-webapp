@@ -51,52 +51,34 @@
             overflow-y: auto !important;
         }
         
-        /* РЕВОЛЮЦИОННЫЕ АНИМАЦИИ */
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* ОПТИМИЗИРОВАННЫЕ АНИМАЦИИ - ЭКОНОМИЯ РЕСУРСОВ */
+        @keyframes simplePulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            33% { transform: translateY(-30px) rotate(3deg); }
-            66% { transform: translateY(-15px) rotate(-3deg); }
+        @keyframes simpleFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
         }
         
-        @keyframes textGlow {
-            0% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
-            100% { text-shadow: 0 0 40px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 107, 107, 0.4); }
+        @keyframes simpleSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        @keyframes orbit {
-            0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+        /* Базовые hover эффекты без 3D */
+        .simple-hover {
+            transition: all 0.3s ease;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
+        .simple-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
         
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        /* 3D эффекты для карточек */
-        .card-3d {
-            transform-style: preserve-3d;
-            transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
-        }
-        
-        .card-3d:hover {
-            transform: rotateY(10deg) rotateX(10deg) translateZ(20px);
-        }
-        
-        .glass-morphism {
+        .glass-simple {
             background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
@@ -123,129 +105,45 @@
         }
         
         .loading-logo {
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            position: relative;
-            margin-bottom: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 3s ease infinite, logoFloat 3s ease-in-out infinite;
+            margin-bottom: 30px;
+            background: #667eea;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4), 0 0 60px rgba(255, 255, 255, 0.1);
-        }
-        
-        .loading-logo::before {
-            content: '';
-            position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
-            background-size: 400% 400%;
-            animation: gradientShift 2s ease infinite reverse;
-            z-index: -1;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            animation: simpleFloat 2s ease-in-out infinite;
         }
         
         .loading-emoji {
-            font-size: 50px;
-            animation: emojiRotate 2s ease-in-out infinite;
-        }
-        
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-10px) scale(1.05); }
-        }
-        
-        @keyframes emojiRotate {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(5deg) scale(1.1); }
-            75% { transform: rotate(-5deg) scale(1.1); }
+            font-size: 40px;
+            animation: simplePulse 2s ease-in-out infinite;
         }
         
         .loading-text {
             color: white;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             margin-bottom: 30px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
-            background-size: 400% 400%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientShift 3s ease infinite, textPulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes textPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
         }
         
         .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #ffffff;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid #ffffff;
             border-radius: 50%;
-            animation: spin 1s linear infinite, spinnerGlow 2s ease-in-out infinite;
+            animation: simpleSpin 1s linear infinite;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes spinnerGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.8); }
-        }
-        
-        .loading-particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: white;
-            border-radius: 50%;
-            animation: particleFloat 8s linear infinite;
-            opacity: 0.6;
-        }
-        
-        @keyframes particleFloat {
-            0% {
-                transform: translateY(100vh) translateX(0);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.6;
-            }
-            90% {
-                opacity: 0.6;
-            }
-            100% {
-                transform: translateY(-10vh) translateX(100px);
-                opacity: 0;
-            }
-        }
+        /* Убираем тяжелые анимации частиц для экономии ресурсов */
     </style>
 </head>
 <body>
-    <!-- LOADING SCREEN -->
+    <!-- ОПТИМИЗИРОВАННЫЙ LOADING SCREEN -->
     <div id="loading-screen">
-        <div class="loading-particles">
-            <!-- Particles will be generated by JS -->
-        </div>
-        
         <div class="loading-logo">
             <div class="loading-emoji">💎</div>
         </div>
@@ -258,41 +156,25 @@
     <div id="root"></div>
     
     <script>
-        // Создаем частицы для фона
-        function createParticles() {
-            const particlesContainer = document.querySelector('.loading-particles');
-            for (let i = 0; i < 30; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 8 + 's';
-                particle.style.animationDuration = (5 + Math.random() * 5) + 's';
-                particlesContainer.appendChild(particle);
-            }
-        }
-        
-        // Скрываем загрузочный экран когда React загрузится
+        // ОПТИМИЗИРОВАННЫЙ загрузочный экран без тяжелых анимаций
         function hideLoading() {
             const loadingScreen = document.getElementById('loading-screen');
             if (loadingScreen) {
                 loadingScreen.classList.add('fade-out');
                 setTimeout(() => {
                     loadingScreen.style.display = 'none';
-                }, 800);
+                }, 500); // Быстрее скрываем
             }
         }
         
-        // Создаем частицы сразу
-        createParticles();
-        
-        // Минимальное время показа загрузочного экрана
+        // Минимальное время показа - сокращено
         let minTimeReached = false;
         setTimeout(() => {
             minTimeReached = true;
             if (window.reactLoaded) {
                 hideLoading();
             }
-        }, 1500); // Минимум 1.5 секунды
+        }, 800); // Сократили с 1.5s до 0.8s
         
         // Глобальная функция для React
         window.hideLoadingScreen = function() {

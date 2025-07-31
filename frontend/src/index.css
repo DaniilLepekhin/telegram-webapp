@@ -181,34 +181,9 @@ html, body, #root {
   animation-delay: 3s;
 }
 
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
+/* Убрано: тяжелая blob анимация */
 
-/* Enhanced animations for modern design */
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(147, 51, 234, 0.6), 0 0 60px rgba(236, 72, 153, 0.4);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
+/* Убрано: тяжелая pulse-glow анимация */
 
 /* Enhanced hover effects */
 .hover-scale {

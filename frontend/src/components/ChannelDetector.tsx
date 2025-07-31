@@ -179,7 +179,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
       {/* Loading State */}
       {loading && (
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 ">
             <span className="text-2xl">🔍</span>
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">Поиск каналов...</h3>

@@ -68,9 +68,9 @@ const DemoChat: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full opacity-10 "></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full opacity-10 "></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full opacity-10 "></div>
       </div>
 
       {/* Navigation buttons */}
@@ -81,7 +81,7 @@ const DemoChat: React.FC = () => {
       <div className="relative z-10 container mx-auto px-4 py-8 h-screen flex flex-col">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-400 via-pink-400 to-purple-600 rounded-2xl mb-4 shadow-2xl animate-pulse">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-400 via-pink-400 to-purple-600 rounded-2xl mb-4 shadow-2xl ">
             <span className="text-2xl">💬</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Демо чат</h1>
@@ -116,9 +116,9 @@ const DemoChat: React.FC = () => {
               <div className="flex justify-start">
                 <div className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-4 py-3 rounded-2xl">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-white/60 rounded-full "></div>
+                    <div className="w-2 h-2 bg-white/60 rounded-full " style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-white/60 rounded-full " style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>

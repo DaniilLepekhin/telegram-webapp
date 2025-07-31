@@ -24,15 +24,8 @@ const Showcase: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCase, setSelectedCase] = useState<CaseStudy | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  // Убираем mouse tracking для экономии ресурсов
 
   const categories = [
     { id: 'all', name: 'Все проекты', icon: '🌟' },
@@ -156,61 +149,27 @@ const Showcase: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* REVOLUTIONARY 3D ANIMATED BACKGROUND */}
+      {/* ОПТИМИЗИРОВАННЫЙ ФОН */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Floating 3D Orbs */}
+        {/* Статичные декоративные элементы */}
         <div 
-          className="absolute w-96 h-96 rounded-full opacity-20"
+          className="absolute w-80 h-80 rounded-full opacity-10"
           style={{
-            background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24)',
-            backgroundSize: '400% 400%',
-            animation: 'gradientShift 8s ease infinite, float 6s ease-in-out infinite',
-            transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
+            background: 'linear-gradient(45deg, #667eea, #764ba2)',
             top: '10%',
             left: '10%',
             filter: 'blur(40px)',
           }}
         />
         <div 
-          className="absolute w-80 h-80 rounded-full opacity-15"
+          className="absolute w-60 h-60 rounded-full opacity-08"
           style={{
-            background: 'linear-gradient(135deg, #667eea, #764ba2, #f093fb, #f5576c)',
-            backgroundSize: '400% 400%',
-            animation: 'gradientShift 12s ease infinite reverse, float 8s ease-in-out infinite reverse',
-            transform: `translate(${mousePosition.x * -0.03}px, ${mousePosition.y * -0.03}px)`,
+            background: 'linear-gradient(135deg, #f093fb, #f5576c)',
             top: '60%',
             right: '15%',
             filter: 'blur(30px)',
           }}
         />
-        <div 
-          className="absolute w-72 h-72 rounded-full opacity-25"
-          style={{
-            background: 'linear-gradient(225deg, #c471ed, #12c2e9, #f64f59, #c471ed)',
-            backgroundSize: '400% 400%',
-            animation: 'gradientShift 10s ease infinite, float 7s ease-in-out infinite',
-            transform: `translate(${mousePosition.x * 0.025}px, ${mousePosition.y * 0.025}px)`,
-            bottom: '20%',
-            left: '20%',
-            filter: 'blur(35px)',
-          }}
-        />
-        
-        {/* Particle Grid */}
-        <div className="absolute inset-0 opacity-30">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 3}s`,
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       {/* Navigation buttons */}
@@ -219,110 +178,56 @@ const Showcase: React.FC = () => {
 
       {/* Main content */}
       <div className="relative z-10 container mx-auto px-4 py-8">
-        {/* REVOLUTIONARY HEADER */}
-        <div className="text-center mb-16 sm:mb-20">
-          {/* 3D Floating Icon */}
-          <div 
-            className="inline-flex items-center justify-center w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-full mb-8 relative"
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
-              backgroundSize: '400% 400%',
-              animation: 'gradientShift 6s ease infinite',
-              boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.1)',
-              transform: `rotateY(${mousePosition.x * 0.01}deg) rotateX(${mousePosition.y * 0.01}deg)`,
-              transformStyle: 'preserve-3d',
-            }}
-          >
-            <span className="text-5xl sm:text-6xl lg:text-7xl transform transition-transform duration-300 hover:scale-110">
-              💎
-            </span>
-            {/* Floating particles around icon */}
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-2 h-2 bg-white rounded-full opacity-60"
-                style={{
-                  animation: `orbit 4s linear infinite`,
-                  animationDelay: `${i * 0.5}s`,
-                  transformOrigin: '100px',
-                }}
-              />
-            ))}
+        {/* ОПТИМИЗИРОВАННЫЙ ЗАГОЛОВОК */}
+        <div className="text-center mb-12 sm:mb-16">
+          {/* Простая иконка */}
+          <div className="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full mb-6 bg-purple-600 shadow-lg">
+            <span className="text-4xl sm:text-5xl">💎</span>
           </div>
           
-          {/* Animated Title */}
-          <h1 
-            className="text-5xl sm:text-7xl lg:text-8xl font-black mb-6 relative"
-            style={{
-              background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24, #ff6b6b)',
-              backgroundSize: '400% 400%',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              animation: 'gradientShift 4s ease infinite, textGlow 2s ease-in-out infinite alternate',
-              textShadow: '0 0 40px rgba(255, 255, 255, 0.5)',
-            }}
-          >
+          {/* Простой заголовок */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white mb-6">
             ВИТРИНА КЕЙСОВ
           </h1>
           
-          {/* Subtitle with typewriter effect */}
-          <p className="text-xl sm:text-2xl lg:text-3xl text-white/90 max-w-4xl mx-auto leading-relaxed font-medium">
-            <span className="inline-block border-r-2 border-white animate-pulse">
-              Реальные проекты. Невероятные результаты. Безграничные возможности.
-            </span>
+          {/* Подзаголовок */}
+          <p className="text-lg sm:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+            Реальные проекты с измеримыми результатами
           </p>
           
-          {/* Animated metrics bar */}
-          <div className="flex justify-center items-center gap-8 mt-8 flex-wrap">
+          {/* Статистика */}
+          <div className="flex justify-center items-center gap-6 mt-6 flex-wrap">
             <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-400">500+</div>
+              <div className="text-xl font-bold text-emerald-400">500+</div>
               <div className="text-white/70 text-sm">Проектов</div>
             </div>
-            <div className="w-px h-8 bg-white/20"></div>
+            <div className="w-px h-6 bg-white/20"></div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">50M+</div>
+              <div className="text-xl font-bold text-purple-400">50M+</div>
               <div className="text-white/70 text-sm">Пользователей</div>
             </div>
-            <div className="w-px h-8 bg-white/20"></div>
+            <div className="w-px h-6 bg-white/20"></div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-pink-400">98%</div>
+              <div className="text-xl font-bold text-pink-400">98%</div>
               <div className="text-white/70 text-sm">Успех</div>
             </div>
           </div>
         </div>
 
-        {/* REVOLUTIONARY CATEGORY FILTER */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12 sm:mb-16">
+        {/* ОПТИМИЗИРОВАННЫЕ КАТЕГОРИИ */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8 sm:mb-12">
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => {
-                setIsAnimating(true);
-                setTimeout(() => {
-                  setSelectedCategory(category.id);
-                  setIsAnimating(false);
-                }, 300);
-              }}
-              className={`relative overflow-hidden px-6 py-4 sm:px-8 sm:py-4 rounded-2xl font-bold transition-all duration-500 transform hover:scale-110 hover:-translate-y-2 card-3d group ${
+              onClick={() => setSelectedCategory(category.id)}
+              className={`px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-medium transition-all duration-300 simple-hover ${
                 selectedCategory === category.id
-                  ? 'text-white shadow-2xl'
-                  : 'glass-morphism text-white/80 hover:text-white border border-white/20'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'glass-simple text-white/80 hover:text-white border border-white/20'
               }`}
-              style={selectedCategory === category.id ? {
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-                backgroundSize: '200% 200%',
-                animation: 'gradientShift 3s ease infinite',
-                boxShadow: '0 20px 40px rgba(102, 126, 234, 0.4)',
-              } : {}}
             >
-              {/* Shimmer effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 group-hover:animate-shimmer" />
-              
-              <span className="relative z-10 flex items-center gap-3">
-                <span className="text-xl">{category.icon}</span>
-                <span className="text-sm sm:text-base">{category.name}</span>
-              </span>
+              <span className="mr-2">{category.icon}</span>
+              {category.name}
             </button>
           ))}
         </div>
