@@ -6,13 +6,18 @@
     <title>Telegram WebApp</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ЭЛЕГАНТНЫЙ СБРОС ДЛЯ TELEGRAM WEBAPP */
+        /* ПЛАВНАЯ ПРОКРУТКА ДЛЯ TELEGRAM WEBAPP */
         html, body {
             margin: 0;
             padding: 0;
-            scroll-behavior: auto;
+            scroll-behavior: auto; /* Управляется через JS */
             overflow-x: hidden;
             scroll-restoration: manual;
+        }
+        
+        /* Плавная прокрутка при включении */
+        html.smooth-scroll, html.smooth-scroll body {
+            scroll-behavior: smooth !important;
         }
         
         #root {
@@ -26,7 +31,7 @@
         
         /* Плавные переходы между страницами */
         .App {
-            will-change: opacity;
+            will-change: transform, opacity;
         }
     </style>
 </head>

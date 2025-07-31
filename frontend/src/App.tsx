@@ -43,56 +43,51 @@ function App() {
     }
   }, []);
 
-  // ЭЛЕГАНТНЫЙ СБРОС СКРОЛЛА
-  const smoothScrollReset = useCallback(() => {
-    // Используем Telegram WebApp методы если доступны
+  // ПЛАВНАЯ ПРОКРУТКА ВВЕРХ
+  const smoothScrollToTop = useCallback(() => {
+    // Включаем плавную прокрутку через CSS класс
+    document.documentElement.classList.add('smooth-scroll');
+    
+    // Плавно прокручиваем вверх
+    window.scrollTo({ 
+      top: 0, 
+      left: 0, 
+      behavior: 'smooth' 
+    });
+    
+    // Дополнительно для Telegram WebApp
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
-      
-      // Telegram WebApp expand() автоматически сбрасывает скролл
       webApp.expand();
-      
-      // Дополнительно используем BackButton API для истории
-      if (webApp.BackButton) {
-        webApp.BackButton.hide();
-      }
     }
     
-    // Плавный сброс через CSS transition
-    document.documentElement.style.scrollBehavior = 'auto';
-    document.body.style.scrollBehavior = 'auto';
-    
-    // Мгновенный сброс позиции
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    
-    // Возвращаем smooth behavior обратно через микрозадачу
-    requestAnimationFrame(() => {
-      document.documentElement.style.scrollBehavior = '';
-      document.body.style.scrollBehavior = '';
-    });
+    // Убираем smooth класс через время анимации
+    setTimeout(() => {
+      document.documentElement.classList.remove('smooth-scroll');
+    }, 800); // 800ms на плавную анимацию прокрутки
   }, []);
 
-  // ЭЛЕГАНТНАЯ НАВИГАЦИЯ через Telegram WebApp API
+  // ПЛАВНАЯ ПРОКРУТКА ПРИ СМЕНЕ СТРАНИЦЫ
   useEffect(() => {
-    smoothScrollReset();
-  }, [currentPage, smoothScrollReset]);
+    smoothScrollToTop();
+  }, [currentPage, smoothScrollToTop]);
 
-  // ЭЛЕГАНТНАЯ НАВИГАЦИЯ: Плавные переходы + Telegram WebApp API
+  // ПЛАВНАЯ НАВИГАЦИЯ: Слайд-переходы
   const navigateTo = (page: Page) => {
     if (currentPage !== page) {
       setIsTransitioning(true);
       
-      // 1. Плавный fade-out
+      // 1. Начинаем переход
       setTimeout(() => {
         setPreviousPage(currentPage);
         setCurrentPage(page);
         
-        // 2. Сброс скролла и fade-in
+        // 2. Завершаем переход и плавно прокручиваем вверх
         setTimeout(() => {
-          smoothScrollReset();
           setIsTransitioning(false);
-        }, 50);
-      }, 150); // Время для fade-out анимации
+          // smoothScrollToTop будет вызван через useEffect
+        }, 100);
+      }, 200); // Время для slide-out анимации
     }
   };
 
@@ -548,9 +543,9 @@ function App() {
     <div 
       className="App"
       style={{ 
-        opacity: isTransitioning ? 0.7 : 1,
-        transform: 'translateY(0)',
-        transition: 'opacity 0.15s ease-in-out',
+        transform: isTransitioning ? 'translateX(-10px)' : 'translateX(0)',
+        opacity: isTransitioning ? 0.9 : 1,
+        transition: 'all 0.2s ease-out',
         scrollBehavior: 'auto'
       }}
     >
