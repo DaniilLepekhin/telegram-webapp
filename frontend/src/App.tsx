@@ -9,10 +9,11 @@ import PostAnalytics from './components/PostAnalytics';
 import TelegramIntegration from './components/TelegramIntegration';
 import PostTracking from './components/PostTracking';
 import PostBuilder from './components/PostBuilder';
+import TestPage from './components/TestPage';
 import BackButton from './components/BackButton';
 import FullscreenButton from './components/FullscreenButton';
 
-type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder';
+type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('main');
@@ -347,6 +348,30 @@ function App() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Test Page Card */}
+                  <div 
+                    onClick={() => navigateTo('test')}
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">🧪</span>
+                        </div>
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-yellow-200 transition-colors duration-300">Тестовая страница</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+                        Диагностика и тестирование функциональности
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -479,6 +504,15 @@ function App() {
             <BackButton onClick={goBack} />
             <FullscreenButton />
             <PostBuilder />
+          </div>
+        );
+
+      case 'test':
+        return (
+          <div>
+            <BackButton onClick={goBack} />
+            <FullscreenButton />
+            <TestPage />
           </div>
         );
 
