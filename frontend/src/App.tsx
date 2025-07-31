@@ -1,4 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
+
+// Расширение Window для загрузочного экрана
+declare global {
+  interface Window {
+    hideLoadingScreen?: () => void;
+    reactLoaded?: boolean;
+  }
+}
 import ChannelAnalytics from './components/ChannelAnalytics';
 import Showcase from './components/Showcase';
 import DemoChat from './components/DemoChat';
@@ -88,6 +96,13 @@ function App() {
   // Тихий скролл вверх при первой загрузке
   useEffect(() => {
     silentScrollReset();
+    
+    // Скрываем загрузочный экран после загрузки React
+    setTimeout(() => {
+      if (window.hideLoadingScreen) {
+        window.hideLoadingScreen();
+      }
+    }, 500); // Небольшая задержка для плавности
   }, []); // Только при первой загрузке
 
   // ПЛАВНАЯ НАВИГАЦИЯ: Незаметный сброс + элегантный переход
