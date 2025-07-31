@@ -83,17 +83,18 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* СТАТИЧНЫЙ ФОН */}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+      {/* КРАСИВЫЙ СТАТИЧНЫЙ ФОН */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full filter blur-xl opacity-10"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-pink-500 rounded-full filter blur-xl opacity-10"></div>
+        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full filter blur-xl opacity-20"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-yellow-500 rounded-full filter blur-xl opacity-20"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full filter blur-xl opacity-20"></div>
       </div>
 
       <div className="relative z-10 p-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-600 rounded-full mb-6 shadow-lg">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-6 shadow-2xl">
             <span className="text-3xl">📊</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">

@@ -142,11 +142,13 @@ function App() {
     switch (currentPage) {
       case 'main':
         return (
-          <div className="min-h-screen bg-black relative overflow-hidden">
-            {/* СТАТИЧНЫЙ ФОН - БЕЗ АНИМАЦИЙ */}
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+            {/* КРАСИВЫЙ СТАТИЧНЫЙ ФОН С ГРАДИЕНТАМИ */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full filter blur-xl opacity-10"></div>
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full filter blur-xl opacity-10"></div>
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full filter blur-xl opacity-20"></div>
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full filter blur-xl opacity-20"></div>
+              <div className="absolute top-40 left-40 w-80 h-80 bg-gradient-to-br from-pink-500 to-red-500 rounded-full filter blur-xl opacity-15"></div>
+              <div className="absolute top-1/2 right-1/4 w-60 h-60 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full filter blur-xl opacity-15"></div>
             </div>
 
             {/* Кнопка полноэкранного режима */}
@@ -155,7 +157,7 @@ function App() {
             <div className="relative z-10 p-4 sm:p-6 lg:p-8">
               {/* Enhanced Header */}
               <div className="text-center mb-8 sm:mb-12 fade-in">
-                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-purple-600 rounded-3xl mb-4 sm:mb-6 shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-purple-600 rounded-3xl mb-4 sm:mb-6 shadow-2xl">
                   <span className="text-2xl sm:text-3xl lg:text-4xl">🚀</span>
                 </div>
                 <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white mb-2 sm:mb-4 drop-shadow-2xl bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">

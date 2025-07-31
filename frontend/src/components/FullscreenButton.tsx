@@ -107,16 +107,36 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
   };
 
   const toggleFullscreen = () => {
+    // Сброс позиции прокрутки ПЕРЕД переключением режима
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
     // Проверяем, находимся ли мы в Telegram
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       
       if (!(webApp as any).isFullscreen) {
-        // Входим в полноэкранный режим
-        (webApp as any).requestFullscreen();
+        // Расширяем WebApp перед fullscreen
+        webApp.expand();
+        setTimeout(() => {
+          (webApp as any).requestFullscreen();
+          // Дополнительный сброс после перехода
+          setTimeout(() => {
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+          }, 100);
+        }, 50);
       } else {
         // Выходим из полноэкранного режима
         (webApp as any).exitFullscreen();
+        // Сброс после выхода
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        }, 100);
       }
     } else {
       // Используем браузерный Fullscreen API
@@ -125,6 +145,12 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
       } else {
         requestFullscreen();
       }
+      // Дополнительный сброс для браузера
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 200);
     }
   };
 
