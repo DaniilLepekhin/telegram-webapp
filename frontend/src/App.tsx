@@ -43,62 +43,97 @@ function App() {
     }
   }, []);
 
-  // ГАРАНТИРОВАННЫЙ СБРОС СКРОЛЛА
-  const smoothScrollToTop = useCallback(() => {
-    // 1. Принудительный мгновенный сброс для гарантии
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+  // АБСОЛЮТНЫЙ СБРОС СКРОЛЛА - РАЗ И НАВСЕГДА
+  const forceScrollReset = useCallback(() => {
+    // 1. МНОЖЕСТВЕННЫЙ принудительный сброс всех возможных элементов
+    const resetTargets = [
+      window,
+      document.documentElement,
+      document.body,
+      document.getElementById('root'),
+      document.querySelector('.App'),
+      document.querySelector('body'),
+      document.querySelector('html')
+    ];
     
-    // 2. Telegram WebApp expand
+    resetTargets.forEach(target => {
+      if (target && 'scrollTo' in target) {
+        try {
+          target.scrollTo(0, 0);
+          target.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        } catch(e) {}
+      }
+      if (target && 'scrollTop' in target) {
+        try {
+          target.scrollTop = 0;
+          target.scrollLeft = 0;
+        } catch(e) {}
+      }
+    });
+    
+    // 2. Telegram WebApp принудительно
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       webApp.expand();
+      
+      // Дополнительные методы Telegram WebApp
+      if (webApp.viewportHeight) {
+        webApp.expand();
+      }
     }
     
-    // 3. Включаем плавную прокрутку для красоты
-    requestAnimationFrame(() => {
-      document.documentElement.classList.add('smooth-scroll');
-      
-      // Еще раз плавно прокручиваем для визуального эффекта
-      window.scrollTo({ 
-        top: 0, 
-        left: 0, 
-        behavior: 'smooth' 
-      });
-      
-      // Убираем smooth класс
-      setTimeout(() => {
-        document.documentElement.classList.remove('smooth-scroll');
-      }, 500);
+    // 3. CSS принудительное позиционирование
+    document.documentElement.style.transform = 'translateY(0px)';
+    document.body.style.transform = 'translateY(0px)';
+    const root = document.getElementById('root');
+    if (root) {
+      root.style.transform = 'translateY(0px)';
+    }
+    
+    // 4. Принудительное обновление layout
+    document.documentElement.style.scrollBehavior = 'auto';
+    document.body.style.scrollBehavior = 'auto';
+    
+    // 5. Все элементы с прокруткой
+    const allScrollableElements = document.querySelectorAll('*');
+    allScrollableElements.forEach(el => {
+      if (el.scrollTop) el.scrollTop = 0;
+      if (el.scrollLeft) el.scrollLeft = 0;
     });
+    
+    // 6. Принудительный reflow
+    document.documentElement.offsetHeight; // force reflow
+    
+    console.log('🔥 АБСОЛЮТНЫЙ СБРОС СКРОЛЛА ВЫПОЛНЕН');
   }, []);
 
   // Скролл вверх при первой загрузке
   useEffect(() => {
-    if (currentPage === 'main') {
-      smoothScrollToTop();
-    }
+    forceScrollReset();
   }, []); // Только при первой загрузке
 
-  // ПЛАВНАЯ НАВИГАЦИЯ: Сначала скролл, потом переход
+  // АБСОЛЮТНАЯ НАВИГАЦИЯ: Принудительный сброс + переход
   const navigateTo = (page: Page) => {
     if (currentPage !== page) {
-      // 1. СНАЧАЛА сбрасываем скролл плавно
-      smoothScrollToTop();
+      console.log(`🚀 Навигация: ${currentPage} → ${page}`);
+      
+      // 1. АБСОЛЮТНЫЙ сброс скролла
+      forceScrollReset();
       
       setIsTransitioning(true);
       
-      // 2. Потом меняем страницу (после начала прокрутки)
+      // 2. Немедленная смена страницы (скролл уже сброшен)
       setTimeout(() => {
         setPreviousPage(currentPage);
         setCurrentPage(page);
         
-        // 3. Завершаем переход
+        // 3. Еще один сброс после смены страницы для гарантии
         setTimeout(() => {
+          forceScrollReset();
           setIsTransitioning(false);
-        }, 100);
-      }, 300); // Даем время для прокрутки
+          console.log('✅ Навигация завершена');
+        }, 50);
+      }, 100);
     }
   };
 

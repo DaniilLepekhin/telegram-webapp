@@ -6,32 +6,52 @@
     <title>Telegram WebApp</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ПЛАВНАЯ ПРОКРУТКА ДЛЯ TELEGRAM WEBAPP */
+        /* АБСОЛЮТНЫЙ КОНТРОЛЬ СКРОЛЛА ДЛЯ TELEGRAM WEBAPP */
         html, body {
-            margin: 0;
-            padding: 0;
-            scroll-behavior: auto; /* Управляется через JS */
-            overflow-x: hidden;
-            scroll-restoration: manual;
+            margin: 0 !important;
+            padding: 0 !important;
+            scroll-behavior: auto !important;
+            overflow-x: hidden !important;
+            scroll-restoration: manual !important;
+            position: relative !important;
+            top: 0 !important;
+            left: 0 !important;
+            transform: translateY(0px) !important;
         }
         
-        /* Плавная прокрутка при включении */
-        html.smooth-scroll, html.smooth-scroll body {
-            scroll-behavior: smooth !important;
+        /* Принудительное обнуление всех скроллов */
+        *, *:before, *:after {
+            scroll-behavior: auto !important;
+            scroll-restoration: manual !important;
+            scroll-snap-type: none !important;
+            overscroll-behavior: none !important;
+        }
+        
+        /* Блокировка сохранения позиции */
+        html {
+            scroll-padding: 0 !important;
+            scroll-margin: 0 !important;
         }
         
         #root {
-            min-height: 100vh;
+            min-height: 100vh !important;
+            position: relative !important;
+            top: 0 !important;
+            transform: translateY(0px) !important;
         }
         
         .App {
-            position: relative;
-            scroll-behavior: auto;
-        }
-        
-        /* Плавные переходы между страницами */
-        .App {
+            position: relative !important;
+            scroll-behavior: auto !important;
+            top: 0 !important;
+            transform: translateY(0px) !important;
             will-change: transform, opacity;
+        }
+        
+        /* Telegram WebApp специфичные стили */
+        body.tg-viewport {
+            scroll-behavior: auto !important;
+            overflow-y: auto !important;
         }
     </style>
 </head>
