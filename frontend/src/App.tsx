@@ -16,10 +16,14 @@ import FullscreenButton from './components/FullscreenButton';
 type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('main');
+  // Используем hash для навигации (как в обычных веб-приложениях)
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    const hash = window.location.hash.slice(1) as Page;
+    return ['analytics', 'showcase', 'demo-chat', 'referral', 'user-profile', 'feedback', 'post-analytics', 'telegram-integration', 'post-tracking', 'post-builder', 'test'].includes(hash) 
+      ? hash : 'main';
+  });
   const [previousPage, setPreviousPage] = useState<Page | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [pageKey, setPageKey] = useState(0); // Ключ для принудительного перерендера
 
   // Инициализация Telegram WebApp
   useEffect(() => {
@@ -41,6 +45,31 @@ function App() {
       };
     }
   }, []);
+
+  // Слушатель изменения hash (стандартная веб-навигация)
+  useEffect(() => {
+    const handleHashChange = () => {
+      // Немедленный сброс скролла при изменении hash
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      
+      const hash = window.location.hash.slice(1) as Page;
+      const validPage = ['analytics', 'showcase', 'demo-chat', 'referral', 'user-profile', 'feedback', 'post-analytics', 'telegram-integration', 'post-tracking', 'post-builder', 'test'].includes(hash) 
+        ? hash : 'main';
+      
+      if (validPage !== currentPage) {
+        setPreviousPage(currentPage);
+        setCurrentPage(validPage);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [currentPage]);
 
   // Улучшенная прокрутка к верху при смене страницы
   useEffect(() => {
@@ -88,95 +117,24 @@ function App() {
     };
   }, [currentPage]);
 
-  // Улучшенная функция навигации
+  // Стандартная веб-навигация через hash
   const navigateTo = (page: Page) => {
     if (currentPage !== page) {
-      // Принудительно скрываем viewport
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.expand();
-      }
-      
-      // Сначала сбрасываем скролл
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      
-      // Принудительно обнуляем все возможные свойства скролла
-      document.documentElement.style.scrollBehavior = 'auto';
-      document.body.style.scrollBehavior = 'auto';
-      
-      // Затем меняем страницу и ключ для перерендера
-      setPreviousPage(currentPage);
-      setCurrentPage(page);
-      setPageKey(prev => prev + 1);
+      // Используем стандартный hash для навигации
+      window.location.hash = page === 'main' ? '' : page;
     }
   };
 
-  // Улучшенная функция возврата назад
+  // Стандартная функция возврата назад
   const goBack = () => {
-    // Принудительно скрываем viewport
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.expand();
-    }
-    
-    // Сбрасываем скролл перед навигацией
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    
-    // Принудительно обнуляем все возможные свойства скролла
-    document.documentElement.style.scrollBehavior = 'auto';
-    document.body.style.scrollBehavior = 'auto';
-    
-    if (previousPage && previousPage !== 'main') {
-      setCurrentPage(previousPage);
-      setPreviousPage('main');
-    } else {
-      setCurrentPage('main');
-      setPreviousPage(null);
-    }
-    setPageKey(prev => prev + 1);
+    // Просто возвращаемся на главную через hash
+    window.location.hash = '';
   };
 
   // Глобальная функция для кнопки назад
   useEffect(() => {
     (window as any).handleGoBack = goBack;
-  }, [previousPage]);
-
-  // Принудительный контроль скролла
-  useEffect(() => {
-    const forceScrollTop = () => {
-      if (window.scrollY !== 0 || document.documentElement.scrollTop !== 0 || document.body.scrollTop !== 0) {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      }
-    };
-
-    // Принудительный сброс при каждой смене страницы
-    forceScrollTop();
-    
-    // Добавляем слушатель события скролла на короткое время
-    const scrollHandler = (e: Event) => {
-      e.preventDefault();
-      forceScrollTop();
-    };
-    
-    window.addEventListener('scroll', scrollHandler, { passive: false });
-    document.addEventListener('scroll', scrollHandler, { passive: false });
-    
-    // Убираем слушатель через короткое время
-    const timeout = setTimeout(() => {
-      window.removeEventListener('scroll', scrollHandler);
-      document.removeEventListener('scroll', scrollHandler);
-    }, 1000);
-    
-    return () => {
-      clearTimeout(timeout);
-      window.removeEventListener('scroll', scrollHandler);
-      document.removeEventListener('scroll', scrollHandler);
-    };
-  }, [currentPage, pageKey]);
+  }, []);
 
   // Рендер страниц
   const renderPage = () => {
@@ -617,7 +575,7 @@ function App() {
   };
 
   return (
-    <div className="App" key={pageKey}>
+    <div className="App">
       {renderPage()}
     </div>
   );

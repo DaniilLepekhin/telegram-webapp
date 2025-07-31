@@ -6,44 +6,21 @@
     <title>Telegram WebApp</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Принудительный сброс позиции скролла */
+        /* Стандартный сброс для веб-приложений */
         html, body {
-            scroll-behavior: auto !important;
-            scroll-padding-top: 0 !important;
-            scroll-padding-bottom: 0 !important;
-            scroll-snap-type: none !important;
-            overscroll-behavior: none !important;
-            height: 100%;
             margin: 0;
             padding: 0;
-        }
-        
-        * {
             scroll-behavior: auto !important;
-            scroll-snap-type: none !important;
+            overflow-x: hidden;
         }
         
-        /* Для Telegram WebApp */
-        body {
-            position: relative;
-            overflow-x: hidden;
+        /* Автоматический сброс при hash навигации */
+        html {
+            scroll-padding-top: 0 !important;
         }
         
         #root {
             min-height: 100vh;
-            position: relative;
-        }
-        
-        /* Класс для сброса скролла */
-        .scroll-reset {
-            scroll-behavior: auto !important;
-            transform: translateY(0) !important;
-        }
-        
-        /* Принудительный сброс для App */
-        .App {
-            transform: translateY(0) !important;
-            position: relative !important;
         }
     </style>
 </head>
