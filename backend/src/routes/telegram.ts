@@ -16,6 +16,23 @@ const telegramService = new TelegramService(
   process.env.TELEGRAM_BOT_TOKEN || ''
 );
 
+// Получение логов для отладки
+router.get('/logs', async (req, res) => {
+  try {
+    // Здесь можно добавить логику для получения логов из файла или памяти
+    res.json({
+      success: true,
+      logs: [
+        'Логи backend доступны через docker-compose logs',
+        'Для просмотра: docker-compose logs backend --tail=50',
+        'Логи обновляются в реальном времени'
+      ]
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to get logs' });
+  }
+});
+
 // Получение каналов пользователя
 router.post('/get-channels', async (req, res) => {
   try {

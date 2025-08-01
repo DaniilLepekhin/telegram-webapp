@@ -24,6 +24,7 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<TelegramChannel | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
+  const [showLogs, setShowLogs] = useState(false);
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -188,28 +189,41 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
       )}
 
       {/* Debug Logs - Always show when logs exist */}
-      {logs.length > 0 && (
+      {/* Debug Logs */}
+      {showLogs && (
         <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-semibold text-white">🔍 Логи отладки</h4>
-            <button
-              onClick={() => {
-                const logText = logs.join('\n');
-                navigator.clipboard.writeText(logText);
-                alert('Логи скопированы в буфер обмена!');
-              }}
-              className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
-            >
-              📋 Копировать
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => {
+                  const logText = logs.join('\n');
+                  navigator.clipboard.writeText(logText);
+                  alert('Логи скопированы в буфер обмена!');
+                }}
+                className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
+              >
+                📋 Копировать
+              </button>
+              <button
+                onClick={() => setShowLogs(false)}
+                className="bg-red-500/20 text-red-300 px-3 py-1 rounded-lg hover:bg-red-500/30 transition-colors text-sm"
+              >
+                ❌ Закрыть
+              </button>
+            </div>
           </div>
           <div className="bg-black/50 rounded-lg p-4 max-h-60 overflow-y-auto">
             <div className="space-y-1 text-xs font-mono">
-              {logs.map((log, index) => (
-                <div key={index} className="text-green-400">
-                  {log}
-                </div>
-              ))}
+              {logs.length === 0 ? (
+                <div className="text-yellow-400">Нет логов. Нажмите "Обновить" для генерации логов.</div>
+              ) : (
+                logs.map((log, index) => (
+                  <div key={index} className="text-green-400">
+                    {log}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -267,13 +281,22 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
             <h4 className="text-lg font-semibold text-white">
               Найдено каналов: {channels.length}
             </h4>
-            <button
-              onClick={detectChannels}
-              className="bg-blue-500/20 text-blue-300 px-3 py-2 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
-              title="Обновить список каналов"
-            >
-              🔄 Обновить
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={detectChannels}
+                className="bg-blue-500/20 text-blue-300 px-3 py-2 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
+                title="Обновить список каналов"
+              >
+                🔄 Обновить
+              </button>
+              <button
+                onClick={() => setShowLogs(!showLogs)}
+                className="bg-yellow-500/20 text-yellow-300 px-3 py-2 rounded-lg hover:bg-yellow-500/30 transition-colors text-sm"
+                title="Показать логи отладки"
+              >
+                📋 Логи
+              </button>
+            </div>
           </div>
 
           {channels.map((channel) => (
