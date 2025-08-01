@@ -117,28 +117,13 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
                 <h2 className="text-2xl font-bold text-white mb-2">🔍 Определение каналов</h2>
                 <p className="text-white/70">Поиск каналов, где вы являетесь администратором</p>
               </div>
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowLinkAnalytics(true)}
-                  className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
-                >
-                  📊 Аналитика ссылок
-                </button>
-                <button
-                  onClick={() => setShowLinkGenerator(true)}
-                  disabled={channels.length === 0}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  🔗 Создать ссылку
-                </button>
-                <button
-                  onClick={detectChannels}
-                  disabled={loading}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? '🔍 Поиск...' : '🔄 Обновить'}
-                </button>
-              </div>
+              <button
+                onClick={detectChannels}
+                disabled={loading}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? '🔍 Поиск...' : '🔄 Обновить'}
+              </button>
             </div>
 
             {/* Loading State */}
@@ -304,6 +289,87 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Tracking Links Section */}
+          {channels.length > 0 && (
+            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl">🔗</span>
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-2">Трекинговые Ссылки</h2>
+                <p className="text-white/70">Создавайте и анализируйте ссылки с UTM метками, QR-кодами и A/B тестами</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Создать ссылку */}
+                <div 
+                  onClick={() => setShowLinkGenerator(true)}
+                  className="group bg-gradient-to-br from-green-500/20 to-emerald-600/20 hover:from-green-500/30 hover:to-emerald-600/30 rounded-2xl p-6 border border-green-500/30 cursor-pointer transition-all duration-300 transform hover:scale-105"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <span className="text-2xl">🚀</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">Создать Ссылку</h3>
+                      <p className="text-white/70 mb-4">Генерируйте трекинговые ссылки с UTM метками, QR-кодами и настройками A/B тестирования</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-green-500/20 text-green-300 px-2 py-1 rounded-lg text-xs">QR-коды</span>
+                        <span className="bg-green-500/20 text-green-300 px-2 py-1 rounded-lg text-xs">UTM метки</span>
+                        <span className="bg-green-500/20 text-green-300 px-2 py-1 rounded-lg text-xs">A/B тесты</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Аналитика ссылок */}
+                <div 
+                  onClick={() => setShowLinkAnalytics(true)}
+                  className="group bg-gradient-to-br from-purple-500/20 to-pink-600/20 hover:from-purple-500/30 hover:to-pink-600/30 rounded-2xl p-6 border border-purple-500/30 cursor-pointer transition-all duration-300 transform hover:scale-105"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <span className="text-2xl">📊</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">Аналитика Ссылок</h3>
+                      <p className="text-white/70 mb-4">Просматривайте статистику переходов, географию пользователей и эффективность кампаний</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-purple-500/20 text-purple-300 px-2 py-1 rounded-lg text-xs">География</span>
+                        <span className="bg-purple-500/20 text-purple-300 px-2 py-1 rounded-lg text-xs">Устройства</span>
+                        <span className="bg-purple-500/20 text-purple-300 px-2 py-1 rounded-lg text-xs">Конверсии</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Возможности */}
+              <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-3xl mb-2">📱</div>
+                  <h4 className="text-white font-medium mb-1">QR-коды</h4>
+                  <p className="text-white/60 text-sm">Для оффлайн промо</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🌍</div>
+                  <h4 className="text-white font-medium mb-1">Геоданные</h4>
+                  <p className="text-white/60 text-sm">Откуда переходят</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🧪</div>
+                  <h4 className="text-white font-medium mb-1">A/B тесты</h4>
+                  <p className="text-white/60 text-sm">Разные версии</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">⏰</div>
+                  <h4 className="text-white font-medium mb-1">Лимиты</h4>
+                  <p className="text-white/60 text-sm">Время жизни</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
