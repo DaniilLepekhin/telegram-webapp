@@ -341,13 +341,19 @@ export class TelegramService {
   // Обработка события удаления бота из чата
   async handleBotRemovedFromChat(chatId: number): Promise<void> {
     try {
+      // Полностью удаляем канал из базы данных
       await this.pool.query(
-        `UPDATE telegram_chats 
-         SET bot_status = 'removed', updated_at = CURRENT_TIMESTAMP 
-         WHERE chat_id = $1`,
+        `DELETE FROM telegram_chats WHERE chat_id = $1`,
         [chatId]
       );
-      console.log(`Bot removed from chat: ${chatId}`);
+      
+      // Также удаляем все записи админов для этого чата
+      await this.pool.query(
+        `DELETE FROM chat_admins WHERE chat_id = $1`,
+        [chatId]
+      );
+      
+      console.log(`🗑️ Bot and channel completely removed from database: ${chatId}`);
     } catch (error) {
       console.error(`Error handling bot removed from chat ${chatId}:`, error);
     }
