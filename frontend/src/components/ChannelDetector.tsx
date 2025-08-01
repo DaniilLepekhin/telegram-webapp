@@ -87,6 +87,16 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
         );
 
         addLog(`Отфильтрованные каналы: ${JSON.stringify(detectedChannels, null, 2)}`);
+        
+        // Подробное логирование каждого канала
+        detectedChannels.forEach((channel: TelegramChannel, index: number) => {
+          addLog(`Канал ${index + 1}: ${channel.title}`);
+          addLog(`  - ID: ${channel.id}`);
+          addLog(`  - Тип: ${channel.type}`);
+          addLog(`  - Участников: ${channel.memberCount || 'N/A'}`);
+          addLog(`  - Username: ${channel.username || 'N/A'}`);
+        });
+        
         setChannels(detectedChannels);
         onChannelsDetected(detectedChannels);
 
@@ -160,6 +170,16 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
         );
 
         addLog(`✅ Отфильтрованные каналы: ${JSON.stringify(detectedChannels, null, 2)}`);
+        
+        // Подробное логирование каждого канала
+        detectedChannels.forEach((channel: TelegramChannel, index: number) => {
+          addLog(`📊 Канал ${index + 1}: ${channel.title}`);
+          addLog(`  - ID: ${channel.id}`);
+          addLog(`  - Тип: ${channel.type}`);
+          addLog(`  - Участников: ${channel.memberCount || 'N/A'}`);
+          addLog(`  - Username: ${channel.username || 'N/A'}`);
+        });
+        
         setChannels(detectedChannels);
         onChannelsDetected(detectedChannels);
 
