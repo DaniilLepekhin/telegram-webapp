@@ -33,6 +33,10 @@ pool.query('SELECT NOW()', (err, res) => {
 
 // Routes
 app.use('/api/telegram', require('./routes/telegram.js'));
+app.use('/api/tracking', require('./routes/tracking.js'));
+
+// Специальный роут для трекинговых ссылок (без /api префикса)
+app.use('/track', require('./routes/tracking.js'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LinkGenerator from './LinkGenerator';
+import LinkAnalytics from './LinkAnalytics';
 
 interface TelegramChannel {
   id: number;
@@ -22,6 +23,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [showLinkGenerator, setShowLinkGenerator] = useState(false);
+  const [showLinkAnalytics, setShowLinkAnalytics] = useState(false);
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -116,6 +118,12 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
                 <p className="text-white/70">Поиск каналов, где вы являетесь администратором</p>
               </div>
               <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowLinkAnalytics(true)}
+                  className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
+                >
+                  📊 Аналитика ссылок
+                </button>
                 <button
                   onClick={() => setShowLinkGenerator(true)}
                   disabled={channels.length === 0}
@@ -306,6 +314,13 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
         <LinkGenerator
           channels={channels}
           onClose={() => setShowLinkGenerator(false)}
+        />
+      )}
+
+      {/* Link Analytics Modal */}
+      {showLinkAnalytics && (
+        <LinkAnalytics
+          onBack={() => setShowLinkAnalytics(false)}
         />
       )}
     </div>
