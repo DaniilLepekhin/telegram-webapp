@@ -8,6 +8,7 @@ interface TelegramChannel {
   isAdmin: boolean;
   canInviteUsers: boolean;
   memberCount?: number;
+  nextUpdateHours?: number; // Часы до следующего обновления количества участников
 }
 
 interface ChannelDetectorProps {
@@ -429,11 +430,16 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
                     <span className="text-white/60">
                       Участников: {
                         channel.memberCount === null || channel.memberCount === undefined 
-                          ? 'N/A' 
+                          ? 'Приватный канал' 
                           : channel.memberCount === -1 
-                            ? 'Недоступно (нет прав)' 
+                            ? 'Приватный канал' 
                             : channel.memberCount.toLocaleString()
                       }
+                      {channel.nextUpdateHours && (
+                        <span className="text-yellow-400 text-xs ml-2">
+                          (обновление через {channel.nextUpdateHours}ч)
+                        </span>
+                      )}
                     </span>
                     <span className="text-green-400">✅ Администратор</span>
                   </div>

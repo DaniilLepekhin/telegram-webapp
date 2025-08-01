@@ -241,21 +241,41 @@ export class TelegramService {
   }
 
   // Сохранение информации о чате в базу
-  async saveChatInfo(chatId: number, chatInfo: TelegramChat, botStatus: string = 'member'): Promise<void> {
+  async saveChatInfo(chatId: number, chatInfo: TelegramChat, botStatus: string = 'member', updateMemberCount: boolean = true): Promise<void> {
     try {
-      await this.pool.query(
-        `INSERT INTO telegram_chats (chat_id, chat_title, username, type, bot_status, member_count, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
-         ON CONFLICT (chat_id) 
-         DO UPDATE SET 
-           chat_title = EXCLUDED.chat_title,
-           username = EXCLUDED.username,
-           type = EXCLUDED.type,
-           bot_status = EXCLUDED.bot_status,
-           member_count = EXCLUDED.member_count,
-           updated_at = CURRENT_TIMESTAMP`,
-        [chatId, chatInfo.title, chatInfo.username, chatInfo.type, botStatus, chatInfo.member_count]
-      );
+      if (updateMemberCount && chatInfo.member_count !== undefined && chatInfo.member_count !== null) {
+        // Обновляем все данные включая количество участников и время последнего обновления
+        await this.pool.query(
+          `INSERT INTO telegram_chats (chat_id, chat_title, username, type, bot_status, member_count, last_member_update, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+           ON CONFLICT (chat_id) 
+           DO UPDATE SET 
+             chat_title = EXCLUDED.chat_title,
+             username = EXCLUDED.username,
+             type = EXCLUDED.type,
+             bot_status = EXCLUDED.bot_status,
+             member_count = EXCLUDED.member_count,
+             last_member_update = CURRENT_TIMESTAMP,
+             updated_at = CURRENT_TIMESTAMP`,
+          [chatId, chatInfo.title, chatInfo.username, chatInfo.type, botStatus, chatInfo.member_count]
+        );
+        console.log(`💾 Updated chat ${chatId} with member count: ${chatInfo.member_count}`);
+      } else {
+        // Обновляем все данные кроме количества участников и времени его обновления
+        await this.pool.query(
+          `INSERT INTO telegram_chats (chat_id, chat_title, username, type, bot_status, updated_at)
+           VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+           ON CONFLICT (chat_id) 
+           DO UPDATE SET 
+             chat_title = EXCLUDED.chat_title,
+             username = EXCLUDED.username,
+             type = EXCLUDED.type,
+             bot_status = EXCLUDED.bot_status,
+             updated_at = CURRENT_TIMESTAMP`,
+          [chatId, chatInfo.title, chatInfo.username, chatInfo.type, botStatus]
+        );
+        console.log(`💾 Updated chat ${chatId} without member count update`);
+      }
     } catch (error) {
       console.error(`Error saving chat info for ${chatId}:`, error);
     }
@@ -279,36 +299,57 @@ export class TelegramService {
     }
   }
 
-  // Получение каналов пользователя (с кешированием)
+  // Получение каналов пользователя (ВСЕГДА ищет новые каналы, ограничения только на обновление количества участников)
   async getUserChannels(userId: number, forceRefresh: boolean = false): Promise<TelegramChat[]> {
     try {
-      // Если не принудительное обновление, сначала пытаемся получить из кеша
-      if (!forceRefresh) {
-        const cachedResult = await this.pool.query(
-          `SELECT tc.* 
-           FROM telegram_chats tc
-           JOIN chat_admins ca ON tc.chat_id = ca.chat_id
-           WHERE ca.user_id = $1 
-             AND ca.is_admin = true 
-             AND ca.last_checked_at > CURRENT_TIMESTAMP - INTERVAL '7 days'
-             AND tc.bot_status != 'removed'
-           ORDER BY tc.updated_at DESC`,
-          [userId]
-        );
+      console.log(`🔍 Getting channels for user ${userId}, forceRefresh: ${forceRefresh}`);
 
-        if (cachedResult.rows.length > 0) {
-          console.log(`Found ${cachedResult.rows.length} cached channels for user ${userId}`);
+      // ЭТАП 1: ВСЕГДА получаем список всех каналов (без ограничений)
+      // Сначала получаем кешированные каналы (если есть)
+      const cachedResult = await this.pool.query(
+        `SELECT tc.*, 
+                EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - COALESCE(tc.last_member_update, '1970-01-01'::timestamp))) / 3600 as hours_since_member_update
+         FROM telegram_chats tc
+         JOIN chat_admins ca ON tc.chat_id = ca.chat_id
+         WHERE ca.user_id = $1 
+           AND ca.is_admin = true 
+           AND ca.last_checked_at > CURRENT_TIMESTAMP - INTERVAL '7 days'
+           AND tc.bot_status != 'removed'
+         ORDER BY tc.updated_at DESC`,
+        [userId]
+      );
+
+      // ЭТАП 2: Проверяем, нужно ли обновлять количество участников
+      let shouldUpdateMemberCounts = false;
+      let channelsNeedingMemberUpdate: any[] = [];
+      
+      if (forceRefresh) {
+        // При принудительном обновлении проверяем ограничения по времени
+        channelsNeedingMemberUpdate = cachedResult.rows.filter(row => 
+          !row.last_member_update || row.hours_since_member_update >= 8
+        );
+        
+        if (channelsNeedingMemberUpdate.length > 0) {
+          shouldUpdateMemberCounts = true;
+          console.log(`⚡ Force refresh: ${channelsNeedingMemberUpdate.length} channels need member count update`);
+        } else if (cachedResult.rows.length > 0) {
+          const nextUpdateHours = Math.ceil(8 - Math.min(...cachedResult.rows.map(r => r.hours_since_member_update)));
+          console.log(`⏰ Rate limit: Member counts updated recently. Next update in ${nextUpdateHours} hours`);
+          
+          // Возвращаем существующие данные без обновления количества участников
           return cachedResult.rows.map(row => ({
             id: row.chat_id,
             title: row.chat_title,
             username: row.username,
             type: row.type,
-            member_count: row.member_count
+            member_count: row.member_count,
+            nextUpdateHours: nextUpdateHours
           }));
         }
-      } else {
-        console.log(`🔄 Force refresh requested for user ${userId}`);
       }
+
+      // ЭТАП 3: Всегда проверяем новые каналы (независимо от ограничений)
+      console.log(`🔄 Checking for new channels and updates...`);
 
       // Получаем все чаты где бот является администратором (исключая удаленные)
       const botAdminChats = await this.pool.query(
@@ -318,6 +359,30 @@ export class TelegramService {
            AND updated_at > CURRENT_TIMESTAMP - INTERVAL '30 days'
          ORDER BY updated_at DESC`
       );
+
+      console.log(`📋 Found ${botAdminChats.rows.length} bot admin chats for refresh`);
+      
+      // При принудительном обновлении, обязательно обновляем информацию о каждом канале
+      if (forceRefresh) {
+        console.log(`⚡ Force refresh: updating all ${botAdminChats.rows.length} channels`);
+        for (const chat of botAdminChats.rows) {
+          console.log(`🔄 Force updating chat: ${chat.chat_id} (${chat.chat_title})`);
+          const updatedChatInfo = await this.getChatInfo(chat.chat_id);
+          if (updatedChatInfo) {
+            await this.saveChatInfo(chat.chat_id, updatedChatInfo, 'administrator');
+            console.log(`💾 Force updated chat: ${updatedChatInfo.title} (${updatedChatInfo.member_count} members)`);
+          }
+        }
+        
+        // Получаем обновленные данные из базы
+        const updatedChats = await this.pool.query(
+          `SELECT chat_id, chat_title, username, type, member_count 
+           FROM telegram_chats 
+           WHERE bot_status = 'administrator' 
+           ORDER BY updated_at DESC`
+        );
+        botAdminChats.rows = updatedChats.rows;
+      }
 
       console.log(`🔍 Found ${botAdminChats.rows.length} bot admin chats to check`);
 
