@@ -94,6 +94,34 @@ router.post('/get-channels', async (req, res) => {
   }
 });
 
+// Webhook для обработки событий бота
+router.post('/webhook', async (req, res) => {
+  try {
+    const { message, channel_post, my_chat_member } = req.body;
+    
+    console.log('Webhook received:', JSON.stringify(req.body, null, 2));
+
+    // Обработка добавления бота в чат
+    if (my_chat_member && my_chat_member.new_chat_member.status === 'administrator') {
+      const chatId = my_chat_member.chat.id;
+      console.log(`Bot added as admin to chat: ${chatId}`);
+      await telegramService.handleBotAddedToChat(chatId);
+    }
+
+    // Обработка удаления бота из чата
+    if (my_chat_member && my_chat_member.new_chat_member.status === 'left') {
+      const chatId = my_chat_member.chat.id;
+      console.log(`Bot removed from chat: ${chatId}`);
+      await telegramService.handleBotRemovedFromChat(chatId);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error in webhook:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 // Публикация поста
 router.post('/publish-post', async (req, res) => {
   try {

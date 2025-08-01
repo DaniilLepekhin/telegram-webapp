@@ -248,28 +248,31 @@ export class TelegramService {
         }));
       }
 
-      // Если кеш пуст или устарел, проверяем свежие чаты
-      const freshChats = await this.pool.query(
-        `SELECT chat_id, updated_at 
+      // Получаем все чаты где бот является администратором
+      const botAdminChats = await this.pool.query(
+        `SELECT chat_id, chat_title, username, type, member_count 
          FROM telegram_chats 
-         WHERE updated_at > CURRENT_TIMESTAMP - INTERVAL '30 days'
-         ORDER BY updated_at DESC 
-         LIMIT 50`
+         WHERE bot_status = 'administrator' 
+           AND updated_at > CURRENT_TIMESTAMP - INTERVAL '30 days'
+         ORDER BY updated_at DESC`
       );
 
       const userChannels: TelegramChat[] = [];
 
-      for (const chat of freshChats.rows) {
+      for (const chat of botAdminChats.rows) {
         const memberStatus = await this.checkUserStatus(chat.chat_id, userId);
         
         if (memberStatus && (memberStatus.status === 'creator' || memberStatus.status === 'administrator')) {
           // Пользователь админ в этом чате
           await this.saveAdminStatus(chat.chat_id, userId, true, memberStatus.status);
           
-          const chatInfo = await this.getChatInfo(chat.chat_id);
-          if (chatInfo) {
-            userChannels.push(chatInfo);
-          }
+          userChannels.push({
+            id: chat.chat_id,
+            title: chat.chat_title,
+            username: chat.username,
+            type: chat.type,
+            member_count: chat.member_count
+          });
         } else {
           // Пользователь не админ
           await this.saveAdminStatus(chat.chat_id, userId, false, memberStatus?.status);

@@ -215,6 +215,32 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
         </div>
       )}
 
+      {/* No Channels State */}
+      {!loading && !error && channels.length === 0 && (
+        <div className="bg-yellow-500/20 backdrop-blur-xl rounded-2xl p-6 border border-yellow-400/30">
+          <div className="flex items-start space-x-3">
+            <span className="text-yellow-400 text-xl">🔍</span>
+            <div>
+              <h4 className="text-white font-medium mb-2">Каналы не найдены</h4>
+              <p className="text-white/60 text-sm mb-4">
+                Убедитесь, что вы добавили бота в канал как администратора и у вас есть права на добавление пользователей.
+              </p>
+              <div className="space-y-2 text-sm text-white/80">
+                <p>• Добавьте бота в канал как администратора</p>
+                <p>• Убедитесь, что у вас есть права администратора в канале</p>
+                <p>• Нажмите "Обновить" после добавления бота</p>
+              </div>
+              <button
+                onClick={detectChannels}
+                className="mt-4 bg-yellow-500/20 text-yellow-300 px-4 py-2 rounded-lg hover:bg-yellow-500/30 transition-colors text-sm"
+              >
+                🔄 Обновить список
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Error State */}
       {error && !loading && (
         <div className="bg-red-500/20 backdrop-blur-xl rounded-2xl p-6 border border-red-400/30">
@@ -237,9 +263,18 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
       {/* Channels List */}
       {channels.length > 0 && !loading && (
         <div className="space-y-4">
-          <h4 className="text-lg font-semibold text-white mb-4">
-            Найдено каналов: {channels.length}
-          </h4>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-lg font-semibold text-white">
+              Найдено каналов: {channels.length}
+            </h4>
+            <button
+              onClick={detectChannels}
+              className="bg-blue-500/20 text-blue-300 px-3 py-2 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
+              title="Обновить список каналов"
+            >
+              🔄 Обновить
+            </button>
+          </div>
 
           {channels.map((channel) => (
             <div
