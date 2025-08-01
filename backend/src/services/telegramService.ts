@@ -166,6 +166,8 @@ export class TelegramService {
   // Получение информации о чате
   async getChatInfo(chatId: number): Promise<TelegramChat | null> {
     try {
+      console.log(`🔍 Getting chat info for: ${chatId}`);
+      
       const response = await axios.get(
         `https://api.telegram.org/bot${this.botToken}/getChat`,
         {
@@ -175,9 +177,11 @@ export class TelegramService {
 
       if (response.data.ok) {
         const chatInfo = response.data.result;
+        console.log(`📋 Chat info received: ${chatInfo.title} (${chatInfo.type})`);
         
         // Дополнительно получаем количество участников
         try {
+          console.log(`👥 Getting member count for: ${chatId}`);
           const memberCountResponse = await axios.get(
             `https://api.telegram.org/bot${this.botToken}/getChatMemberCount`,
             {
@@ -187,16 +191,21 @@ export class TelegramService {
           
           if (memberCountResponse.data.ok) {
             chatInfo.member_count = memberCountResponse.data.result;
+            console.log(`✅ Member count for ${chatInfo.title}: ${chatInfo.member_count}`);
+          } else {
+            console.log(`❌ Failed to get member count for ${chatId}: ${memberCountResponse.data.description}`);
           }
         } catch (memberCountError) {
-          console.log(`Could not get member count for chat ${chatId}:`, memberCountError.message);
+          console.log(`⚠️ Could not get member count for chat ${chatId}:`, memberCountError.message);
         }
         
         return chatInfo;
+      } else {
+        console.log(`❌ Failed to get chat info for ${chatId}: ${response.data.description}`);
+        return null;
       }
-      return null;
     } catch (error) {
-      console.error(`Error getting chat info for ${chatId}:`, error);
+      console.error(`❌ Error getting chat info for ${chatId}:`, error);
       return null;
     }
   }
@@ -286,9 +295,11 @@ export class TelegramService {
           await this.saveAdminStatus(chat.chat_id, userId, true, memberStatus.status);
           
           // Обновляем информацию о чате
+          console.log(`🔄 Updating info for chat: ${chat.chat_id}`);
           const updatedChatInfo = await this.getChatInfo(chat.chat_id);
           if (updatedChatInfo) {
             await this.saveChatInfo(chat.chat_id, updatedChatInfo, 'administrator');
+            console.log(`💾 Saved updated chat info: ${updatedChatInfo.title} (${updatedChatInfo.member_count} members)`);
             
             userChannels.push({
               id: chat.chat_id,
@@ -299,6 +310,7 @@ export class TelegramService {
             });
           } else {
             // Используем кешированную информацию если не удалось обновить
+            console.log(`📋 Using cached info for chat: ${chat.chat_title} (${chat.member_count} members)`);
             userChannels.push({
               id: chat.chat_id,
               title: chat.chat_title,
