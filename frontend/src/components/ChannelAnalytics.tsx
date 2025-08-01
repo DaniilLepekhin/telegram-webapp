@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LinkGenerator from './LinkGenerator';
 
 interface TelegramChannel {
   id: number;
@@ -20,6 +21,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
   const [selectedChannel, setSelectedChannel] = useState<TelegramChannel | null>(null);
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
+  const [showLinkGenerator, setShowLinkGenerator] = useState(false);
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -113,13 +115,22 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
                 <h2 className="text-2xl font-bold text-white mb-2">🔍 Определение каналов</h2>
                 <p className="text-white/70">Поиск каналов, где вы являетесь администратором</p>
               </div>
-              <button
-                onClick={detectChannels}
-                disabled={loading}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? '🔍 Поиск...' : '🔄 Обновить'}
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowLinkGenerator(true)}
+                  disabled={channels.length === 0}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  🔗 Создать ссылку
+                </button>
+                <button
+                  onClick={detectChannels}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? '🔍 Поиск...' : '🔄 Обновить'}
+                </button>
+              </div>
             </div>
 
             {/* Loading State */}
@@ -289,6 +300,14 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
           )}
         </div>
       </div>
+
+      {/* Link Generator Modal */}
+      {showLinkGenerator && (
+        <LinkGenerator
+          channels={channels}
+          onClose={() => setShowLinkGenerator(false)}
+        />
+      )}
     </div>
   );
 };
