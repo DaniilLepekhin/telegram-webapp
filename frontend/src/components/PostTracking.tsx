@@ -50,57 +50,9 @@ interface DailyTrackingStat {
 }
 
 const PostTracking: React.FC = () => {
-  const [trackingPosts, setTrackingPosts] = useState<PostTracking[]>([
-    {
-      id: '1',
-      originalUrl: 'https://t.me/kristina_egiazarova14/9026',
-      trackingUrl: 'https://t.me/your_bot?start=track_1_9026',
-      postTitle: 'Как увеличить продажи в 3 раза',
-      channelName: '@kristina_egiazarova14',
-      createdAt: '2024-02-15',
-      stats: {
-        totalClicks: 1234,
-        uniqueVisitors: 892,
-        conversions: 67,
-        unsubscribes: 12,
-        avgTimeOnPost: 45,
-        bounceRate: 23,
-        sources: [
-          { name: 'Органический трафик', clicks: 720, conversions: 45, percentage: 58, color: '#10B981' },
-          { name: 'Реклама ВКонтакте', clicks: 320, conversions: 15, percentage: 26, color: '#3B82F6' },
-          { name: 'Instagram Ads', clicks: 120, conversions: 5, percentage: 10, color: '#F59E0B' },
-          { name: 'Прямые переходы', clicks: 74, conversions: 2, percentage: 6, color: '#EF4444' }
-        ],
-        dailyStats: [
-          { date: '2024-02-15', clicks: 234, uniqueVisitors: 189, conversions: 12, unsubscribes: 2 },
-          { date: '2024-02-14', clicks: 189, uniqueVisitors: 156, conversions: 8, unsubscribes: 1 },
-          { date: '2024-02-13', clicks: 145, uniqueVisitors: 123, conversions: 6, unsubscribes: 3 },
-          { date: '2024-02-12', clicks: 201, uniqueVisitors: 167, conversions: 11, unsubscribes: 2 },
-          { date: '2024-02-11', clicks: 178, uniqueVisitors: 145, conversions: 9, unsubscribes: 1 },
-          { date: '2024-02-10', clicks: 234, uniqueVisitors: 198, conversions: 15, unsubscribes: 2 },
-          { date: '2024-02-09', clicks: 167, uniqueVisitors: 134, conversions: 7, unsubscribes: 1 }
-        ]
-      },
-      userBehavior: [
-        {
-          userId: 'user_123',
-          timestamp: '2024-02-15T10:30:00Z',
-          action: 'click',
-          source: 'vk_ads',
-          userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X)'
-        },
-        {
-          userId: 'user_456',
-          timestamp: '2024-02-15T11:15:00Z',
-          action: 'unsubscribe',
-          source: 'organic',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-        }
-      ]
-    }
-  ]);
+  const [trackingPosts, setTrackingPosts] = useState<PostTracking[]>([]);
 
-  const [selectedPost, setSelectedPost] = useState<PostTracking | null>(trackingPosts[0]);
+  const [selectedPost, setSelectedPost] = useState<PostTracking | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'behavior' | 'sources' | 'daily'>('overview');
   const [showAddPost, setShowAddPost] = useState(false);
   const [newPost, setNewPost] = useState({
@@ -213,39 +165,57 @@ const PostTracking: React.FC = () => {
             </button>
           </div>
           
-          <div className="space-y-4">
-            {trackingPosts.map(post => (
-              <div
-                key={post.id}
-                onClick={() => setSelectedPost(post)}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                  selectedPost?.id === post.id
-                    ? 'border-orange-500 bg-orange-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
+          {trackingPosts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-orange-100 rounded-full mb-6">
+                <span className="text-4xl">🔗</span>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">Нет отслеживаемых постов</h3>
+              <p className="text-gray-600 text-lg mb-6">
+                Добавьте посты для отслеживания их статистики и поведения пользователей
+              </p>
+              <button
+                onClick={() => setShowAddPost(true)}
+                className="bg-orange-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-all duration-300 transform hover:scale-105"
               >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 mb-1">{post.postTitle}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{post.channelName}</p>
-                    <a 
-                      href={post.originalUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-orange-600 hover:text-orange-700 text-sm"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {post.originalUrl}
-                    </a>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-orange-600">{post.stats.totalClicks}</div>
-                    <div className="text-xs text-gray-500">Переходов</div>
+                ➕ Добавить первый пост
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {trackingPosts.map(post => (
+                <div
+                  key={post.id}
+                  onClick={() => setSelectedPost(post)}
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    selectedPost?.id === post.id
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800 mb-1">{post.postTitle}</h3>
+                      <p className="text-gray-600 text-sm mb-2">{post.channelName}</p>
+                      <a 
+                        href={post.originalUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-orange-600 hover:text-orange-700 text-sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {post.originalUrl}
+                      </a>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-orange-600">{post.stats.totalClicks}</div>
+                      <div className="text-xs text-gray-500">Переходов</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {selectedPost && (
