@@ -243,7 +243,7 @@ export class TelegramService {
   // Получение каналов пользователя (с кешированием)
   async getUserChannels(userId: number): Promise<TelegramChat[]> {
     try {
-      // Сначала пытаемся получить из кеша
+      // Сначала пытаемся получить из кеша (исключая каналы где бот удален)
       const cachedResult = await this.pool.query(
         `SELECT tc.* 
          FROM telegram_chats tc
@@ -251,6 +251,7 @@ export class TelegramService {
          WHERE ca.user_id = $1 
            AND ca.is_admin = true 
            AND ca.last_checked_at > CURRENT_TIMESTAMP - INTERVAL '7 days'
+           AND tc.bot_status != 'removed'
          ORDER BY tc.updated_at DESC`,
         [userId]
       );
@@ -266,7 +267,7 @@ export class TelegramService {
         }));
       }
 
-      // Получаем все чаты где бот является администратором
+      // Получаем все чаты где бот является администратором (исключая удаленные)
       const botAdminChats = await this.pool.query(
         `SELECT chat_id, chat_title, username, type, member_count 
          FROM telegram_chats 
@@ -349,6 +350,19 @@ export class TelegramService {
       console.log(`Bot removed from chat: ${chatId}`);
     } catch (error) {
       console.error(`Error handling bot removed from chat ${chatId}:`, error);
+    }
+  }
+
+  // Очистка кеша админов для конкретного чата
+  async clearAdminCache(chatId: number): Promise<void> {
+    try {
+      await this.pool.query(
+        `DELETE FROM chat_admins WHERE chat_id = $1`,
+        [chatId]
+      );
+      console.log(`🧹 Cleared admin cache for chat: ${chatId}`);
+    } catch (error) {
+      console.error(`Error clearing admin cache for chat ${chatId}:`, error);
     }
   }
 

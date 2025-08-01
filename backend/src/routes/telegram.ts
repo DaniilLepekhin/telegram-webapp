@@ -113,6 +113,9 @@ router.post('/webhook', async (req, res) => {
       const chatId = my_chat_member.chat.id;
       console.log(`🚫 Bot removed from chat: ${chatId}`);
       await telegramService.handleBotRemovedFromChat(chatId);
+      
+      // Очищаем кеш админов для этого чата
+      await telegramService.clearAdminCache(chatId);
     }
 
     // Обработка изменения статуса бота
