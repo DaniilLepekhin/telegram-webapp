@@ -174,7 +174,25 @@ export class TelegramService {
       );
 
       if (response.data.ok) {
-        return response.data.result;
+        const chatInfo = response.data.result;
+        
+        // Дополнительно получаем количество участников
+        try {
+          const memberCountResponse = await axios.get(
+            `https://api.telegram.org/bot${this.botToken}/getChatMemberCount`,
+            {
+              params: { chat_id: chatId }
+            }
+          );
+          
+          if (memberCountResponse.data.ok) {
+            chatInfo.member_count = memberCountResponse.data.result;
+          }
+        } catch (memberCountError) {
+          console.log(`Could not get member count for chat ${chatId}:`, memberCountError.message);
+        }
+        
+        return chatInfo;
       }
       return null;
     } catch (error) {
@@ -266,13 +284,28 @@ export class TelegramService {
           // Пользователь админ в этом чате
           await this.saveAdminStatus(chat.chat_id, userId, true, memberStatus.status);
           
-          userChannels.push({
-            id: chat.chat_id,
-            title: chat.chat_title,
-            username: chat.username,
-            type: chat.type,
-            member_count: chat.member_count
-          });
+          // Обновляем информацию о чате
+          const updatedChatInfo = await this.getChatInfo(chat.chat_id);
+          if (updatedChatInfo) {
+            await this.saveChatInfo(chat.chat_id, updatedChatInfo, 'administrator');
+            
+            userChannels.push({
+              id: chat.chat_id,
+              title: updatedChatInfo.title,
+              username: updatedChatInfo.username,
+              type: updatedChatInfo.type,
+              member_count: updatedChatInfo.member_count
+            });
+          } else {
+            // Используем кешированную информацию если не удалось обновить
+            userChannels.push({
+              id: chat.chat_id,
+              title: chat.chat_title,
+              username: chat.username,
+              type: chat.type,
+              member_count: chat.member_count
+            });
+          }
         } else {
           // Пользователь не админ
           await this.saveAdminStatus(chat.chat_id, userId, false, memberStatus?.status);
