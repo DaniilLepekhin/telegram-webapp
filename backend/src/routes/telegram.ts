@@ -99,26 +99,70 @@ router.post('/webhook', async (req, res) => {
   try {
     const { message, channel_post, my_chat_member } = req.body;
     
-    console.log('Webhook received:', JSON.stringify(req.body, null, 2));
+    console.log('🔔 Webhook received:', JSON.stringify(req.body, null, 2));
 
     // Обработка добавления бота в чат
     if (my_chat_member && my_chat_member.new_chat_member.status === 'administrator') {
       const chatId = my_chat_member.chat.id;
-      console.log(`Bot added as admin to chat: ${chatId}`);
+      console.log(`🤖 Bot added as admin to chat: ${chatId}`);
       await telegramService.handleBotAddedToChat(chatId);
     }
 
     // Обработка удаления бота из чата
     if (my_chat_member && my_chat_member.new_chat_member.status === 'left') {
       const chatId = my_chat_member.chat.id;
-      console.log(`Bot removed from chat: ${chatId}`);
+      console.log(`🚫 Bot removed from chat: ${chatId}`);
       await telegramService.handleBotRemovedFromChat(chatId);
+    }
+
+    // Обработка изменения статуса бота
+    if (my_chat_member) {
+      const chatId = my_chat_member.chat.id;
+      const newStatus = my_chat_member.new_chat_member.status;
+      const oldStatus = my_chat_member.old_chat_member?.status;
+      console.log(`📊 Bot status changed in chat ${chatId}: ${oldStatus} -> ${newStatus}`);
     }
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Error in webhook:', error);
+    console.error('❌ Error in webhook:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// Ручное добавление канала в базу данных
+router.post('/add-channel', async (req, res) => {
+  try {
+    const { chatId, chatTitle, username, type, memberCount } = req.body;
+
+    if (!chatId || !chatTitle) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: chatId, chatTitle'
+      });
+    }
+
+    console.log(`Manually adding channel: ${chatTitle} (${chatId})`);
+    
+    await telegramService.saveChatInfo(chatId, {
+      id: chatId,
+      title: chatTitle,
+      username: username,
+      type: type || 'channel',
+      member_count: memberCount
+    }, 'administrator');
+
+    res.json({
+      success: true,
+      message: `Channel ${chatTitle} added successfully`
+    });
+
+  } catch (error) {
+    console.error('Error adding channel:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
   }
 });
 
