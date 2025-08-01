@@ -179,25 +179,55 @@ export class TelegramService {
         const chatInfo = response.data.result;
         console.log(`📋 Chat info received: ${chatInfo.title} (${chatInfo.type})`);
         
-        // Дополнительно получаем количество участников
-        try {
-          console.log(`👥 Getting member count for: ${chatId}`);
-          const memberCountResponse = await axios.get(
-            `https://api.telegram.org/bot${this.botToken}/getChatMemberCount`,
-            {
-              params: { chat_id: chatId }
-            }
-          );
-          
-          if (memberCountResponse.data.ok) {
-            chatInfo.member_count = memberCountResponse.data.result;
-            console.log(`✅ Member count for ${chatInfo.title}: ${chatInfo.member_count}`);
-          } else {
-            console.log(`❌ Failed to get member count for ${chatId}: ${memberCountResponse.data.description}`);
+              // Дополнительно получаем количество участников
+      try {
+        console.log(`👥 Getting member count for: ${chatId}`);
+        const memberCountResponse = await axios.get(
+          `https://api.telegram.org/bot${this.botToken}/getChatMemberCount`,
+          {
+            params: { chat_id: chatId }
           }
-        } catch (memberCountError) {
-          console.log(`⚠️ Could not get member count for chat ${chatId}:`, memberCountError.message);
+        );
+        
+        if (memberCountResponse.data.ok) {
+          chatInfo.member_count = memberCountResponse.data.result;
+          console.log(`✅ Member count for ${chatInfo.title}: ${chatInfo.member_count}`);
+        } else {
+          console.log(`❌ Failed to get member count for ${chatId}: ${memberCountResponse.data.description}`);
+          console.log(`💡 Reason: Bot might not have admin rights or channel is private`);
+          
+          // Альтернативный метод - проверяем статус бота
+          try {
+            const botMemberResponse = await axios.get(
+              `https://api.telegram.org/bot${this.botToken}/getChatMember`,
+              {
+                params: { 
+                  chat_id: chatId,
+                  user_id: this.botToken.split(':')[0] // Bot ID из токена
+                }
+              }
+            );
+            
+            if (botMemberResponse.data.ok) {
+              const botStatus = botMemberResponse.data.result.status;
+              console.log(`🤖 Bot status in chat ${chatId}: ${botStatus}`);
+              
+              if (botStatus !== 'administrator') {
+                console.log(`⚠️ Bot is not admin in chat ${chatId}, cannot get member count`);
+                chatInfo.member_count = -1; // Индикатор что нет прав
+              }
+            }
+          } catch (statusError) {
+            console.log(`❌ Could not check bot status:`, statusError.message);
+          }
         }
+      } catch (memberCountError) {
+        console.log(`⚠️ Could not get member count for chat ${chatId}:`, memberCountError.message);
+        if (memberCountError.response?.data?.description) {
+          console.log(`📋 API Error: ${memberCountError.response.data.description}`);
+        }
+        chatInfo.member_count = -1; // Индикатор ошибки
+      }
         
         return chatInfo;
       } else {
@@ -288,6 +318,8 @@ export class TelegramService {
            AND updated_at > CURRENT_TIMESTAMP - INTERVAL '30 days'
          ORDER BY updated_at DESC`
       );
+
+      console.log(`🔍 Found ${botAdminChats.rows.length} bot admin chats to check`);
 
       const userChannels: TelegramChat[] = [];
 

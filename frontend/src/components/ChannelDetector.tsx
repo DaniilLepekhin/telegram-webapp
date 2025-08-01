@@ -426,11 +426,15 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
                     <span className="text-white/60">
                       Тип: {channel.type === 'channel' ? 'Канал' : 'Группа'}
                     </span>
-                    {channel.memberCount && (
-                      <span className="text-white/60">
-                        Участников: {channel.memberCount.toLocaleString()}
-                      </span>
-                    )}
+                    <span className="text-white/60">
+                      Участников: {
+                        channel.memberCount === null || channel.memberCount === undefined 
+                          ? 'N/A' 
+                          : channel.memberCount === -1 
+                            ? 'Недоступно (нет прав)' 
+                            : channel.memberCount.toLocaleString()
+                      }
+                    </span>
                     <span className="text-green-400">✅ Администратор</span>
                   </div>
                 </div>
