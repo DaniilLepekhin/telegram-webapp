@@ -106,6 +106,77 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
     }
   };
 
+  const forceRefreshChannels = async () => {
+    setLoading(true);
+    setError(null);
+    setLogs([]); // Очищаем логи
+
+    try {
+      addLog('⚡ Принудительное обновление каналов (без кеша)...');
+      addLog(`window.Telegram: ${window.Telegram ? 'доступен' : 'недоступен'}`);
+      addLog(`window.Telegram?.WebApp: ${window.Telegram?.WebApp ? 'доступен' : 'недоступен'}`);
+      
+      // Проверяем, есть ли доступ к Telegram WebApp
+      if (!window.Telegram?.WebApp) {
+        addLog('Telegram WebApp недоступен');
+        throw new Error('Telegram WebApp недоступен. Откройте приложение через Telegram бота.');
+      }
+
+      // Проверяем, есть ли данные пользователя
+      addLog(`initDataUnsafe: ${JSON.stringify(window.Telegram.WebApp.initDataUnsafe)}`);
+      addLog(`user: ${JSON.stringify(window.Telegram.WebApp.initDataUnsafe?.user)}`);
+      
+      if (!window.Telegram.WebApp.initDataUnsafe?.user) {
+        addLog('Данные пользователя недоступны');
+        throw new Error('Данные пользователя недоступны. Попробуйте перезапустить приложение.');
+      }
+
+      addLog('📡 Отправляем запрос к API с принудительным обновлением...');
+      // Отправляем запрос на получение каналов с флагом принудительного обновления
+      const response = await fetch('/api/telegram/get-channels', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          initData: window.Telegram.WebApp.initData,
+          user: window.Telegram.WebApp.initDataUnsafe?.user,
+          forceRefresh: true // Флаг для принудительного обновления
+        })
+      });
+
+      addLog(`📡 Ответ от API: ${response.status} ${response.statusText}`);
+      
+      if (!response.ok) {
+        throw new Error('Ошибка получения каналов');
+      }
+
+      const data = await response.json();
+      addLog(`📊 Данные от API: ${JSON.stringify(data, null, 2)}`);
+
+      if (data.success) {
+        const detectedChannels = data.channels.filter((channel: TelegramChannel) =>
+          channel.isAdmin && channel.canInviteUsers
+        );
+
+        addLog(`✅ Отфильтрованные каналы: ${JSON.stringify(detectedChannels, null, 2)}`);
+        setChannels(detectedChannels);
+        onChannelsDetected(detectedChannels);
+
+        if (detectedChannels.length === 0) {
+          setError('Не найдено каналов, где вы являетесь администратором с правами добавления пользователей');
+        }
+      } else {
+        throw new Error(data.error || 'Ошибка получения каналов');
+      }
+    } catch (err) {
+      addLog(`❌ Ошибка определения каналов: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChannelSelect = (channel: TelegramChannel) => {
     setSelectedChannel(channel);
     onChannelSelected(channel);
@@ -288,6 +359,13 @@ const ChannelDetector: React.FC<ChannelDetectorProps> = ({
                 title="Обновить список каналов"
               >
                 🔄 Обновить
+              </button>
+              <button
+                onClick={forceRefreshChannels}
+                className="bg-red-500/20 text-red-300 px-3 py-2 rounded-lg hover:bg-red-500/30 transition-colors text-sm"
+                title="Принудительно обновить (без кеша)"
+              >
+                ⚡ Принудительно
               </button>
               <button
                 onClick={() => setShowLogs(!showLogs)}

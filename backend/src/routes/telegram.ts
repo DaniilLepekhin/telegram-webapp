@@ -36,7 +36,7 @@ router.get('/logs', async (req, res) => {
 // Получение каналов пользователя
 router.post('/get-channels', async (req, res) => {
   try {
-    const { initData, user, sessionId } = req.body;
+    const { initData, user, sessionId, forceRefresh } = req.body;
 
     if (!initData || !user) {
       return res.status(400).json({
@@ -75,7 +75,7 @@ router.post('/get-channels', async (req, res) => {
     console.log(`Getting channels for user: ${telegramUser.id} (${telegramUser.first_name})`);
 
     // Получаем каналы пользователя с кешированием
-    const channels = await telegramService.getUserChannels(telegramUser.id);
+    const channels = await telegramService.getUserChannels(telegramUser.id, forceRefresh);
 
     // Форматируем ответ для фронтенда
     const formattedChannels = channels.map(channel => ({

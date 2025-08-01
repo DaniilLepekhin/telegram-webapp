@@ -250,30 +250,34 @@ export class TelegramService {
   }
 
   // Получение каналов пользователя (с кешированием)
-  async getUserChannels(userId: number): Promise<TelegramChat[]> {
+  async getUserChannels(userId: number, forceRefresh: boolean = false): Promise<TelegramChat[]> {
     try {
-      // Сначала пытаемся получить из кеша (исключая каналы где бот удален)
-      const cachedResult = await this.pool.query(
-        `SELECT tc.* 
-         FROM telegram_chats tc
-         JOIN chat_admins ca ON tc.chat_id = ca.chat_id
-         WHERE ca.user_id = $1 
-           AND ca.is_admin = true 
-           AND ca.last_checked_at > CURRENT_TIMESTAMP - INTERVAL '7 days'
-           AND tc.bot_status != 'removed'
-         ORDER BY tc.updated_at DESC`,
-        [userId]
-      );
+      // Если не принудительное обновление, сначала пытаемся получить из кеша
+      if (!forceRefresh) {
+        const cachedResult = await this.pool.query(
+          `SELECT tc.* 
+           FROM telegram_chats tc
+           JOIN chat_admins ca ON tc.chat_id = ca.chat_id
+           WHERE ca.user_id = $1 
+             AND ca.is_admin = true 
+             AND ca.last_checked_at > CURRENT_TIMESTAMP - INTERVAL '7 days'
+             AND tc.bot_status != 'removed'
+           ORDER BY tc.updated_at DESC`,
+          [userId]
+        );
 
-      if (cachedResult.rows.length > 0) {
-        console.log(`Found ${cachedResult.rows.length} cached channels for user ${userId}`);
-        return cachedResult.rows.map(row => ({
-          id: row.chat_id,
-          title: row.chat_title,
-          username: row.username,
-          type: row.type,
-          member_count: row.member_count
-        }));
+        if (cachedResult.rows.length > 0) {
+          console.log(`Found ${cachedResult.rows.length} cached channels for user ${userId}`);
+          return cachedResult.rows.map(row => ({
+            id: row.chat_id,
+            title: row.chat_title,
+            username: row.username,
+            type: row.type,
+            member_count: row.member_count
+          }));
+        }
+      } else {
+        console.log(`🔄 Force refresh requested for user ${userId}`);
       }
 
       // Получаем все чаты где бот является администратором (исключая удаленные)
