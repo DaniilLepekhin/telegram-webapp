@@ -61,9 +61,6 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onClose }) => {
 
   // Блокируем скролл фона при открытии модального окна
   useEffect(() => {
-    // Принудительно скроллим в начало
-    window.scrollTo(0, 0);
-    
     const scrollY = window.scrollY;
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
@@ -101,14 +98,7 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="fixed z-[9999] flex items-center justify-center p-4" style={{ 
-      top: 0, 
-      left: 0, 
-      right: 0, 
-      bottom: 0,
-      width: '100vw',
-      height: '100vh'
-    }}>
+    <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-20">
       {/* Overlay */}
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
@@ -116,13 +106,7 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onClose }) => {
       />
       
       {/* Modal */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 w-full max-w-md shadow-2xl" style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 10000
-      }}>
+      <div className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 w-full max-w-md shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/20">
           <div>
