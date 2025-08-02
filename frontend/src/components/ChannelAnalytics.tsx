@@ -376,7 +376,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
       {/* Link Analytics Modal */}
       {showLinkAnalytics && (
         <LinkAnalytics
-          onBack={() => setShowLinkAnalytics(false)}
+          onClose={() => setShowLinkAnalytics(false)}
         />
       )}
     </div>
