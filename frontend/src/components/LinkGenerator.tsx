@@ -22,6 +22,9 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
 
   // Блокируем скролл фона при открытии модального окна
   useEffect(() => {
+    // Принудительно скроллим в начало
+    window.scrollTo(0, 0);
+    
     const scrollY = window.scrollY;
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
@@ -106,7 +109,13 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
       />
       
       {/* Modal */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 w-full max-w-md shadow-2xl m-auto">
+      <div className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 w-full max-w-md shadow-2xl" style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10000
+      }}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/20">
           <div>
