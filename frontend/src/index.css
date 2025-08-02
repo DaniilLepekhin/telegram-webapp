@@ -70,17 +70,47 @@ html, body, #root {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Полноэкранный режим */
+/* Полноэкранный режим - исправление черного экрана */
 :fullscreen {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+  transform: translateY(0px) !important;
+  scroll-behavior: auto !important;
+  overflow-y: auto !important;
+  position: relative !important;
 }
 
 :-webkit-full-screen {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+  transform: translateY(0px) !important;
+  scroll-behavior: auto !important;
+  overflow-y: auto !important;
+  position: relative !important;
 }
 
 :-moz-full-screen {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+  transform: translateY(0px) !important;
+  scroll-behavior: auto !important;
+  overflow-y: auto !important;
+  position: relative !important;
+}
+
+/* Дополнительные правила для html и body в fullscreen */
+html:fullscreen, html:-webkit-full-screen, html:-moz-full-screen {
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+  transform: translateY(0px) !important;
+  scroll-behavior: auto !important;
+  height: 100vh !important;
+  overflow-y: auto !important;
+}
+
+body:fullscreen, body:-webkit-full-screen, body:-moz-full-screen {
+  background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%) !important;
+  transform: translateY(0px) !important;
+  scroll-behavior: auto !important;
+  height: 100vh !important;
+  overflow-y: auto !important;
+  position: relative !important;
 }
 
 /* Скрываем скроллбары для красивого вида */

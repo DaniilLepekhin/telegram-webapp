@@ -107,11 +107,27 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
   };
 
   const toggleFullscreen = () => {
-    // Простой сброс позиции прокрутки
+    // Улучшенный сброс позиции прокрутки
     const scrollReset = () => {
+      // Сброс всех возможных scroll позиций
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+      
+      // Принудительное обновление viewport
+      if (window.visualViewport) {
+        window.visualViewport.scrollTop = 0;
+      }
+      
+      // Принудительная перерисовка
+      document.documentElement.style.transform = 'translateY(0px)';
+      document.body.style.transform = 'translateY(0px)';
+      
+      // Убираем transform через кадр
+      requestAnimationFrame(() => {
+        document.documentElement.style.transform = '';
+        document.body.style.transform = '';
+      });
     };
 
     // Первый сброс
@@ -125,12 +141,18 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({ onLog }) => {
         // Расширяем WebApp перед fullscreen
         webApp.expand();
         
+        // Дополнительный сброс перед fullscreen
+        setTimeout(() => scrollReset(), 10);
+        
         setTimeout(() => {
           (webApp as any).requestFullscreen();
           
-          // Сброс после входа в fullscreen
+          // Множественный сброс после входа в fullscreen
+          setTimeout(() => scrollReset(), 10);
+          setTimeout(() => scrollReset(), 50);
           setTimeout(() => scrollReset(), 100);
-          setTimeout(() => scrollReset(), 300);
+          setTimeout(() => scrollReset(), 200);
+          setTimeout(() => scrollReset(), 500);
         }, 50);
       } else {
         // Выходим из полноэкранного режима

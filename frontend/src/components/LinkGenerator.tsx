@@ -165,18 +165,18 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/20 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/20 w-full max-w-4xl my-4 sm:my-8">
+        <div className="p-4 sm:p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">🔗 Генератор трекинговых ссылок</h2>
-              <p className="text-white/60">Создавайте ссылки с UTM метками, QR кодами и A/B тестированием</p>
+          <div className="flex items-start justify-between mb-4 sm:mb-6">
+            <div className="flex-1 min-w-0 mr-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">🔗 Генератор ссылок</h2>
+              <p className="text-white/60 text-sm sm:text-base">UTM метки, QR коды и A/B тесты</p>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition-colors"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition-colors flex-shrink-0"
             >
               ✕
             </button>
@@ -186,28 +186,28 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
             <div className="space-y-6">
               {/* Выбор канала */}
               <div>
-                <label className="block text-white font-medium mb-3">📢 Выберите канал</label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label className="block text-white font-medium mb-3 text-sm sm:text-base">📢 Выберите канал</label>
+                <div className="space-y-3 sm:grid sm:grid-cols-1 md:grid-cols-2 sm:gap-3 sm:space-y-0">
                   {channels.map((channel) => (
                     <div
                       key={channel.id}
                       onClick={() => setSelectedChannel(channel)}
-                      className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                      className={`p-3 sm:p-4 rounded-lg border cursor-pointer transition-all ${
                         selectedChannel?.id === channel.id
                           ? 'border-purple-400 bg-purple-500/20'
                           : 'border-white/20 bg-white/5 hover:bg-white/10'
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-600 rounded-lg flex items-center justify-center">
-                          <span className="text-white text-lg">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-400 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-sm sm:text-lg">
                             {channel.type === 'channel' ? '📢' : '👥'}
                           </span>
                         </div>
-                        <div>
-                          <h3 className="text-white font-medium">{channel.title}</h3>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-white font-medium text-sm sm:text-base truncate">{channel.title}</h3>
                           {channel.username && (
-                            <p className="text-white/60 text-sm">@{channel.username}</p>
+                            <p className="text-white/60 text-xs sm:text-sm truncate">@{channel.username}</p>
                           )}
                         </div>
                       </div>
@@ -218,34 +218,34 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
 
               {/* Тип ссылки */}
               <div>
-                <label className="block text-white font-medium mb-3">🎯 Тип ссылки</label>
-                <div className="grid grid-cols-2 gap-3">
+                <label className="block text-white font-medium mb-3 text-sm sm:text-base">🎯 Тип ссылки</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     onClick={() => setLinkType('subscribe')}
-                    className={`p-4 rounded-lg border transition-all ${
+                    className={`p-3 sm:p-4 rounded-lg border transition-all ${
                       linkType === 'subscribe'
                         ? 'border-purple-400 bg-purple-500/20'
                         : 'border-white/20 bg-white/5 hover:bg-white/10'
                     }`}
                   >
                     <div className="text-center">
-                      <div className="text-2xl mb-2">📱</div>
-                      <h3 className="text-white font-medium">Подписка на канал</h3>
-                      <p className="text-white/60 text-sm">Прямая подписка</p>
+                      <div className="text-xl sm:text-2xl mb-1 sm:mb-2">📱</div>
+                      <h3 className="text-white font-medium text-sm sm:text-base">Подписка на канал</h3>
+                      <p className="text-white/60 text-xs sm:text-sm">Прямая подписка</p>
                     </div>
                   </button>
                   <button
                     onClick={() => setLinkType('post')}
-                    className={`p-4 rounded-lg border transition-all ${
+                    className={`p-3 sm:p-4 rounded-lg border transition-all ${
                       linkType === 'post'
                         ? 'border-purple-400 bg-purple-500/20'
                         : 'border-white/20 bg-white/5 hover:bg-white/10'
                     }`}
                   >
                     <div className="text-center">
-                      <div className="text-2xl mb-2">📝</div>
-                      <h3 className="text-white font-medium">Переход на пост</h3>
-                      <p className="text-white/60 text-sm">Ссылка на конкретный пост</p>
+                      <div className="text-xl sm:text-2xl mb-1 sm:mb-2">📝</div>
+                      <h3 className="text-white font-medium text-sm sm:text-base">Переход на пост</h3>
+                      <p className="text-white/60 text-xs sm:text-sm">Ссылка на конкретный пост</p>
                     </div>
                   </button>
                 </div>
@@ -266,25 +266,25 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
               )}
 
               {/* Основная информация */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4 sm:grid sm:grid-cols-1 md:grid-cols-2 sm:gap-4 sm:space-y-0">
                 <div>
-                  <label className="block text-white font-medium mb-2">📝 Название ссылки *</label>
+                  <label className="block text-white font-medium mb-2 text-sm sm:text-base">📝 Название ссылки *</label>
                   <input
                     type="text"
                     value={linkTitle}
                     onChange={(e) => setLinkTitle(e.target.value)}
                     placeholder="Промо кампания январь"
-                    className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400 focus:outline-none"
+                    className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400 focus:outline-none text-sm sm:text-base"
                   />
                 </div>
                 <div>
-                  <label className="block text-white font-medium mb-2">📄 Описание</label>
+                  <label className="block text-white font-medium mb-2 text-sm sm:text-base">📄 Описание</label>
                   <input
                     type="text"
                     value={linkDescription}
                     onChange={(e) => setLinkDescription(e.target.value)}
                     placeholder="Описание кампании"
-                    className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400 focus:outline-none"
+                    className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400 focus:outline-none text-sm sm:text-base"
                   />
                 </div>
               </div>
