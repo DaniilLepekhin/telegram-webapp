@@ -165,25 +165,27 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start justify-center z-50 p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/20 w-full max-w-4xl my-4 sm:my-8">
-        <div className="p-4 sm:p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-4 sm:mb-6">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/20 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="flex flex-col h-full max-h-[90vh]">
+          {/* Fixed Header */}
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/10 flex-shrink-0">
             <div className="flex-1 min-w-0 mr-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">🔗 Генератор ссылок</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">🔗 Генератор ссылок</h2>
               <p className="text-white/60 text-sm sm:text-base">UTM метки, QR коды и A/B тесты</p>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition-colors flex-shrink-0"
+              className="w-10 h-10 bg-red-500/20 hover:bg-red-500/40 rounded-xl flex items-center justify-center text-red-300 hover:text-white transition-all flex-shrink-0 text-lg font-bold"
             >
               ✕
             </button>
           </div>
-
-          {!generatedLink ? (
-            <div className="space-y-6">
+          
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            {!generatedLink ? (
+              <div className="space-y-6">
               {/* Выбор канала */}
               <div>
                 <label className="block text-white font-medium mb-3 text-sm sm:text-base">📢 Выберите канал</label>
@@ -466,24 +468,39 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
               </div>
             </div>
           ) : (
-            /* Результат - созданная ссылка */
-            <div className="text-center">
-              <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Ссылка создана!</h3>
-              <div className="bg-white/10 border border-white/20 rounded-lg p-4 mb-6">
-                <div className="text-white/60 text-sm mb-2">Ваша трекинговая ссылка:</div>
-                <div className="text-white font-mono break-all">{generatedLink}</div>
+            <div className="text-center space-y-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">🎉</span>
               </div>
-              <div className="flex space-x-3 justify-center">
-                <button
-                  onClick={() => navigator.clipboard.writeText(generatedLink)}
-                  className="bg-blue-500/20 text-blue-300 px-6 py-3 rounded-lg hover:bg-blue-500/30 transition-colors"
-                >
-                  📋 Копировать
-                </button>
+              
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-2">Ссылка создана!</h3>
+                <p className="text-white/60 mb-6">Ваша трекинговая ссылка готова к использованию</p>
+                
+                <div className="bg-white/10 border border-white/20 rounded-lg p-4 mb-6">
+                  <p className="text-white/60 text-sm mb-2">Ваша ссылка:</p>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={generatedLink}
+                      readOnly
+                      className="flex-1 p-2 bg-white/5 border border-white/10 rounded text-white text-sm"
+                    />
+                    <button
+                      onClick={() => navigator.clipboard.writeText(generatedLink)}
+                      className="bg-blue-500/20 text-blue-300 px-3 py-2 rounded hover:bg-blue-500/30 transition-colors text-sm"
+                    >
+                      📋 Копировать
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center space-x-4">
                 <button
                   onClick={() => {
                     setGeneratedLink('');
+                    setSelectedChannel(null);
                     setLinkTitle('');
                     setLinkDescription('');
                     setPostUrl('');
@@ -500,7 +517,8 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
                 </button>
               </div>
             </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

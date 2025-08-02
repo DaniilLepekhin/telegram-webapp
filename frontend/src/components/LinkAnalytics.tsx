@@ -171,7 +171,25 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onBack }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/20 w-full max-w-6xl max-h-[90vh] overflow-hidden">
+        <div className="flex flex-col h-full max-h-[90vh]">
+          {/* Fixed Header */}
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/10 flex-shrink-0">
+            <div className="flex-1 min-w-0 mr-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">📊 Аналитика ссылок</h2>
+              <p className="text-white/60 text-sm sm:text-base">Статистика переходов и конверсий</p>
+            </div>
+            <button
+              onClick={onBack}
+              className="w-10 h-10 bg-red-500/20 hover:bg-red-500/40 rounded-xl flex items-center justify-center text-red-300 hover:text-white transition-all flex-shrink-0 text-lg font-bold"
+            >
+              ✕
+            </button>
+          </div>
+          
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 relative">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full filter blur-xl opacity-20"></div>
@@ -447,6 +465,9 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onBack }) => {
               )}
             </div>
           )}
+        </div>
+      </div>
+          </div>
         </div>
       </div>
     </div>
