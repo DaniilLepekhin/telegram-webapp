@@ -115,7 +115,7 @@ const TrackingLinkCreator: React.FC<TrackingLinkCreatorProps> = ({
 
   return (
     <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-      <h3 className="text-xl font-bold text-white mb-6">Создать трекинговую ссылку</h3>
+              <h3 className="text-xl font-bold text-white mb-6">🔗 Создать ссылку</h3>
       
       <div className="space-y-4">
         {/* Название ссылки */}
@@ -221,7 +221,7 @@ const TrackingLinkCreator: React.FC<TrackingLinkCreatorProps> = ({
           disabled={isCreating || !linkName.trim()}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
-          {isCreating ? 'Создаю...' : '🔗 Создать трекинговую ссылку'}
+          {isCreating ? 'Создаю...' : '🚀 Создать ссылку'}
         </button>
       </div>
 

@@ -299,28 +299,23 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
                 <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
                   <span className="text-2xl sm:text-3xl">🔗</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Трекинговые Ссылки</h2>
-                <p className="text-white/70 text-sm sm:text-base px-2">Создавайте и анализируйте ссылки с UTM метками, QR-кодами и A/B тестами</p>
+                <h2 className="text-2xl font-bold text-white mb-2">🔗 Ссылки</h2>
+                <p className="text-white/70 text-sm">Создание и аналитика</p>
               </div>
 
               <div className="space-y-4">
                 {/* Создать ссылку */}
                 <div 
                   onClick={() => setShowLinkGenerator(true)}
-                  className="group bg-gradient-to-br from-green-500/20 to-emerald-600/20 hover:from-green-500/30 hover:to-emerald-600/30 rounded-2xl p-4 sm:p-6 border border-green-500/30 cursor-pointer transition-all duration-300 transform hover:scale-105"
+                  className="group bg-gradient-to-br from-green-500/20 to-emerald-600/20 hover:from-green-500/30 hover:to-emerald-600/30 rounded-xl p-4 border border-green-500/30 cursor-pointer transition-all duration-300"
                 >
-                  <div className="flex items-center space-x-3 sm:space-x-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                      <span className="text-xl sm:text-2xl">🚀</span>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                      <span className="text-lg">🔗</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">Создать Ссылку</h3>
-                      <p className="text-white/70 text-sm sm:text-base mb-2 sm:mb-4 leading-tight">Генерируйте трекинговые ссылки с UTM метками и QR-кодами</p>
-                      <div className="flex flex-wrap gap-1 sm:gap-2">
-                        <span className="bg-green-500/20 text-green-300 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs">QR-коды</span>
-                        <span className="bg-green-500/20 text-green-300 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs">UTM метки</span>
-                        <span className="bg-green-500/20 text-green-300 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs">A/B тесты</span>
-                      </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">Создать ссылку</h3>
+                      <p className="text-white/60 text-sm">Быстрое создание</p>
                     </div>
                   </div>
                 </div>
@@ -328,20 +323,15 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
                 {/* Аналитика ссылок */}
                 <div 
                   onClick={() => setShowLinkAnalytics(true)}
-                  className="group bg-gradient-to-br from-purple-500/20 to-pink-600/20 hover:from-purple-500/30 hover:to-pink-600/30 rounded-2xl p-4 sm:p-6 border border-purple-500/30 cursor-pointer transition-all duration-300 transform hover:scale-105"
+                  className="group bg-gradient-to-br from-purple-500/20 to-pink-600/20 hover:from-purple-500/30 hover:to-pink-600/30 rounded-xl p-4 border border-purple-500/30 cursor-pointer transition-all duration-300"
                 >
-                  <div className="flex items-center space-x-3 sm:space-x-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                      <span className="text-xl sm:text-2xl">📊</span>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                      <span className="text-lg">📊</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">Аналитика Ссылок</h3>
-                      <p className="text-white/70 text-sm sm:text-base mb-2 sm:mb-4 leading-tight">Просматривайте статистику переходов и географию пользователей</p>
-                      <div className="flex flex-wrap gap-1 sm:gap-2">
-                        <span className="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs">География</span>
-                        <span className="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs">Устройства</span>
-                        <span className="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs">Конверсии</span>
-                      </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">Аналитика</h3>
+                      <p className="text-white/60 text-sm">Статистика переходов</p>
                     </div>
                   </div>
                 </div>
