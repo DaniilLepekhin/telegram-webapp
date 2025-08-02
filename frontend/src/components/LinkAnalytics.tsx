@@ -98,15 +98,7 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-20">
-      {/* Overlay */}
-      <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 w-full max-w-md shadow-2xl">
+    <div className="w-full h-full">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/20">
           <div>
@@ -170,7 +162,6 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onClose }) => {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 };
