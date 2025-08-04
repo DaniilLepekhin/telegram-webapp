@@ -64,18 +64,15 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999]">
+    <>
       {/* Overlay - покрывает ВСЮ площадь экрана */}
       <div 
-        className="absolute bg-black/60 backdrop-blur-sm"
+        className="fixed bg-black/60 backdrop-blur-sm"
         style={{
-          position: 'fixed',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
-          width: '100%',
-          height: '100%',
+          width: '100vw',
+          height: '100vh',
           zIndex: 9999
         }}
         onClick={handleOverlayClick}
@@ -83,7 +80,7 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
       
       {/* Modal */}
       <div 
-        className="absolute bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 shadow-2xl overflow-hidden"
+        className="fixed bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 shadow-2xl overflow-hidden"
         style={{
           top: position.top,
           left: position.left,
@@ -97,42 +94,41 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
 
       {/* Confirmation Dialog */}
       {showConfirm && (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center">
+        <>
           <div 
-            className="bg-black/80 backdrop-blur-sm absolute"
+            className="fixed bg-black/80 backdrop-blur-sm"
             style={{
-              position: 'fixed',
               top: 0,
               left: 0,
-              right: 0,
-              bottom: 0,
-              width: '100%',
-              height: '100%',
+              width: '100vw',
+              height: '100vh',
               zIndex: 10001
             }}
             onClick={handleCancelClose} 
           />
-          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 p-6 max-w-sm mx-4">
-            <h3 className="text-lg font-bold text-white mb-4">Закрыть окно?</h3>
-            <p className="text-white/60 mb-6">Несохраненные изменения будут потеряны</p>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleCancelClose}
-                className="flex-1 bg-gray-500/20 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-500/30 transition-colors"
-              >
-                Отмена
-              </button>
-              <button
-                onClick={handleConfirmClose}
-                className="flex-1 bg-red-500/20 text-red-300 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-colors"
-              >
-                Закрыть
-              </button>
+          <div className="fixed inset-0 z-[10002] flex items-center justify-center">
+            <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 p-6 max-w-sm mx-4">
+              <h3 className="text-lg font-bold text-white mb-4">Закрыть окно?</h3>
+              <p className="text-white/60 mb-6">Несохраненные изменения будут потеряны</p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleCancelClose}
+                  className="flex-1 bg-gray-500/20 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-500/30 transition-colors"
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={handleConfirmClose}
+                  className="flex-1 bg-red-500/20 text-red-300 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-colors"
+                >
+                  Закрыть
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
-    </div>
+    </>
   );
 };
 
