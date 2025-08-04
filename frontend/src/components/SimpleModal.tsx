@@ -6,9 +6,10 @@ interface SimpleModalProps {
   onClose: () => void;
   children: React.ReactNode;
   title: string;
+  triggerElement?: HTMLElement | null;
 }
 
-const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, title }) => {
+const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, title, triggerElement }) => {
   useEffect(() => {
     if (isOpen) {
       // Сохраняем текущую позицию скролла
@@ -37,6 +38,52 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
 
   if (!isOpen) return null;
 
+  // Вычисляем позицию модала
+  let modalPosition = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+  let modalTop = 'auto';
+  let modalLeft = 'auto';
+
+  if (triggerElement) {
+    const rect = triggerElement.getBoundingClientRect();
+    const modalWidth = 400;
+    const modalHeight = Math.min(500, window.innerHeight * 0.8);
+    
+    // Позиционируем снизу от кнопки
+    let top = rect.bottom + 10;
+    let left = rect.left;
+    
+    // Если не помещается снизу - показываем сверху
+    if (top + modalHeight > window.innerHeight - 20) {
+      top = rect.top - modalHeight - 10;
+    }
+    
+    // Если не помещается справа - центрируем относительно кнопки
+    if (left + modalWidth > window.innerWidth - 20) {
+      left = Math.max(20, rect.left + rect.width/2 - modalWidth/2);
+    }
+    
+    // Если все еще не помещается - выравниваем по краю
+    if (left + modalWidth > window.innerWidth - 20) {
+      left = window.innerWidth - modalWidth - 20;
+    }
+    
+    // Минимальные отступы
+    if (top < 20) top = 20;
+    if (left < 20) left = 20;
+    
+    modalPosition = {
+      display: 'block',
+      alignItems: 'unset',
+      justifyContent: 'unset'
+    };
+    modalTop = `${top}px`;
+    modalLeft = `${left}px`;
+  }
+
   const modalContent = (
     <div 
       style={{
@@ -49,10 +96,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
         height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         zIndex: 999999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px'
+        padding: '20px',
+        ...modalPosition
       }} 
       onClick={onClose}>
       <div 
@@ -60,11 +105,14 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
           backgroundColor: '#1e293b',
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.3)',
-          width: '100%',
-          maxWidth: '400px',
+          width: triggerElement ? '400px' : '100%',
+          maxWidth: triggerElement ? '400px' : '400px',
           maxHeight: '80vh',
           overflow: 'hidden',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          position: triggerElement ? 'absolute' : 'relative',
+          top: modalTop,
+          left: modalLeft
         }} 
         onClick={(e) => e.stopPropagation()}>
         {/* Header */}
