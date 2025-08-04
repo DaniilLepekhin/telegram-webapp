@@ -10,33 +10,68 @@ interface SimpleModalProps {
 const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, title }) => {
   useEffect(() => {
     if (isOpen) {
+      // Блокируем скролл везде
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      
+      // Добавляем глобальные стили для модала
+      const style = document.createElement('style');
+      style.id = 'modal-overlay-styles';
+      style.innerHTML = `
+        .modal-overlay-global {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          min-width: 100vw !important;
+          min-height: 100vh !important;
+          max-width: none !important;
+          max-height: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+          outline: none !important;
+          box-sizing: border-box !important;
+          z-index: 999999 !important;
+        }
+      `;
+      document.head.appendChild(style);
     } else {
       document.body.style.overflow = 'unset';
+      document.documentElement.style.overflow = 'unset';
+      
+      // Удаляем глобальные стили
+      const style = document.getElementById('modal-overlay-styles');
+      if (style) {
+        style.remove();
+      }
     }
     return () => {
       document.body.style.overflow = 'unset';
+      document.documentElement.style.overflow = 'unset';
+      const style = document.getElementById('modal-overlay-styles');
+      if (style) {
+        style.remove();
+      }
     };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      zIndex: 9999,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }} onClick={onClose}>
+    <div 
+      className="modal-overlay-global"
+      style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }} 
+      onClick={onClose}>
       <div style={{
         backgroundColor: '#1e293b',
         borderRadius: '20px',
