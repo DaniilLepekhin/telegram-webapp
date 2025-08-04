@@ -84,16 +84,23 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
     modalLeft = `${left}px`;
   }
 
+  // Получаем реальную высоту документа
+  const documentHeight = Math.max(
+    document.body.scrollHeight,
+    document.body.offsetHeight,
+    document.documentElement.clientHeight,
+    document.documentElement.scrollHeight,
+    document.documentElement.offsetHeight
+  );
+
   const modalContent = (
     <div 
       style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh',
+        width: '100%',
+        height: `${documentHeight}px`,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         zIndex: 999999,
         padding: '20px',
