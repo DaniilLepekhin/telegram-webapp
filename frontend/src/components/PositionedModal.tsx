@@ -14,7 +14,7 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
   triggerRef 
 }) => {
   const [position, setPosition] = useState({ top: 0, left: 0 });
-  const [modalSize, setModalSize] = useState({ width: 0, height: 0 });
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (isOpen && triggerRef?.current) {
@@ -22,38 +22,36 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
-      // Примерный размер модального окна
-      const modalWidth = Math.min(400, viewportWidth - 40);
-      const modalHeight = Math.min(600, viewportHeight - 40);
+      // Адаптивные размеры
+      const modalWidth = Math.min(350, viewportWidth - 20);
+      const modalHeight = Math.min(500, viewportHeight - 20);
       
-      // Вычисляем позицию
-      let top = rect.bottom + 10; // 10px отступ от кнопки
-      let left = rect.left;
+      // Центрируем относительно кнопки
+      let top = rect.top + (rect.height / 2) - (modalHeight / 2);
+      let left = rect.left + (rect.width / 2) - (modalWidth / 2);
       
-      // Если модальное окно выходит за правый край экрана
-      if (left + modalWidth > viewportWidth - 20) {
-        left = viewportWidth - modalWidth - 20;
-      }
-      
-      // Если модальное окно выходит за нижний край экрана
-      if (top + modalHeight > viewportHeight - 20) {
-        top = rect.top - modalHeight - 10; // Показываем сверху от кнопки
-      }
-      
-      // Если модальное окно выходит за левый край экрана
-      if (left < 20) {
-        left = 20;
-      }
-      
-      // Если модальное окно выходит за верхний край экрана
-      if (top < 20) {
-        top = 20;
-      }
+      // Корректируем если выходит за границы
+      if (top < 10) top = 10;
+      if (top + modalHeight > viewportHeight - 10) top = viewportHeight - modalHeight - 10;
+      if (left < 10) left = 10;
+      if (left + modalWidth > viewportWidth - 10) left = viewportWidth - modalWidth - 10;
       
       setPosition({ top, left });
-      setModalSize({ width: modalWidth, height: modalHeight });
     }
   }, [isOpen, triggerRef]);
+
+  const handleOverlayClick = () => {
+    setShowConfirm(true);
+  };
+
+  const handleConfirmClose = () => {
+    setShowConfirm(false);
+    onClose();
+  };
+
+  const handleCancelClose = () => {
+    setShowConfirm(false);
+  };
 
   if (!isOpen) return null;
 
@@ -62,7 +60,7 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
       {/* Overlay */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleOverlayClick}
       />
       
       {/* Modal */}
@@ -71,13 +69,38 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
         style={{
           top: position.top,
           left: position.left,
-          width: modalSize.width,
-          maxHeight: modalSize.height,
+          width: '350px',
+          maxHeight: '500px',
           zIndex: 10000
         }}
       >
         {children}
       </div>
+
+      {/* Confirmation Dialog */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center">
+          <div className="bg-black/80 backdrop-blur-sm absolute inset-0" onClick={handleCancelClose} />
+          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 p-6 max-w-sm mx-4">
+            <h3 className="text-lg font-bold text-white mb-4">Закрыть окно?</h3>
+            <p className="text-white/60 mb-6">Несохраненные изменения будут потеряны</p>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleCancelClose}
+                className="flex-1 bg-gray-500/20 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-500/30 transition-colors"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleConfirmClose}
+                className="flex-1 bg-red-500/20 text-red-300 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-colors"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

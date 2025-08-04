@@ -93,7 +93,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
   return (
     <div className="w-full h-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/20">
+        <div className="flex items-center justify-between p-4 border-b border-white/20">
           <div>
             <h2 className="text-xl font-bold text-white">🔗 Создать ссылку</h2>
             <p className="text-white/60 text-sm mt-1">Простая настройка</p>
@@ -107,7 +107,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
         </div>
         
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">
           {!generatedLink ? (
             <>
               {/* Выбор канала */}
