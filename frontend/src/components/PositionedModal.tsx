@@ -22,19 +22,27 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
-      // Адаптивные размеры
-      const modalWidth = Math.min(350, viewportWidth - 20);
-      const modalHeight = Math.min(500, viewportHeight - 20);
+      // Фиксированные размеры модального окна
+      const modalWidth = 350;
+      const modalHeight = 500;
       
-      // Центрируем относительно кнопки
-      let top = rect.top + (rect.height / 2) - (modalHeight / 2);
-      let left = rect.left + (rect.width / 2) - (modalWidth / 2);
+      // Позиционируем рядом с кнопкой (справа или снизу)
+      let top = rect.bottom + 10; // 10px отступ от кнопки
+      let left = rect.left;
       
-      // Корректируем если выходит за границы
-      if (top < 10) top = 10;
-      if (top + modalHeight > viewportHeight - 10) top = viewportHeight - modalHeight - 10;
-      if (left < 10) left = 10;
-      if (left + modalWidth > viewportWidth - 10) left = viewportWidth - modalWidth - 10;
+      // Если не помещается снизу - показываем сверху
+      if (top + modalHeight > viewportHeight - 20) {
+        top = rect.top - modalHeight - 10;
+      }
+      
+      // Если не помещается справа - выравниваем по левому краю
+      if (left + modalWidth > viewportWidth - 20) {
+        left = viewportWidth - modalWidth - 20;
+      }
+      
+      // Минимальные отступы от краев
+      if (top < 20) top = 20;
+      if (left < 20) left = 20;
       
       setPosition({ top, left });
     }
@@ -57,9 +65,17 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[9999]">
-      {/* Overlay */}
+      {/* Overlay - покрывает ВЕСЬ экран включая Telegram UI */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        style={{
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh'
+        }}
         onClick={handleOverlayClick}
       />
       
@@ -80,7 +96,18 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
       {/* Confirmation Dialog */}
       {showConfirm && (
         <div className="fixed inset-0 z-[10001] flex items-center justify-center">
-          <div className="bg-black/80 backdrop-blur-sm absolute inset-0" onClick={handleCancelClose} />
+          <div 
+            className="bg-black/80 backdrop-blur-sm absolute inset-0" 
+            style={{
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: '100vh'
+            }}
+            onClick={handleCancelClose} 
+          />
           <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl border border-white/30 p-6 max-w-sm mx-4">
             <h3 className="text-lg font-bold text-white mb-4">Закрыть окно?</h3>
             <p className="text-white/60 mb-6">Несохраненные изменения будут потеряны</p>
