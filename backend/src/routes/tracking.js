@@ -381,7 +381,45 @@ router.get('/track/:linkId', async (req, res) => {
     // Перенаправляем пользователя
     const redirectUrl = link.target_url;
     
-    // Создаем HTML страницу с автоматическим перенаправлением
+    // Определяем тип устройства и браузера
+    const userAgent = req.headers['user-agent'] || '';
+    const isTelegramWebApp = userAgent.includes('TelegramBot');
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    
+    // Если это Telegram ссылка - используем немедленное перенаправление
+    if (redirectUrl.includes('t.me/')) {
+      if (isTelegramWebApp) {
+        // Если мы внутри Telegram WebApp - используем специальный метод
+        return res.send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Переход в канал...</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <script src="https://telegram.org/js/telegram-web-app.js"></script>
+              <script>
+                // Немедленное перенаправление в Telegram
+                if (window.Telegram && window.Telegram.WebApp) {
+                  window.Telegram.WebApp.openTelegramLink('${redirectUrl}');
+                  window.Telegram.WebApp.close();
+                } else {
+                  window.location.href = '${redirectUrl}';
+                }
+              </script>
+            </head>
+            <body>
+              <p>Переходим в канал...</p>
+            </body>
+          </html>
+        `);
+      } else {
+        // Обычный браузер - мгновенное перенаправление
+        return res.redirect(302, redirectUrl);
+      }
+    }
+
+    // Для обычных ссылок - создаем красивую страницу перенаправления
     res.send(`
       <!DOCTYPE html>
       <html>
@@ -389,12 +427,16 @@ router.get('/track/:linkId', async (req, res) => {
           <title>Переход...</title>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <meta http-equiv="refresh" content="1;url=${redirectUrl}">
+          <meta http-equiv="refresh" content="0;url=${redirectUrl}">
+          <script>
+            // Мгновенное перенаправление
+            window.location.href = '${redirectUrl}';
+          </script>
           <style>
             body { 
               font-family: Arial, sans-serif; 
               text-align: center; 
-              padding: 50px; 
+              padding: 20px; 
               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
               color: white;
               margin: 0;
@@ -405,48 +447,33 @@ router.get('/track/:linkId', async (req, res) => {
             }
             .container { 
               background: rgba(255,255,255,0.1); 
-              padding: 40px; 
+              padding: 30px; 
               border-radius: 15px; 
               backdrop-filter: blur(10px);
               border: 1px solid rgba(255,255,255,0.2);
             }
-            .emoji { font-size: 48px; margin-bottom: 20px; }
+            .emoji { font-size: 36px; margin-bottom: 15px; }
             .spinner { 
-              border: 4px solid rgba(255,255,255,0.3);
+              border: 3px solid rgba(255,255,255,0.3);
               border-radius: 50%;
-              border-top: 4px solid white;
-              width: 40px;
-              height: 40px;
+              border-top: 3px solid white;
+              width: 30px;
+              height: 30px;
               animation: spin 1s linear infinite;
-              margin: 20px auto;
+              margin: 15px auto;
             }
             @keyframes spin {
               0% { transform: rotate(0deg); }
               100% { transform: rotate(360deg); }
             }
-            .link { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 20px; }
           </style>
-          <script>
-            // Дополнительная защита - принудительное перенаправление через JavaScript
-            setTimeout(function() {
-              window.location.href = '${redirectUrl}';
-            }, 500);
-            
-            // Если пользователь в Telegram WebApp - используем специальные методы
-            if (window.Telegram && window.Telegram.WebApp) {
-              window.Telegram.WebApp.openTelegramLink('${redirectUrl}');
-            }
-          </script>
         </head>
         <body>
           <div class="container">
             <div class="emoji">🚀</div>
-            <h1>Переходим в канал...</h1>
+            <h3>Переходим...</h3>
             <div class="spinner"></div>
-            <p>Если перенаправление не работает, нажмите на ссылку:</p>
-            <div class="link">
-              <a href="${redirectUrl}" style="color: white;">${link.chat_title || 'Перейти в канал'}</a>
-            </div>
+            <p><a href="${redirectUrl}" style="color: white;">Нажмите, если не перенаправило</a></p>
           </div>
         </body>
       </html>
