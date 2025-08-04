@@ -15,6 +15,21 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
 }) => {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [showConfirm, setShowConfirm] = useState(false);
+  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    // Получаем реальные размеры экрана
+    const updateScreenSize = () => {
+      const doc = document.documentElement;
+      const width = Math.max(doc.clientWidth, window.innerWidth);
+      const height = Math.max(doc.clientHeight, window.innerHeight);
+      setScreenSize({ width, height });
+    };
+
+    updateScreenSize();
+    window.addEventListener('resize', updateScreenSize);
+    return () => window.removeEventListener('resize', updateScreenSize);
+  }, []);
 
   useEffect(() => {
     if (isOpen && triggerRef?.current) {
@@ -71,8 +86,8 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
         style={{
           top: 0,
           left: 0,
-          width: '100vw',
-          height: '100vh',
+          width: `${screenSize.width}px`,
+          height: `${screenSize.height}px`,
           zIndex: 9999
         }}
         onClick={handleOverlayClick}
@@ -100,8 +115,8 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
             style={{
               top: 0,
               left: 0,
-              width: '100vw',
-              height: '100vh',
+              width: `${screenSize.width}px`,
+              height: `${screenSize.height}px`,
               zIndex: 10001
             }}
             onClick={handleCancelClose} 
