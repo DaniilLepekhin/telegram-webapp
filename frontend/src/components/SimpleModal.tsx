@@ -14,20 +14,28 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
       
+      // Получаем полную высоту документа
+      const documentHeight = Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+      );
+      
       // Добавляем глобальные стили для модала
       const style = document.createElement('style');
       style.id = 'modal-overlay-styles';
       style.innerHTML = `
         .modal-overlay-global {
-          position: fixed !important;
+          position: absolute !important;
           top: 0 !important;
           left: 0 !important;
           right: 0 !important;
-          bottom: 0 !important;
           width: 100vw !important;
-          height: 100vh !important;
+          height: ${documentHeight}px !important;
           min-width: 100vw !important;
-          min-height: 100vh !important;
+          min-height: ${documentHeight}px !important;
           max-width: none !important;
           max-height: none !important;
           margin: 0 !important;
@@ -36,6 +44,14 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
           outline: none !important;
           box-sizing: border-box !important;
           z-index: 999999 !important;
+        }
+        
+        .modal-content-global {
+          position: fixed !important;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
+          z-index: 1000000 !important;
         }
       `;
       document.head.appendChild(style);
@@ -65,23 +81,21 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
     <div 
       className="modal-overlay-global"
       style={{
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px'
+        backgroundColor: 'rgba(0, 0, 0, 0.8)'
       }} 
       onClick={onClose}>
-      <div style={{
-        backgroundColor: '#1e293b',
-        borderRadius: '20px',
-        border: '1px solid rgba(255, 255, 255, 0.3)',
-        width: '100%',
-        maxWidth: '400px',
-        maxHeight: '80vh',
-        overflow: 'hidden',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-      }} onClick={(e) => e.stopPropagation()}>
+      <div 
+        className="modal-content-global"
+        style={{
+          backgroundColor: '#1e293b',
+          borderRadius: '20px',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          width: '400px',
+          maxHeight: '80vh',
+          overflow: 'hidden',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }} 
+        onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={{
           padding: '20px',
