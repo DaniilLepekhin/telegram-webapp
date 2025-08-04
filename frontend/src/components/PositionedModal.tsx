@@ -65,16 +65,18 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[9999]">
-      {/* Overlay - покрывает ВЕСЬ экран включая Telegram UI */}
+      {/* Overlay - покрывает ВСЮ площадь экрана */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute bg-black/60 backdrop-blur-sm"
         style={{
+          position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          width: '100vw',
-          height: '100vh'
+          width: '100%',
+          height: '100%',
+          zIndex: 9999
         }}
         onClick={handleOverlayClick}
       />
@@ -97,14 +99,16 @@ const PositionedModal: React.FC<PositionedModalProps> = ({
       {showConfirm && (
         <div className="fixed inset-0 z-[10001] flex items-center justify-center">
           <div 
-            className="bg-black/80 backdrop-blur-sm absolute inset-0" 
+            className="bg-black/80 backdrop-blur-sm absolute"
             style={{
+              position: 'fixed',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              width: '100vw',
-              height: '100vh'
+              width: '100%',
+              height: '100%',
+              zIndex: 10001
             }}
             onClick={handleCancelClose} 
           />
