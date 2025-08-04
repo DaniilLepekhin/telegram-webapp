@@ -20,25 +20,6 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [generatedLink, setGeneratedLink] = useState<string>('');
 
-  // Блокируем скролл фона при открытии модального окна
-  useEffect(() => {
-    const scrollY = window.scrollY;
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.overflow = 'hidden';
-    
-    return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.overflow = '';
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
-
   const generateTrackingLink = async () => {
     if (!selectedChannel || !linkTitle.trim()) {
       alert('Выберите канал и введите название ссылки');
@@ -91,23 +72,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
   };
 
   return (
-    <div className="w-full h-full">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20">
-          <div>
-            <h2 className="text-xl font-bold text-white">🔗 Создать ссылку</h2>
-            <p className="text-white/60 text-sm mt-1">Простая настройка</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center text-white transition-colors"
-          >
-            ✕
-          </button>
-        </div>
-        
-        {/* Content */}
-        <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">
+    <div className="p-4 space-y-4">
           {!generatedLink ? (
             <>
               {/* Выбор канала */}
@@ -259,7 +224,6 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
               </div>
             </div>
           )}
-        </div>
     </div>
   );
 };

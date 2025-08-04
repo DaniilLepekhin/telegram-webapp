@@ -98,23 +98,7 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="w-full h-full">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20">
-          <div>
-            <h2 className="text-xl font-bold text-white">📊 Аналитика ссылок</h2>
-            <p className="text-white/60 text-sm mt-1">Статистика переходов</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center text-white transition-colors"
-          >
-            ✕
-          </button>
-        </div>
-        
-        {/* Content */}
-        <div className="p-4 max-h-[400px] overflow-y-auto">
+    <div className="p-4 space-y-4">
           {loading ? (
             <div className="text-center py-8">
               <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -161,7 +145,6 @@ const LinkAnalytics: React.FC<LinkAnalyticsProps> = ({ onClose }) => {
               <p className="text-white/60 text-sm">Создайте первую ссылку для просмотра аналитики</p>
             </div>
           )}
-        </div>
     </div>
   );
 };
