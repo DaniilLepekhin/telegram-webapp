@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface SimpleModalProps {
   isOpen: boolean;
@@ -10,87 +11,57 @@ interface SimpleModalProps {
 const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, title }) => {
   useEffect(() => {
     if (isOpen) {
-      // Блокируем скролл везде
+      // Сохраняем текущую позицию скролла
+      const scrollY = window.scrollY;
+      
+      // Блокируем скролл и фиксируем позицию
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
       document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
+      document.body.style.width = '100%';
       
-      // Получаем полную высоту документа
-      const documentHeight = Math.max(
-        document.body.scrollHeight,
-        document.body.offsetHeight,
-        document.documentElement.clientHeight,
-        document.documentElement.scrollHeight,
-        document.documentElement.offsetHeight
-      );
-      
-      // Добавляем глобальные стили для модала
-      const style = document.createElement('style');
-      style.id = 'modal-overlay-styles';
-      style.innerHTML = `
-        .modal-overlay-global {
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
-          width: 100vw !important;
-          height: ${documentHeight}px !important;
-          min-width: 100vw !important;
-          min-height: ${documentHeight}px !important;
-          max-width: none !important;
-          max-height: none !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          border: none !important;
-          outline: none !important;
-          box-sizing: border-box !important;
-          z-index: 999999 !important;
-        }
-        
-        .modal-content-global {
-          position: fixed !important;
-          top: 50% !important;
-          left: 50% !important;
-          transform: translate(-50%, -50%) !important;
-          z-index: 1000000 !important;
-        }
-      `;
-      document.head.appendChild(style);
-    } else {
-      document.body.style.overflow = 'unset';
-      document.documentElement.style.overflow = 'unset';
-      
-      // Удаляем глобальные стили
-      const style = document.getElementById('modal-overlay-styles');
-      if (style) {
-        style.remove();
-      }
+      return () => {
+        // Восстанавливаем скролл
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.overflow = '';
+        document.body.style.width = '';
+        window.scrollTo(0, scrollY);
+      };
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-      document.documentElement.style.overflow = 'unset';
-      const style = document.getElementById('modal-overlay-styles');
-      if (style) {
-        style.remove();
-      }
-    };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div 
-      className="modal-overlay-global"
       style={{
-        backgroundColor: 'rgba(0, 0, 0, 0.8)'
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        zIndex: 999999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
       }} 
       onClick={onClose}>
       <div 
-        className="modal-content-global"
         style={{
           backgroundColor: '#1e293b',
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.3)',
-          width: '400px',
+          width: '100%',
+          maxWidth: '400px',
           maxHeight: '80vh',
           overflow: 'hidden',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
@@ -140,6 +111,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
       </div>
     </div>
   );
+
+  // Рендерим модал прямо в body через портал
+  return createPortal(modalContent, document.body);
 };
 
 export default SimpleModal;
