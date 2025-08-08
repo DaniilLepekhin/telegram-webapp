@@ -20,6 +20,7 @@ import PostBuilder from './components/PostBuilder';
 import TestPage from './components/TestPage';
 import BackButton from './components/BackButton';
 import FullscreenButton from './components/FullscreenButton';
+import { useRef } from 'react';
 
 type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test';
 
@@ -35,6 +36,32 @@ function App() {
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       webApp.ready();
+      // Если пришли через deep-link t.me/<bot>/app?startapp=TOKEN — отправим TOKEN на backend и сразу уйдём в redirect
+      try {
+        const url = new URL(window.location.href);
+        const tgInit = (window as any).Telegram?.WebApp?.initDataUnsafe;
+        const startParam = (tgInit && tgInit?.start_param) || url.searchParams.get('startapp') || url.searchParams.get('start_param');
+        if (startParam) {
+          fetch('/api/tracking/webapp-start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: startParam, user: tgInit?.user || null })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data?.success && data?.redirectUrl) {
+              // Открываем канал/пост и закрываем WebApp
+              if ((window as any).Telegram?.WebApp?.openTelegramLink) {
+                (window as any).Telegram.WebApp.openTelegramLink(data.redirectUrl);
+                setTimeout(() => (window as any).Telegram?.WebApp?.close(), 100);
+              } else {
+                window.location.href = data.redirectUrl;
+              }
+            }
+          })
+          .catch(() => {});
+        }
+      } catch (_) {}
       
       // Синхронизация состояния полноэкранного режима
       setIsExpanded(webApp.isExpanded);

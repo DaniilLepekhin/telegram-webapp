@@ -378,106 +378,27 @@ router.get('/track/:linkId', async (req, res) => {
 
     console.log(`✅ Click recorded for link ${linkId}: IP=${realIP}, Country=${geo?.country}, Device=${getDeviceType(userAgent)}`);
 
-    // Перенаправляем пользователя
-    const redirectUrl = link.target_url;
-    
-    // Определяем тип устройства и браузера
-    const userAgent = req.headers['user-agent'] || '';
-    const isTelegramWebApp = userAgent.includes('TelegramBot');
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-    
-    // Если это Telegram ссылка - используем немедленное перенаправление
-    if (redirectUrl.includes('t.me/')) {
-      if (isTelegramWebApp) {
-        // Если мы внутри Telegram WebApp - используем специальный метод
-        return res.send(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>Переход в канал...</title>
-              <meta charset="utf-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1">
-              <script src="https://telegram.org/js/telegram-web-app.js"></script>
-              <script>
-                // Немедленное перенаправление в Telegram
-                if (window.Telegram && window.Telegram.WebApp) {
-                  window.Telegram.WebApp.openTelegramLink('${redirectUrl}');
-                  window.Telegram.WebApp.close();
-                } else {
-                  window.location.href = '${redirectUrl}';
-                }
-              </script>
-            </head>
-            <body>
-              <p>Переходим в канал...</p>
-            </body>
-          </html>
-        `);
-      } else {
-        // Обычный браузер - мгновенное перенаправление
-        return res.redirect(302, redirectUrl);
-      }
-    }
-
-    // Для обычных ссылок - создаем красивую страницу перенаправления
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Переход...</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <meta http-equiv="refresh" content="0;url=${redirectUrl}">
-          <script>
-            // Мгновенное перенаправление
-            window.location.href = '${redirectUrl}';
-          </script>
-          <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              text-align: center; 
-              padding: 20px; 
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              margin: 0;
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .container { 
-              background: rgba(255,255,255,0.1); 
-              padding: 30px; 
-              border-radius: 15px; 
-              backdrop-filter: blur(10px);
-              border: 1px solid rgba(255,255,255,0.2);
-            }
-            .emoji { font-size: 36px; margin-bottom: 15px; }
-            .spinner { 
-              border: 3px solid rgba(255,255,255,0.3);
-              border-radius: 50%;
-              border-top: 3px solid white;
-              width: 30px;
-              height: 30px;
-              animation: spin 1s linear infinite;
-              margin: 15px auto;
-            }
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="emoji">🚀</div>
-            <h3>Переходим...</h3>
-            <div class="spinner"></div>
-            <p><a href="${redirectUrl}" style="color: white;">Нажмите, если не перенаправило</a></p>
-          </div>
-        </body>
-      </html>
+    // Генерируем одноразовый токен старта WebApp и сохраняем UTM-параметры
+    const startToken = generateShortId(12);
+    // Гарантируем наличие таблицы для токенов
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tracking_start_tokens (
+        token TEXT PRIMARY KEY,
+        link_id TEXT NOT NULL,
+        utm_params JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        used_at TIMESTAMP
+      );
     `);
+    await pool.query(
+      'INSERT INTO tracking_start_tokens (token, link_id, utm_params) VALUES ($1, $2, $3)',
+      [startToken, linkId, JSON.stringify(allUtmParams)]
+    );
+
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'daniil_lepekhin_bot';
+    const deepLink = `https://t.me/${botUsername}/app?startapp=${startToken}`;
+    // Редиректим напрямую в Telegram, где WebApp заберет токен и сразу отправит в целевой канал/пост
+    return res.redirect(302, deepLink);
 
   } catch (error) {
     console.error('Error processing tracking link:', error);
@@ -499,6 +420,72 @@ router.get('/track/:linkId', async (req, res) => {
         </body>
       </html>
     `);
+  }
+});
+
+// WebApp сообщает о старте с токеном и получает конечный redirectUrl
+router.post('/webapp-start', async (req, res) => {
+  try {
+    const { token, user } = req.body || {};
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'token is required' });
+    }
+
+    // Гарантируем таблицу
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tracking_start_tokens (
+        token TEXT PRIMARY KEY,
+        link_id TEXT NOT NULL,
+        utm_params JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        used_at TIMESTAMP
+      );
+    `);
+
+    // И таблицу стартов (для аналитики)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS link_starts (
+        id SERIAL PRIMARY KEY,
+        link_id TEXT NOT NULL,
+        telegram_user_id BIGINT,
+        utm_params JSONB,
+        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    const tokenRow = await pool.query('SELECT * FROM tracking_start_tokens WHERE token = $1', [token]);
+    if (tokenRow.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'token not found' });
+    }
+    const tokenData = tokenRow.rows[0];
+
+    // Получаем ссылку
+    const linkResult = await pool.query(
+      `SELECT tl.*, tc.chat_title, tc.username 
+       FROM tracking_links tl
+       JOIN telegram_chats tc ON tl.channel_id = tc.chat_id
+       WHERE tl.link_id = $1`,
+      [tokenData.link_id]
+    );
+    if (linkResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'link not found' });
+    }
+    const link = linkResult.rows[0];
+
+    // Логируем старт
+    const telegramUserId = user?.id || null;
+    await pool.query(
+      'INSERT INTO link_starts (link_id, telegram_user_id, utm_params) VALUES ($1, $2, $3)',
+      [tokenData.link_id, telegramUserId, tokenData.utm_params || null]
+    );
+    await pool.query('UPDATE tracking_start_tokens SET used_at = CURRENT_TIMESTAMP WHERE token = $1', [token]);
+
+    // Конечный URL: пост или канал
+    const redirectUrl = link.target_url;
+    return res.json({ success: true, redirectUrl });
+  } catch (e) {
+    console.error('webapp-start error:', e);
+    return res.status(500).json({ success: false, error: 'internal error' });
   }
 });
 
