@@ -52,8 +52,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
     const rect = triggerElement
       ? triggerElement.getBoundingClientRect()
       : { left: clickPosition!.x, top: clickPosition!.y, bottom: clickPosition!.y, width: 0, height: 0 } as DOMRect as any;
-    const modalWidth = 400;
-    const modalHeight = Math.min(500, window.innerHeight * 0.8);
+    const modalWidth = Math.min(400, Math.floor(window.innerWidth * 0.9));
+    const modalHeight = Math.min(500, Math.floor(window.innerHeight * 0.8));
 
     // Позиционируем относительно видимого экрана (overlay фиксирован)
     let top = (rect as any).bottom + 10;
@@ -84,8 +84,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
       alignItems: 'unset',
       justifyContent: 'unset'
     };
-    modalTop = `${top}px`;
-    modalLeft = `${left}px`;
+    modalTop = `${Math.round(top)}px`;
+    modalLeft = `${Math.round(left)}px`;
   }
 
   const modalContent = (
@@ -107,8 +107,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
           backgroundColor: '#1e293b',
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.3)',
-          width: triggerElement ? '90vw' : '100%',
-          maxWidth: '400px',
+          width: `${Math.min(400, Math.floor(window.innerWidth * 0.9))}px`,
           maxHeight: '80vh',
           overflow: 'hidden',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
