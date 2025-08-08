@@ -51,30 +51,34 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
     const rect = triggerElement.getBoundingClientRect();
     const modalWidth = 400;
     const modalHeight = Math.min(500, window.innerHeight * 0.8);
-    
-    // Позиционируем снизу от кнопки
-    let top = rect.bottom + 10;
-    let left = rect.left;
-    
+
+    // Текущее смещение страницы (учитываем Telegram WebApp особенности)
+    const pageYOffset = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+    const pageXOffset = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft || 0;
+
+    // Позиционируем снизу от кнопки, учитывая скролл
+    let top = rect.bottom + 10 + pageYOffset;
+    let left = rect.left + pageXOffset;
+
     // Если не помещается снизу - показываем сверху
-    if (top + modalHeight > window.innerHeight - 20) {
-      top = rect.top - modalHeight - 10;
+    if (top + modalHeight > (pageYOffset + window.innerHeight - 20)) {
+      top = rect.top + pageYOffset - modalHeight - 10;
     }
-    
+
     // Если не помещается справа - центрируем относительно кнопки
-    if (left + modalWidth > window.innerWidth - 20) {
-      left = Math.max(20, rect.left + rect.width/2 - modalWidth/2);
+    if (left + modalWidth > (pageXOffset + window.innerWidth - 20)) {
+      left = Math.max(20 + pageXOffset, rect.left + pageXOffset + rect.width/2 - modalWidth/2);
     }
-    
-    // Если все еще не помещается - выравниваем по краю
-    if (left + modalWidth > window.innerWidth - 20) {
-      left = window.innerWidth - modalWidth - 20;
+
+    // Если все еще не помещается - выравниваем по правому краю
+    if (left + modalWidth > (pageXOffset + window.innerWidth - 20)) {
+      left = pageXOffset + window.innerWidth - modalWidth - 20;
     }
-    
-    // Минимальные отступы
-    if (top < 20) top = 20;
-    if (left < 20) left = 20;
-    
+
+    // Минимальные отступы от краев документа
+    if (top < 20 + pageYOffset) top = 20 + pageYOffset;
+    if (left < 20 + pageXOffset) left = 20 + pageXOffset;
+
     modalPosition = {
       display: 'block',
       alignItems: 'unset',
@@ -106,7 +110,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
         padding: '20px',
         ...modalPosition
       }} 
-      onClick={onClose}>
+      onClick={() => {
+        if (confirm('Закрыть окно?')) onClose();
+      }}>
       <div 
         style={{
           backgroundColor: '#1e293b',
