@@ -25,6 +25,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [showLinkGenerator, setShowLinkGenerator] = useState(false);
   const [showLinkAnalytics, setShowLinkAnalytics] = useState(false);
+  const [clickPos, setClickPos] = useState<{x:number;y:number}|null>(null);
   const linkGeneratorRef = useRef<HTMLDivElement>(null);
   const linkAnalyticsRef = useRef<HTMLDivElement>(null);
 
@@ -310,7 +311,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
                 {/* Создать ссылку */}
                 <div 
                   ref={linkGeneratorRef}
-                  onClick={() => setShowLinkGenerator(true)}
+                  onClick={(e) => { setClickPos({x: e.clientX, y: e.clientY}); setShowLinkGenerator(true);} }
                   className="group bg-gradient-to-br from-green-500/20 to-emerald-600/20 hover:from-green-500/30 hover:to-emerald-600/30 rounded-xl p-4 border border-green-500/30 cursor-pointer transition-all duration-300"
                 >
                   <div className="flex items-center space-x-3">
@@ -327,7 +328,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
                 {/* Аналитика ссылок */}
                 <div 
                   ref={linkAnalyticsRef}
-                  onClick={() => setShowLinkAnalytics(true)}
+                  onClick={(e) => { setClickPos({x: e.clientX, y: e.clientY}); setShowLinkAnalytics(true);} }
                   className="group bg-gradient-to-br from-purple-500/20 to-pink-600/20 hover:from-purple-500/30 hover:to-pink-600/30 rounded-xl p-4 border border-purple-500/30 cursor-pointer transition-all duration-300"
                 >
                   <div className="flex items-center space-x-3">
@@ -376,6 +377,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
         onClose={() => setShowLinkGenerator(false)}
         title="🔗 Создать ссылку"
         triggerElement={linkGeneratorRef.current}
+        clickPosition={clickPos}
       >
         <LinkGenerator
           channels={channels}
@@ -389,6 +391,7 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
         onClose={() => setShowLinkAnalytics(false)}
         title="📊 Аналитика ссылок"
         triggerElement={linkAnalyticsRef.current}
+        clickPosition={clickPos}
       >
         <LinkAnalytics
           onClose={() => setShowLinkAnalytics(false)}

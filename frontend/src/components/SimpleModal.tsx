@@ -7,9 +7,10 @@ interface SimpleModalProps {
   children: React.ReactNode;
   title: string;
   triggerElement?: HTMLElement | null;
+  clickPosition?: { x: number; y: number } | null;
 }
 
-const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, title, triggerElement }) => {
+const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, title, triggerElement, clickPosition }) => {
   useEffect(() => {
     if (isOpen) {
       // Сохраняем текущую позицию скролла
@@ -47,37 +48,35 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
   let modalTop = 'auto';
   let modalLeft = 'auto';
 
-  if (triggerElement) {
-    const rect = triggerElement.getBoundingClientRect();
+  if (triggerElement || clickPosition) {
+    const rect = triggerElement
+      ? triggerElement.getBoundingClientRect()
+      : { left: clickPosition!.x, top: clickPosition!.y, bottom: clickPosition!.y, width: 0, height: 0 } as DOMRect as any;
     const modalWidth = 400;
     const modalHeight = Math.min(500, window.innerHeight * 0.8);
 
-    // Текущее смещение страницы (учитываем Telegram WebApp особенности)
-    const pageYOffset = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-    const pageXOffset = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft || 0;
-
-    // Позиционируем снизу от кнопки, учитывая скролл
-    let top = rect.bottom + 10 + pageYOffset;
-    let left = rect.left + pageXOffset;
+    // Позиционируем относительно видимого экрана (overlay фиксирован)
+    let top = (rect as any).bottom + 10;
+    let left = (rect as any).left;
 
     // Если не помещается снизу - показываем сверху
-    if (top + modalHeight > (pageYOffset + window.innerHeight - 20)) {
-      top = rect.top + pageYOffset - modalHeight - 10;
+    if (top + modalHeight > (window.innerHeight - 20)) {
+      top = (rect as any).top - modalHeight - 10;
     }
 
     // Если не помещается справа - центрируем относительно кнопки
-    if (left + modalWidth > (pageXOffset + window.innerWidth - 20)) {
-      left = Math.max(20 + pageXOffset, rect.left + pageXOffset + rect.width/2 - modalWidth/2);
+    if (left + modalWidth > (window.innerWidth - 20)) {
+      left = Math.max(20, (rect as any).left + ((rect as any).width || 0)/2 - modalWidth/2);
     }
 
     // Если все еще не помещается - выравниваем по правому краю
-    if (left + modalWidth > (pageXOffset + window.innerWidth - 20)) {
-      left = pageXOffset + window.innerWidth - modalWidth - 20;
+    if (left + modalWidth > (window.innerWidth - 20)) {
+      left = window.innerWidth - modalWidth - 20;
     }
 
     // Минимальные отступы от краев документа
-    if (top < 20 + pageYOffset) top = 20 + pageYOffset;
-    if (left < 20 + pageXOffset) left = 20 + pageXOffset;
+    if (top < 20) top = 20;
+    if (left < 20) left = 20;
 
     modalPosition = {
       display: 'block',
@@ -88,23 +87,14 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
     modalLeft = `${left}px`;
   }
 
-  // Получаем реальную высоту документа
-  const documentHeight = Math.max(
-    document.body.scrollHeight,
-    document.body.offsetHeight,
-    document.documentElement.clientHeight,
-    document.documentElement.scrollHeight,
-    document.documentElement.offsetHeight
-  );
-
   const modalContent = (
     <div 
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: `${documentHeight}px`,
+        width: '100vw',
+        height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         zIndex: 999999,
         padding: '20px',
