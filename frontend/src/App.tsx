@@ -8,6 +8,8 @@ declare global {
   }
 }
 import ChannelAnalytics from './components/ChannelAnalytics';
+import CoffeeDemo from './components/CoffeeDemo';
+import ReferralProgram from './components/ReferralProgram';
 import Showcase from './components/Showcase';
 import DemoChat from './components/DemoChat';
 import ReferralSystem from './components/ReferralSystem';
@@ -22,7 +24,7 @@ import BackButton from './components/BackButton';
 import FullscreenButton from './components/FullscreenButton';
 import { useRef } from 'react';
 
-type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test';
+type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test' | 'coffee' | 'ref-program';
 
 function App() {
   // ЭЛЕГАНТНОЕ РЕШЕНИЕ: Telegram WebApp History API + плавные переходы
@@ -414,6 +416,54 @@ function App() {
                     </div>
                   </div>
 
+                  {/* Coffee Demo Card */}
+                  <div 
+                    onClick={() => navigateTo('coffee')}
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">☕</span>
+                        </div>
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-emerald-200 transition-colors duration-300">Демо кофейни</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+                        Меню, корзина, филиалы, время, бонусы
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Referral Program Card */}
+                  <div 
+                    onClick={() => navigateTo('ref-program')}
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-fuchsia-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">🤝</span>
+                        </div>
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-fuchsia-200 transition-colors duration-300">Реферальная программа</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+                        5 линий, структура, ссылка приглашения
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Test Page Card */}
                   <div 
                     onClick={() => navigateTo('test')}
@@ -578,6 +628,24 @@ function App() {
             <BackButton onClick={goBack} />
             <FullscreenButton />
             <TestPage />
+          </div>
+        );
+
+      case 'coffee':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+            <BackButton onClick={goBack} />
+            <FullscreenButton />
+            <CoffeeDemo />
+          </div>
+        );
+
+      case 'ref-program':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+            <BackButton onClick={goBack} />
+            <FullscreenButton />
+            <ReferralProgram />
           </div>
         );
 

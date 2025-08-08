@@ -148,6 +148,10 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
                     type="url"
                     value={postUrl}
                     onChange={(e) => setPostUrl(e.target.value)}
+                    onPaste={(e)=>{
+                      const text = e.clipboardData.getData('text');
+                      if (text) setPostUrl(text);
+                    }}
                     placeholder="https://t.me/channel/123"
                     className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400 focus:outline-none"
                   />

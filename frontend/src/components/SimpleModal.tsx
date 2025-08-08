@@ -13,23 +13,11 @@ interface SimpleModalProps {
 const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, title, triggerElement, clickPosition }) => {
   useEffect(() => {
     if (isOpen) {
-      // Сохраняем текущую позицию скролла
       const scrollY = window.scrollY;
-      
-      // Блокируем скролл и фиксируем позицию
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = '0';
-      document.body.style.right = '0';
+      // Только блокируем прокрутку, без position:fixed — корректная работа ввода/вставки на iOS/Android
       document.body.style.overflow = 'hidden';
       document.body.style.width = '100%';
-      
       return () => {
-        // Восстанавливаем скролл
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
         document.body.style.overflow = '';
         document.body.style.width = '';
         window.scrollTo(0, scrollY);
@@ -52,8 +40,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
     const rect = triggerElement
       ? triggerElement.getBoundingClientRect()
       : { left: clickPosition!.x, top: clickPosition!.y, bottom: clickPosition!.y, width: 0, height: 0 } as DOMRect as any;
-    const modalWidth = Math.min(400, Math.floor(window.innerWidth * 0.9));
-    const modalHeight = Math.min(500, Math.floor(window.innerHeight * 0.8));
+    const modalWidth = Math.min(560, Math.floor(window.innerWidth * 0.94));
+    const modalHeight = Math.min(640, Math.floor(window.innerHeight * 0.9));
 
     // Позиционируем относительно видимого экрана (overlay фиксирован)
     let top = (rect as any).bottom + 10;
@@ -107,8 +95,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
           backgroundColor: '#1e293b',
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.3)',
-          width: `${Math.min(400, Math.floor(window.innerWidth * 0.9))}px`,
-          maxHeight: '80vh',
+          width: `${Math.min(560, Math.floor(window.innerWidth * 0.94))}px`,
+          maxHeight: '90vh',
           overflow: 'hidden',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           position: triggerElement ? 'absolute' : 'relative',
@@ -151,8 +139,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
         </div>
         
         {/* Content */}
-        <div style={{
-          maxHeight: 'calc(80vh - 80px)',
+          <div style={{
+          maxHeight: 'calc(90vh - 80px)',
           overflowY: 'auto'
         }}>
           {children}
