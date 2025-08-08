@@ -4,25 +4,51 @@ type CoffeeAddon = { id: string; name: string; price: number };
 type CoffeeItem = { id: string; name: string; basePrice: number; addons: CoffeeAddon[] };
 
 const MENU: CoffeeItem[] = [
-  { id: 'latte', name: 'Латте', basePrice: 220, addons: [
+  { id: 'latte', name: 'Латте ☕️', basePrice: 220, addons: [
     { id: 'syrup_caramel', name: 'Сироп карамель', price: 30 },
     { id: 'milk_almond', name: 'Миндальное молоко', price: 40 },
   ]},
-  { id: 'americano', name: 'Американо', basePrice: 170, addons: [
-    { id: 'extra_shot', name: 'Доп. шот', price: 50 },
+  { id: 'americano', name: 'Американо ☕️', basePrice: 170, addons: [
+    { id: 'extra_shot', name: 'Доп. шот эспрессо', price: 50 },
   ]},
-  { id: 'cappuccino', name: 'Капучино', basePrice: 210, addons: [
+  { id: 'cappuccino', name: 'Капучино ☕️', basePrice: 210, addons: [
     { id: 'syrup_vanilla', name: 'Сироп ваниль', price: 30 },
   ]},
 ];
 
 const BRANCHES = ['Центр', 'Юг', 'Север', 'Запад'];
 
+function getRoundedToQuarter(date = new Date()) {
+  const d = new Date(date);
+  const q = 15; // minutes
+  const minutes = d.getMinutes();
+  const rounded = Math.ceil(minutes / q) * q;
+  d.setMinutes(rounded === 60 ? 0 : rounded);
+  if (rounded === 60) d.setHours(d.getHours() + 1);
+  d.setSeconds(0);
+  d.setMilliseconds(0);
+  return d;
+}
+
+function buildTimeSlots(count = 8, stepMin = 15) {
+  const start = getRoundedToQuarter();
+  const slots: string[] = ['Ближайшее'];
+  for (let i = 0; i < count; i++) {
+    const d = new Date(start.getTime() + i * stepMin * 60 * 1000);
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    slots.push(`${hh}:${mm}`);
+  }
+  return slots;
+}
+
 const CoffeeDemo: React.FC = () => {
   const [cart, setCart] = useState<Record<string, { qty: number; addons: Record<string, boolean> }>>({});
   const [branch, setBranch] = useState<string>('Центр');
-  const [time, setTime] = useState<string>('ASAP');
+  const [time, setTime] = useState<string>('Ближайшее');
   const [userId] = useState<string>(() => Math.random().toString(36).slice(2));
+
+  const timeSlots = useMemo(() => buildTimeSlots(), []);
 
   const total = useMemo(() => {
     let sum = 0;
@@ -61,54 +87,84 @@ const CoffeeDemo: React.FC = () => {
   const qrValue = `COFFEE:${userId}`;
 
   return (
-    <div className="max-w-3xl mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold text-white">☕ Демо кофейни</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {MENU.map(item => (
-          <div key={item.id} className="bg-white/10 border border-white/20 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-semibold">{item.name}</h3>
-              <span className="text-white/70">{item.basePrice} ₽</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Hero */}
+      <div className="text-center pt-6 pb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-2xl shadow-xl mb-3">
+          <span className="text-2xl">☕</span>
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-1">Демо кофейни</h1>
+        <p className="text-white/70">Меню • Корзина • Филиалы • Время • Бонусы</p>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        {/* Menu */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {MENU.map(item => (
+            <div key={item.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-white font-semibold">{item.name}</h3>
+                <span className="text-white/80">{item.basePrice} ₽</span>
+              </div>
+              <div className="flex items-center space-x-2 mb-3">
+                <button onClick={() => removeItem(item.id)} className="px-3 py-1 bg-white/10 rounded text-white hover:bg-white/15">-</button>
+                <span className="text-white min-w-[2ch] text-center">{cart[item.id]?.qty || 0}</span>
+                <button onClick={() => addItem(item.id)} className="px-3 py-1 bg-white/10 rounded text-white hover:bg-white/15">+</button>
+              </div>
+              <div className="space-y-1">
+                {item.addons.map(add => (
+                  <label key={add.id} className="flex items-center justify-between text-white/85 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" checked={!!cart[item.id]?.addons?.[add.id]} onChange={() => toggleAddon(item.id, add.id)} />
+                      <span>{add.name}</span>
+                    </div>
+                    <span className="text-white/70">+{add.price} ₽</span>
+                  </label>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center space-x-2 mb-2">
-              <button onClick={() => removeItem(item.id)} className="px-3 py-1 bg-white/10 rounded text-white">-</button>
-              <span className="text-white">{cart[item.id]?.qty || 0}</span>
-              <button onClick={() => addItem(item.id)} className="px-3 py-1 bg-white/10 rounded text-white">+</button>
-            </div>
-            <div className="space-y-1">
-              {item.addons.map(add => (
-                <label key={add.id} className="flex items-center justify-between text-white/80 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" checked={!!cart[item.id]?.addons?.[add.id]} onChange={() => toggleAddon(item.id, add.id)} />
-                    <span>{add.name}</span>
-                  </div>
-                  <span>+{add.price} ₽</span>
-                </label>
+          ))}
+        </div>
+
+        {/* Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-4">
+            <label className="text-white/80 text-sm">Филиал</label>
+            <select value={branch} onChange={e => setBranch(e.target.value)} className="mt-2 w-full bg-white/10 text-white rounded-lg px-3 py-2 border border-white/20">
+              {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-4 md:col-span-2">
+            <label className="text-white/80 text-sm">Время</label>
+            <div className="mt-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
+              {timeSlots.map(t => (
+                <button key={t} onClick={() => setTime(t)} className={`px-3 py-2 rounded-lg text-sm whitespace-nowrap border ${time === t ? 'bg-emerald-500/30 text-emerald-200 border-emerald-500/50' : 'bg-white/5 text-white/80 border-white/15 hover:bg-white/10'}`}>
+                  {t}
+                </button>
               ))}
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Bonus */}
+        <div className="bg-white/10 border border-white/20 rounded-2xl p-4">
+          <h3 className="text-white font-semibold mb-2">🎁 Бонусная программа</h3>
+          <p className="text-white/70 text-sm mb-3">Покажите QR/код бариста для начисления или списания бонусов</p>
+          <div className="bg-white rounded-lg p-3 text-center select-all text-slate-800">{qrValue}</div>
+        </div>
       </div>
 
-      <div className="bg-white/10 border border-white/20 rounded-xl p-4 space-y-3">
-        <div className="flex items-center space-x-3">
-          <label className="text-white/80">Филиал</label>
-          <select value={branch} onChange={e => setBranch(e.target.value)} className="bg-white/10 text-white rounded px-3 py-1 border border-white/20">
-            {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
-          </select>
+      {/* Sticky checkout */}
+      <div className="sticky bottom-0 left-0 right-0 backdrop-blur-xl bg-slate-900/80 border-t border-white/10">
+        <div className="max-w-4xl mx-auto p-3 flex items-center justify-between">
+          <div className="text-white/80 text-sm">{branch} • {time}</div>
+          <div className="flex items-center gap-3">
+            <div className="text-white text-lg font-semibold">{total} ₽</div>
+            <button className="px-5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-600 text-white font-semibold">
+              Оформить
+            </button>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <label className="text-white/80">Время</label>
-          <input value={time} onChange={e => setTime(e.target.value)} placeholder="ASAP или 15:30" className="bg-white/10 text-white rounded px-3 py-1 border border-white/20" />
-        </div>
-        <div className="text-white">Итого: <b>{total} ₽</b></div>
-        <button className="w-full bg-gradient-to-r from-emerald-500 to-cyan-600 text-white rounded-lg py-3">Заказать</button>
-      </div>
-
-      <div className="bg-white/10 border border-white/20 rounded-xl p-4">
-        <h3 className="text-white font-semibold mb-2">🎁 Бонусная программа</h3>
-        <p className="text-white/70 text-sm mb-2">Покажите QR бариста для начисления/списания бонусов</p>
-        <div className="bg-white rounded p-3 text-center select-all">{qrValue}</div>
       </div>
     </div>
   );
