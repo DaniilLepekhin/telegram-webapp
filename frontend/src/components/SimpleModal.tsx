@@ -57,7 +57,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
 
     // Позиционируем относительно видимого экрана (overlay фиксирован)
     let top = (rect as any).bottom + 10;
-    let left = (rect as any).left;
+    // По умолчанию центрируем модалку относительно триггера по горизонтали
+    let left = (rect as any).left + (((rect as any).width || 0) / 2) - (modalWidth / 2);
 
     // Если не помещается снизу - показываем сверху
     if (top + modalHeight > (window.innerHeight - 20)) {
@@ -66,7 +67,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
 
     // Если не помещается справа - центрируем относительно кнопки
     if (left + modalWidth > (window.innerWidth - 20)) {
-      left = Math.max(20, (rect as any).left + ((rect as any).width || 0)/2 - modalWidth/2);
+      left = Math.max(20, (rect as any).left + (((rect as any).width || 0) / 2) - (modalWidth / 2));
     }
 
     // Если все еще не помещается - выравниваем по правому краю
@@ -97,19 +98,17 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
         height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         zIndex: 999999,
-        padding: '20px',
+        padding: (triggerElement || clickPosition) ? '0' : '20px',
         ...modalPosition
       }} 
-      onClick={() => {
-        if (confirm('Закрыть окно?')) onClose();
-      }}>
+      onClick={onClose}>
       <div 
         style={{
           backgroundColor: '#1e293b',
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.3)',
-          width: triggerElement ? '400px' : '100%',
-          maxWidth: triggerElement ? '400px' : '400px',
+          width: triggerElement ? '90vw' : '100%',
+          maxWidth: '400px',
           maxHeight: '80vh',
           overflow: 'hidden',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
