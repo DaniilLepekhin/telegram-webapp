@@ -45,23 +45,16 @@ const SimpleModal: React.FC<SimpleModalProps> = ({ isOpen, onClose, children, ti
 
     // Позиционируем относительно видимого экрана (overlay фиксирован)
     let top = (rect as any).bottom + 10;
-    // По умолчанию центрируем модалку относительно триггера по горизонтали
-    let left = (rect as any).left + (((rect as any).width || 0) / 2) - (modalWidth / 2);
+    // Горизонтально ВСЕГДА по центру экрана
+    let left = Math.round((window.innerWidth - modalWidth) / 2);
 
     // Если не помещается снизу - показываем сверху
     if (top + modalHeight > (window.innerHeight - 20)) {
       top = (rect as any).top - modalHeight - 10;
     }
 
-    // Если не помещается справа - центрируем относительно кнопки
-    if (left + modalWidth > (window.innerWidth - 20)) {
-      left = Math.max(20, (rect as any).left + (((rect as any).width || 0) / 2) - (modalWidth / 2));
-    }
-
-    // Если все еще не помещается - выравниваем по правому краю
-    if (left + modalWidth > (window.innerWidth - 20)) {
-      left = window.innerWidth - modalWidth - 20;
-    }
+    // Корректируем границы
+    if (left + modalWidth > (window.innerWidth - 20)) left = window.innerWidth - modalWidth - 20;
 
     // Минимальные отступы от краев документа
     if (top < 20) top = 20;
