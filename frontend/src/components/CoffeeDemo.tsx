@@ -1,24 +1,100 @@
 import React, { useMemo, useState } from 'react';
 import CafeTheme from './cafe/CafeTheme';
 import CafeHeader from './cafe/CafeHeader';
-import CafeMenu, { CoffeeItem } from './cafe/CafeMenu';
+import PremiumCafeMenu, { PremiumCoffeeItem } from './cafe/PremiumCafeMenu';
 import CafeCartBar from './cafe/CafeCartBar';
 import CafeLoyalty from './cafe/CafeLoyalty';
+import ItemDetailModal from './cafe/ItemDetailModal';
 
-type CoffeeAddon = { id: string; name: string; price: number };
-type CoffeeItemLocal = { id: string; name: string; basePrice: number; addons: CoffeeAddon[] };
-
-const MENU: CoffeeItemLocal[] = [
-  { id: 'latte', name: 'Латте ☕️', basePrice: 220, addons: [
-    { id: 'syrup_caramel', name: 'Сироп карамель', price: 30 },
-    { id: 'milk_almond', name: 'Миндальное молоко', price: 40 },
-  ]},
-  { id: 'americano', name: 'Американо ☕️', basePrice: 170, addons: [
-    { id: 'extra_shot', name: 'Доп. шот эспрессо', price: 50 },
-  ]},
-  { id: 'cappuccino', name: 'Капучино ☕️', basePrice: 210, addons: [
-    { id: 'syrup_vanilla', name: 'Сироп ваниль', price: 30 },
-  ]},
+const MENU: PremiumCoffeeItem[] = [
+  { 
+    id: 'latte', 
+    name: 'Латте', 
+    description: 'Нежный кофе с молоком и пенкой. Идеальный баланс кофе и молока для мягкого вкуса.',
+    basePrice: 220, 
+    image: '☕️',
+    category: 'coffee',
+    badges: ['Популярное'],
+    prepTime: '3-5 мин',
+    popular: true,
+    addons: [
+      { id: 'syrup_caramel', name: 'Сироп карамель', price: 30, description: 'Сладкий карамельный вкус' },
+      { id: 'milk_almond', name: 'Миндальное молоко', price: 40, description: 'Безлактозная альтернатива' },
+      { id: 'extra_shot', name: 'Доп. шот эспрессо', price: 50, description: 'Более крепкий вкус' },
+    ]
+  },
+  { 
+    id: 'americano', 
+    name: 'Американо', 
+    description: 'Классический эспрессо с горячей водой. Чистый вкус кофе без лишних добавок.',
+    basePrice: 170, 
+    image: '☕',
+    category: 'coffee',
+    badges: ['Классика'],
+    prepTime: '2-3 мин',
+    addons: [
+      { id: 'extra_shot', name: 'Доп. шот эспрессо', price: 50, description: 'Усиленный вкус' },
+      { id: 'syrup_vanilla', name: 'Сироп ваниль', price: 30, description: 'Нежный ванильный аромат' },
+    ]
+  },
+  { 
+    id: 'cappuccino', 
+    name: 'Капучино', 
+    description: 'Эспрессо с молоком и молочной пенкой в равных пропорциях. Итальянская классика.',
+    basePrice: 210, 
+    image: '☕',
+    category: 'coffee',
+    badges: ['Классика'],
+    prepTime: '4-6 мин',
+    addons: [
+      { id: 'syrup_vanilla', name: 'Сироп ваниль', price: 30, description: 'Классический ванильный вкус' },
+      { id: 'cinnamon', name: 'Корица', price: 15, description: 'Теплый пряный аромат' },
+    ]
+  },
+  { 
+    id: 'green_tea', 
+    name: 'Зеленый чай', 
+    description: 'Свежий зеленый чай с нежным травяным вкусом. Отличная альтернатива кофе.',
+    basePrice: 150, 
+    image: '🫖',
+    category: 'tea',
+    badges: ['Здоровье'],
+    prepTime: '3-4 мин',
+    new: true,
+    addons: [
+      { id: 'honey', name: 'Мед', price: 25, description: 'Натуральная сладость' },
+      { id: 'lemon', name: 'Лимон', price: 20, description: 'Освежающий цитрусовый вкус' },
+    ]
+  },
+  { 
+    id: 'tiramisu', 
+    name: 'Тирамису', 
+    description: 'Классический итальянский десерт с кофе, маскарпоне и какао. Нежный и воздушный.',
+    basePrice: 280, 
+    image: '🍰',
+    category: 'desserts',
+    badges: ['Популярное', 'Новинка'],
+    prepTime: 'Готово',
+    popular: true,
+    new: true,
+    addons: [
+      { id: 'extra_coffee', name: 'Доп. кофе', price: 20, description: 'Более насыщенный вкус' },
+    ]
+  },
+  { 
+    id: 'croissant', 
+    name: 'Круассан', 
+    description: 'Слоеный французский круассан с хрустящей корочкой. Идеально к кофе.',
+    basePrice: 120, 
+    image: '🥐',
+    category: 'snacks',
+    badges: ['Классика'],
+    prepTime: 'Готово',
+    addons: [
+      { id: 'chocolate', name: 'Шоколад', price: 30, description: 'Шоколадная начинка' },
+      { id: 'jam', name: 'Джем', price: 25, description: 'Фруктовый джем' },
+    ]
+  },
 ];
 
 const BRANCHES = ['Центр', 'Юг', 'Север', 'Запад'];
@@ -52,6 +128,8 @@ const CoffeeDemo: React.FC = () => {
   const [branch, setBranch] = useState<string>('Центр');
   const [time, setTime] = useState<string>('Ближайшее');
   const [userId] = useState<string>(() => Math.random().toString(36).slice(2));
+  const [selectedItem, setSelectedItem] = useState<PremiumCoffeeItem | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const timeSlots = useMemo(() => buildTimeSlots(), []);
 
@@ -81,12 +159,18 @@ const CoffeeDemo: React.FC = () => {
   const addItem = (itemId: string) => {
     setCart(prev => ({ ...prev, [itemId]: { qty: (prev[itemId]?.qty || 0) + 1, addons: prev[itemId]?.addons || {} } }));
   };
+  
   const removeItem = (itemId: string) => {
     setCart(prev => {
       const qty = (prev[itemId]?.qty || 0) - 1;
       if (qty <= 0) { const copy = { ...prev }; delete copy[itemId]; return copy; }
       return { ...prev, [itemId]: { qty, addons: prev[itemId]?.addons || {} } };
     });
+  };
+
+  const handleItemClick = (item: PremiumCoffeeItem) => {
+    setSelectedItem(item);
+    setIsDetailModalOpen(true);
   };
 
   const qrValue = `COFFEE:${userId}`;
@@ -96,13 +180,14 @@ const CoffeeDemo: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <CafeHeader title="Демо кофейни" subtitle="Меню • Корзина • Филиалы • Время • Бонусы" />
 
-        <div className="max-w-4xl mx-auto p-4 space-y-6">
-          <CafeMenu
-            items={MENU as unknown as CoffeeItem[]}
+        <div className="max-w-6xl mx-auto p-4 space-y-6">
+          <PremiumCafeMenu
+            items={MENU}
             cart={cart}
             onAdd={addItem}
             onRemove={removeItem}
             onToggleAddon={toggleAddon}
+            onItemClick={handleItemClick}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -129,6 +214,17 @@ const CoffeeDemo: React.FC = () => {
 
         <CafeCartBar branch={branch} time={time} total={total} onCheckout={() => {}} />
       </div>
+
+      {/* Модальное окно деталей блюда */}
+      <ItemDetailModal
+        item={selectedItem}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        cart={cart}
+        onAdd={addItem}
+        onRemove={removeItem}
+        onToggleAddon={toggleAddon}
+      />
     </CafeTheme>
   );
 };
