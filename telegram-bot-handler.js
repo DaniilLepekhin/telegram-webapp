@@ -7,6 +7,18 @@ const WEBAPP_URL = 'https://app.daniillepekhin.com';
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
+// Инициализация polling: лог getMe и отключение webhook
+(async () => {
+  try {
+    const me = await bot.getMe();
+    console.log('🤖 Bot username:', me.username);
+    await bot.deleteWebHook({ drop_pending_updates: false });
+    console.log('🔧 Webhook disabled. Using polling.');
+  } catch (e) {
+    console.error('❌ Bot init error:', e?.message || e);
+  }
+})();
+
 // Хранилище данных
 const trackingData = new Map();
 const userActions = new Map();
@@ -116,6 +128,23 @@ bot.on('web_app_data', async (msg) => {
   } catch (error) {
     console.error('❌ Ошибка обработки WebApp данных:', error);
   }
+});
+
+// Базовый лог всех входящих сообщений
+bot.on('message', (msg) => {
+  try {
+    console.log('📩 incoming:', {
+      chatId: msg.chat?.id,
+      type: msg.chat?.type,
+      text: msg.text,
+      from: msg.from?.username || msg.from?.id
+    });
+  } catch {}
+});
+
+// Быстрый healthcheck
+bot.onText(/^\/ping$/, async (msg) => {
+  await bot.sendMessage(msg.chat.id, 'pong ✅');
 });
 
 // Обработка callback_query
