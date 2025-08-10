@@ -316,6 +316,34 @@ class TelegramService {
       console.error('Error updating admin cache:', error);
     }
   }
+
+  // Отправка сообщения через Telegram Bot API
+  async sendMessage(chatId, text, options = {}) {
+    try {
+      const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
+      const payload = {
+        chat_id: chatId,
+        text: text,
+        parse_mode: 'HTML',
+        ...options
+      };
+
+      console.log(`📤 Sending message to ${chatId}: "${text.substring(0, 50)}..."`);
+      
+      const response = await axios.post(url, payload);
+      
+      if (response.data.ok) {
+        console.log(`✅ Message sent successfully to ${chatId}`);
+        return response.data.result;
+      } else {
+        console.error('❌ Failed to send message:', response.data);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error sending message:', error.message);
+      return null;
+    }
+  }
 }
 
 module.exports = { TelegramService }; 

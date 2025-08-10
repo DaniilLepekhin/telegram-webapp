@@ -335,7 +335,54 @@ router.get('/stats/users', async (req, res) => {
 router.post('/webhook', async (req, res) => {
   try {
     const { message, my_chat_member } = req.body;
+    
+    console.log('📨 Webhook received:', JSON.stringify(req.body, null, 2));
 
+    // Обработка обычных сообщений
+    if (message) {
+      const chatId = message.chat.id;
+      const messageText = message.text;
+      const userName = message.from.first_name || 'Пользователь';
+      
+      console.log(`📨 MESSAGE from ${userName} (${message.from.id}): "${messageText}"`);
+
+      // Обработка команды /start
+      if (messageText === '/start') {
+        const welcomeMessage = `🎉 Добро пожаловать в революционный WebApp!
+
+🚀 Что вас ждет:
+• 📱 Полноэкранный WebApp с современным дизайном
+• 🎯 Витрина кейсов чат-ботов
+• 💬 Интерактивный демо-чат
+• 📊 Аналитика каналов и постов
+• 🔗 Система отслеживания переходов
+• 👥 Реферальная программа
+• 🎮 Геймификация и достижения
+
+💡 Нажмите кнопку ниже, чтобы открыть революционный WebApp!`;
+
+        await telegramService.sendMessage(chatId, welcomeMessage, {
+          reply_markup: {
+            inline_keyboard: [[
+              {
+                text: "🚀 Открыть WebApp",
+                web_app: { url: "https://app.daniillepekhin.com" }
+              }
+            ]]
+          }
+        });
+      }
+      // Обработка команды /ping
+      else if (messageText === '/ping') {
+        await telegramService.sendMessage(chatId, 'pong ✅');
+      }
+      // Эхо для всех остальных сообщений
+      else {
+        await telegramService.sendMessage(chatId, `Echo: ${messageText} | Time: ${new Date().toLocaleTimeString()}`);
+      }
+    }
+
+    // Обработка добавления/удаления бота из чатов
     if (my_chat_member) {
       const chatId = my_chat_member.chat.id;
       
