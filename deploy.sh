@@ -71,4 +71,4 @@ ssh root@217.114.13.102 << 'EOF'
 EOF
 
 echo -e "${GREEN}✅ Деплой успешно завершен!${NC}"
-echo -e "${BLUE}🌐 WebApp доступен по адресу: https://app.daniillepekhin.ru${NC}" 
+echo -e "${BLUE}🌐 WebApp доступен по адресу: https://app.daniillepekhin.com${NC}" 

@@ -16,7 +16,7 @@ const ReferralProgram: React.FC = () => {
     return map;
   }, []);
 
-  const appBase = 'https://app.daniillepekhin.ru/track';
+  const appBase = 'https://app.daniillepekhin.com/track';
   const link = `${appBase}/ref?code=${refCode}`;
 
   return (

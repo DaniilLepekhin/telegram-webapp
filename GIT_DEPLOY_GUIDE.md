@@ -198,7 +198,7 @@ docker-compose up -d frontend
 ### Проверка статуса
 ```bash
 # Локально
-curl -k -I https://app.daniillepekhin.ru
+curl -k -I https://app.daniillepekhin.com
 
 # На сервере
 docker-compose ps
@@ -237,7 +237,7 @@ df -h
 ## 🔗 Полезные ссылки
 
 - **GitHub репозиторий**: https://github.com/DaniilLepekhin/telegram-webapp
-- **WebApp**: https://app.daniillepekhin.ru
+- **WebApp**: https://app.daniillepekhin.com
 - **N8N**: https://n8n_personal.daniillepekhin.ru
 
 ## 📞 Поддержка

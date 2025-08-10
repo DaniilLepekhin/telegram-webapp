@@ -23,7 +23,7 @@
 
 ## 🌐 Результат
 
-- **WebApp**: https://app.daniillepekhin.ru
+- **WebApp**: https://app.daniillepekhin.com
 - **GitHub**: https://github.com/DaniilLepekhin/telegram-webapp
 
 ## 🔧 Полезные команды

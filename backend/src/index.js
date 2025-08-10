@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://app.daniillepekhin.ru',
+  origin: process.env.CORS_ORIGIN || 'https://app.daniillepekhin.com',
   credentials: true
 }));
 app.use(express.json());

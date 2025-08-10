@@ -49,4 +49,4 @@ ssh root@217.114.13.102 'cd /opt/telegram-webapp && git reset --hard origin/main
 ```
 
 ## WebApp доступен по адресу:
-🌐 https://app.daniillepekhin.ru 
+🌐 https://app.daniillepekhin.com 

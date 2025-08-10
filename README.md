@@ -28,7 +28,7 @@ PORT=3001
 NODE_ENV=development
 
 # CORS Configuration
-CORS_ORIGIN=https://app.daniillepekhin.ru
+CORS_ORIGIN=https://app.daniillepekhin.com
 ```
 
 ### 3. Запуск приложения

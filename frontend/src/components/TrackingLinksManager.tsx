@@ -145,7 +145,7 @@ const TrackingLinksManager: React.FC<TrackingLinksManagerProps> = ({ channelId }
   };
 
   const generateShareableLink = (linkHash: string) => {
-    return `https://app.daniillepekhin.ru/track/${linkHash}`;
+    return `https://app.daniillepekhin.com/track/${linkHash}`;
   };
 
   if (loading) {

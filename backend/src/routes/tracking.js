@@ -170,7 +170,7 @@ router.post('/create-link', async (req, res) => {
     // Генерируем QR код если нужно
     let qrCodeUrl = null;
     if (generateQR) {
-      const trackingUrl = `https://app.daniillepekhin.ru/track/${linkId}`;
+      const trackingUrl = `https://app.daniillepekhin.com/track/${linkId}`;
       try {
         const qrCodeDataUrl = await QRCode.toDataURL(trackingUrl, {
           width: 256,
@@ -195,7 +195,7 @@ router.post('/create-link', async (req, res) => {
     console.log(`✅ Created tracking link: ${linkId} for channel: ${channelCheck.rows[0].chat_title}`);
 
     // Формируем URL для ответа
-    const baseUrl = `https://app.daniillepekhin.ru/track/${linkId}`;
+    const baseUrl = `https://app.daniillepekhin.com/track/${linkId}`;
     const utmString = Object.keys(utmParams || {}).length > 0 
       ? '?' + Object.entries(utmParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
       : '';

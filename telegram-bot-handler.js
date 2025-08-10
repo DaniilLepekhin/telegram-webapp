@@ -3,7 +3,7 @@ const TelegramBot = require('node-telegram-bot-api');
 
 // Конфигурация бота
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '5466303727:AAGauSz23_We8iTGjRhbaL5LJobgs3e9V0E';
-const WEBAPP_URL = 'https://app.daniillepekhin.ru';
+const WEBAPP_URL = 'https://app.daniillepekhin.com';
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
