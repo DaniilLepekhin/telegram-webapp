@@ -392,14 +392,42 @@ async function handleTrackingAction(query) {
   }
 }
 
-// Обработка ошибок
+// Обработка ошибок и событий polling
 bot.on('error', (error) => {
-  console.error('❌ Ошибка бота:', error);
+  console.error('❌ Ошибка бота:', error?.message || error);
 });
 
 bot.on('polling_error', (error) => {
-  console.error('❌ Ошибка polling:', error);
+  console.error('❌ Ошибка polling:', error?.message || error);
+  if (error.code === 'EFATAL') {
+    console.log('🔄 Пытаюсь перезапустить polling...');
+    setTimeout(() => {
+      bot.stopPolling().then(() => {
+        bot.startPolling();
+        console.log('🔄 Polling перезапущен');
+      });
+    }, 5000);
+  }
 });
+
+// Дополнительные события для диагностики
+bot.on('disconnected', () => {
+  console.log('🔌 Bot disconnected');
+});
+
+bot.on('reconnected', () => {
+  console.log('🔌 Bot reconnected');
+});
+
+// Проверка статуса каждые 30 секунд
+setInterval(async () => {
+  try {
+    const me = await bot.getMe();
+    console.log('💓 Health check OK:', me.username);
+  } catch (e) {
+    console.error('💔 Health check FAIL:', e?.message || e);
+  }
+}, 30000);
 
 // Установка команд бота
 bot.setMyCommands([
