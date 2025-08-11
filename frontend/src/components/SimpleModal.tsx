@@ -24,91 +24,111 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const scrollY = window.scrollY;
+      
+      // Плавно блокируем скролл без резких изменений
       document.body.style.overflow = 'hidden';
       document.body.style.width = '100%';
       
-      // Умное позиционирование модального окна
-      setTimeout(() => {
-        if (modalRef.current) {
-          const modal = modalRef.current;
-          const modalRect = modal.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-          const viewportWidth = window.innerWidth;
-          
-          let top = '50%';
-          let left = '50%';
-          let transform = 'translate(-50%, -50%)';
-          
-          // Если есть позиция клика, используем её
-          if (clickPosition) {
-            const modalHeight = modalRect.height;
-            const modalWidth = modalRect.width;
-            
-            // Вычисляем позицию, чтобы модалка была видна
-            let topValue = clickPosition.y - 20;
-            let leftValue = clickPosition.x - (modalWidth / 2);
-            
-            // Проверяем, не выходит ли модалка за границы экрана
-            if (topValue + modalHeight > viewportHeight - 20) {
-              topValue = viewportHeight - modalHeight - 20;
-            }
-            if (topValue < 20) {
-              topValue = 20;
-            }
-            
-            if (leftValue + modalWidth > viewportWidth - 20) {
-              leftValue = viewportWidth - modalWidth - 20;
-            }
-            if (leftValue < 20) {
-              leftValue = 20;
-            }
-            
-            top = `${topValue}px`;
-            left = `${leftValue}px`;
-            transform = 'none';
-          }
-          // Если есть элемент-триггер, позиционируем относительно него
-          else if (triggerElement) {
-            const triggerRect = triggerElement.getBoundingClientRect();
-            const modalHeight = modalRect.height;
-            const modalWidth = modalRect.width;
-            
-            let topValue = triggerRect.bottom + 10;
-            let leftValue = triggerRect.left + (triggerRect.width / 2) - (modalWidth / 2);
-            
-            // Проверяем границы экрана
-            if (topValue + modalHeight > viewportHeight - 20) {
-              topValue = triggerRect.top - modalHeight - 10;
-            }
-            if (topValue < 20) {
-              topValue = 20;
-            }
-            
-            if (leftValue < 20) {
-              leftValue = 20;
-            }
-            if (leftValue + modalWidth > viewportWidth - 20) {
-              leftValue = viewportWidth - modalWidth - 20;
-            }
-            
-            top = `${topValue}px`;
-            left = `${leftValue}px`;
-            transform = 'none';
-          }
-          
-          setModalPosition({ top, left, transform });
+      // Сразу устанавливаем правильную позицию, чтобы избежать "прыжков"
+      if (clickPosition) {
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        
+        // Предполагаемые размеры модального окна (примерные)
+        const estimatedModalHeight = 400;
+        const estimatedModalWidth = 480;
+        
+        let topValue = clickPosition.y - 20;
+        let leftValue = clickPosition.x - (estimatedModalWidth / 2);
+        
+        // Проверяем границы экрана
+        if (topValue + estimatedModalHeight > viewportHeight - 20) {
+          topValue = viewportHeight - estimatedModalHeight - 20;
         }
-      }, 10);
+        if (topValue < 20) {
+          topValue = 20;
+        }
+        
+        if (leftValue + estimatedModalWidth > viewportWidth - 20) {
+          leftValue = viewportWidth - estimatedModalWidth - 20;
+        }
+        if (leftValue < 20) {
+          leftValue = 20;
+        }
+        
+        setModalPosition({ 
+          top: `${topValue}px`, 
+          left: `${leftValue}px`, 
+          transform: 'none' 
+        });
+      } else if (triggerElement) {
+        const triggerRect = triggerElement.getBoundingClientRect();
+        const estimatedModalHeight = 400;
+        const estimatedModalWidth = 480;
+        
+        let topValue = triggerRect.bottom + 10;
+        let leftValue = triggerRect.left + (triggerRect.width / 2) - (estimatedModalWidth / 2);
+        
+        // Проверяем границы экрана
+        if (topValue + estimatedModalHeight > window.innerHeight - 20) {
+          topValue = triggerRect.top - estimatedModalHeight - 10;
+        }
+        if (topValue < 20) {
+          topValue = 20;
+        }
+        
+        if (leftValue < 20) {
+          leftValue = 20;
+        }
+        if (leftValue + estimatedModalWidth > window.innerWidth - 20) {
+          leftValue = window.innerWidth - estimatedModalWidth - 20;
+        }
+        
+        setModalPosition({ 
+          top: `${topValue}px`, 
+          left: `${leftValue}px`, 
+          transform: 'none' 
+        });
+      } else {
+        // Центрируем по умолчанию
+        setModalPosition({ 
+          top: '50%', 
+          left: '50%', 
+          transform: 'translate(-50%, -50%)' 
+        });
+      }
       
       return () => {
+        // Плавно восстанавливаем скролл
         document.body.style.overflow = '';
         document.body.style.width = '';
         window.scrollTo(0, scrollY);
+        
+        // Удаляем добавленные стили
+        const addedStyles = document.querySelectorAll('style[data-modal-animation]');
+        addedStyles.forEach(style => style.remove());
       };
     }
   }, [isOpen, clickPosition, triggerElement]);
 
   if (!isOpen) return null;
+
+  // Добавляем CSS анимацию для плавного появления
+  const style = document.createElement('style');
+  style.setAttribute('data-modal-animation', 'true');
+  style.textContent = `
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: ${modalPosition.transform === 'translate(-50%, -50%)' ? 'translate(-50%, -50%) scale(0.9)' : 'scale(0.9)'};
+      }
+      to {
+        opacity: 1;
+        transform: ${modalPosition.transform === 'translate(-50%, -50%)' ? 'translate(-50%, -50%) scale(1)' : 'scale(1)'};
+      }
+    }
+  `;
+  document.head.appendChild(style);
 
   const modalContent = (
     <div 
@@ -141,7 +161,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           top: modalPosition.top,
           left: modalPosition.left,
           transform: modalPosition.transform,
-          transition: 'all 0.3s ease-out'
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          opacity: 0,
+          animation: 'modalFadeIn 0.3s ease-out forwards'
         }} 
         onClick={(e) => e.stopPropagation()}>
         
