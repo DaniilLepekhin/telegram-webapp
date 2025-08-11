@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import CoffeeIcons from '../../assets/images/coffee-icons';
 
 export type PremiumCoffeeItem = {
   id: string;
   name: string;
   description: string;
   basePrice: number;
-  image: string;
+  image: string | React.ReactNode;
   category: string;
   badges: string[];
   prepTime: string;
@@ -53,13 +54,13 @@ const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 transform hover:scale-105 ${
               selectedCategory === category
-                ? 'bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-lg shadow-emerald-500/25'
-                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                ? 'bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-lg shadow-emerald-500/25 scale-105'
+                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white hover:shadow-lg hover:shadow-white/10'
             }`}
           >
-            {category === 'all' ? 'Все' : 
+            {category === 'all' ? '✨ Все' : 
              category === 'coffee' ? '☕️ Кофе' :
              category === 'tea' ? '🫖 Чай' :
              category === 'desserts' ? '🍰 Десерты' :
@@ -76,31 +77,35 @@ const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({
             className="group cursor-pointer"
             onClick={() => onItemClick(item)}
           >
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-3xl p-4 transition-all duration-500 hover:bg-white/20 hover:border-white/40 hover:shadow-2xl hover:shadow-purple-500/30 hover:-translate-y-2 hover:scale-105 group-hover:shadow-2xl group-hover:shadow-purple-500/20">
               {/* Изображение */}
               <div className="relative mb-4">
-                <div className="w-full h-48 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-amber-600/20 to-amber-800/20 flex items-center justify-center">
-                    <span className="text-6xl opacity-30">{item.image}</span>
+                <div className="w-full h-48 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl overflow-hidden transition-all duration-500 group-hover:shadow-inner group-hover:shadow-purple-500/20">
+                  <div className="w-full h-full bg-gradient-to-br from-amber-600/20 via-amber-700/15 to-amber-800/20 flex items-center justify-center transition-all duration-500 group-hover:from-amber-600/30 group-hover:via-amber-700/25 group-hover:to-amber-800/30">
+                    {typeof item.image === 'string' ? (
+                      <span className="text-6xl opacity-30 transition-all duration-500 group-hover:opacity-50 group-hover:scale-110">{item.image}</span>
+                    ) : (
+                      <div className="opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110">{item.image}</div>
+                    )}
                   </div>
                 </div>
                 
                 {/* Бейджи */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
                   {item.popular && (
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
+                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg animate-pulse">
                       🔥 Популярное
                     </div>
                   )}
                   {item.new && (
-                    <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
+                    <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg animate-bounce">
                       ✨ Новинка
                     </div>
                   )}
                 </div>
                 
                 {/* Время приготовления */}
-                <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full transition-all duration-300 hover:bg-black/70 hover:scale-105">
                   ⏱️ {item.prepTime}
                 </div>
               </div>
@@ -108,13 +113,13 @@ const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({
               {/* Информация */}
               <div className="space-y-3">
                 <div>
-                  <h3 className="text-white font-bold text-lg mb-1">{item.name}</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">{item.description}</p>
+                  <h3 className="text-white font-bold text-lg mb-1 transition-all duration-300 group-hover:text-emerald-200">{item.name}</h3>
+                  <p className="text-white/70 text-sm leading-relaxed transition-all duration-300 group-hover:text-white/80">{item.description}</p>
                 </div>
 
                 {/* Цена и кнопки */}
                 <div className="flex items-center justify-between">
-                  <div className="text-2xl font-bold text-white">
+                  <div className="text-2xl font-bold text-white transition-all duration-300 group-hover:text-emerald-200 group-hover:scale-105">
                     {item.basePrice} ₽
                   </div>
                   
@@ -124,7 +129,7 @@ const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({
                         e.stopPropagation();
                         onRemove(item.id);
                       }}
-                      className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors duration-200"
+                      className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-white/20"
                     >
                       -
                     </button>
@@ -136,7 +141,7 @@ const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({
                         e.stopPropagation();
                         onAdd(item.id);
                       }}
-                      className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-lg shadow-emerald-500/25"
+                      className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 rounded-full flex items-center justify-center text-white transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:scale-110 hover:shadow-xl hover:shadow-emerald-500/40"
                     >
                       +
                     </button>
@@ -151,7 +156,7 @@ const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({
                       {item.addons.map(addon => (
                         <label 
                           key={addon.id} 
-                          className="flex items-center justify-between text-white/80 text-sm cursor-pointer"
+                          className="flex items-center justify-between text-white/80 text-sm cursor-pointer transition-all duration-200 hover:text-white hover:scale-105"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex items-center gap-2">
@@ -159,11 +164,11 @@ const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({
                               type="checkbox" 
                               checked={!!cart[item.id]?.addons?.[addon.id]} 
                               onChange={() => onToggleAddon(item.id, addon.id)}
-                              className="w-4 h-4 text-emerald-600 bg-white/10 border-white/20 rounded focus:ring-emerald-500 focus:ring-2"
+                              className="w-4 h-4 text-emerald-600 bg-white/10 border-white/20 rounded focus:ring-emerald-500 focus:ring-2 transition-all duration-200 hover:scale-110"
                             />
                             <span>{addon.name}</span>
                           </div>
-                          <span className="text-emerald-400 font-medium">+{addon.price} ₽</span>
+                          <span className="text-emerald-400 font-medium transition-all duration-200 hover:text-emerald-300 hover:scale-110">+{addon.price} ₽</span>
                         </label>
                       ))}
                     </div>

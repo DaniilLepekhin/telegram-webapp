@@ -1,100 +1,101 @@
 import React, { useMemo, useState } from 'react';
 import CafeTheme from './cafe/CafeTheme';
-import CafeHeader from './cafe/CafeHeader';
-import PremiumCafeMenu, { PremiumCoffeeItem } from './cafe/PremiumCafeMenu';
-import CafeCartBar from './cafe/CafeCartBar';
-import CafeLoyalty from './cafe/CafeLoyalty';
-import ItemDetailModal from './cafe/ItemDetailModal';
+       import CafeHeader from './cafe/CafeHeader';
+       import PremiumCafeMenu, { PremiumCoffeeItem } from './cafe/PremiumCafeMenu';
+       import CafeCartBar from './cafe/CafeCartBar';
+       import CafeLoyalty from './cafe/CafeLoyalty';
+       import ItemDetailModal from './cafe/ItemDetailModal';
+       import CoffeeIcons from './assets/images/coffee-icons';
 
-const MENU: PremiumCoffeeItem[] = [
-  { 
-    id: 'latte', 
-    name: 'Латте', 
-    description: 'Нежный кофе с молоком и пенкой. Идеальный баланс кофе и молока для мягкого вкуса.',
-    basePrice: 220, 
-    image: '☕️',
-    category: 'coffee',
-    badges: ['Популярное'],
-    prepTime: '3-5 мин',
-    popular: true,
-    addons: [
-      { id: 'syrup_caramel', name: 'Сироп карамель', price: 30, description: 'Сладкий карамельный вкус' },
-      { id: 'milk_almond', name: 'Миндальное молоко', price: 40, description: 'Безлактозная альтернатива' },
-      { id: 'extra_shot', name: 'Доп. шот эспрессо', price: 50, description: 'Более крепкий вкус' },
-    ]
-  },
-  { 
-    id: 'americano', 
-    name: 'Американо', 
-    description: 'Классический эспрессо с горячей водой. Чистый вкус кофе без лишних добавок.',
-    basePrice: 170, 
-    image: '☕',
-    category: 'coffee',
-    badges: ['Классика'],
-    prepTime: '2-3 мин',
-    addons: [
-      { id: 'extra_shot', name: 'Доп. шот эспрессо', price: 50, description: 'Усиленный вкус' },
-      { id: 'syrup_vanilla', name: 'Сироп ваниль', price: 30, description: 'Нежный ванильный аромат' },
-    ]
-  },
-  { 
-    id: 'cappuccino', 
-    name: 'Капучино', 
-    description: 'Эспрессо с молоком и молочной пенкой в равных пропорциях. Итальянская классика.',
-    basePrice: 210, 
-    image: '☕',
-    category: 'coffee',
-    badges: ['Классика'],
-    prepTime: '4-6 мин',
-    addons: [
-      { id: 'syrup_vanilla', name: 'Сироп ваниль', price: 30, description: 'Классический ванильный вкус' },
-      { id: 'cinnamon', name: 'Корица', price: 15, description: 'Теплый пряный аромат' },
-    ]
-  },
-  { 
-    id: 'green_tea', 
-    name: 'Зеленый чай', 
-    description: 'Свежий зеленый чай с нежным травяным вкусом. Отличная альтернатива кофе.',
-    basePrice: 150, 
-    image: '🫖',
-    category: 'tea',
-    badges: ['Здоровье'],
-    prepTime: '3-4 мин',
-    new: true,
-    addons: [
-      { id: 'honey', name: 'Мед', price: 25, description: 'Натуральная сладость' },
-      { id: 'lemon', name: 'Лимон', price: 20, description: 'Освежающий цитрусовый вкус' },
-    ]
-  },
-  { 
-    id: 'tiramisu', 
-    name: 'Тирамису', 
-    description: 'Классический итальянский десерт с кофе, маскарпоне и какао. Нежный и воздушный.',
-    basePrice: 280, 
-    image: '🍰',
-    category: 'desserts',
-    badges: ['Популярное', 'Новинка'],
-    prepTime: 'Готово',
-    popular: true,
-    new: true,
-    addons: [
-      { id: 'extra_coffee', name: 'Доп. кофе', price: 20, description: 'Более насыщенный вкус' },
-    ]
-  },
-  { 
-    id: 'croissant', 
-    name: 'Круассан', 
-    description: 'Слоеный французский круассан с хрустящей корочкой. Идеально к кофе.',
-    basePrice: 120, 
-    image: '🥐',
-    category: 'snacks',
-    badges: ['Классика'],
-    prepTime: 'Готово',
-    addons: [
-      { id: 'chocolate', name: 'Шоколад', price: 30, description: 'Шоколадная начинка' },
-      { id: 'jam', name: 'Джем', price: 25, description: 'Фруктовый джем' },
-    ]
-  },
+       const MENU: PremiumCoffeeItem[] = [
+         { 
+           id: 'latte', 
+           name: 'Латте', 
+           description: 'Нежный кофе с молоком и пенкой. Идеальный баланс кофе и молока для мягкого вкуса.',
+           basePrice: 220, 
+           image: CoffeeIcons.latte,
+           category: 'coffee',
+           badges: ['Популярное'],
+           prepTime: '3-5 мин',
+           popular: true,
+           addons: [
+             { id: 'syrup_caramel', name: 'Сироп карамель', price: 30, description: 'Сладкий карамельный вкус' },
+             { id: 'milk_almond', name: 'Миндальное молоко', price: 40, description: 'Безлактозная альтернатива' },
+             { id: 'extra_shot', name: 'Доп. шот эспрессо', price: 50, description: 'Более крепкий вкус' },
+           ]
+         },
+           { 
+           id: 'americano', 
+           name: 'Американо', 
+           description: 'Классический эспрессо с горячей водой. Чистый вкус кофе без лишних добавок.',
+           basePrice: 170, 
+           image: CoffeeIcons.americano,
+           category: 'coffee',
+           badges: ['Классика'],
+           prepTime: '2-3 мин',
+           addons: [
+             { id: 'extra_shot', name: 'Доп. шот эспрессо', price: 50, description: 'Усиленный вкус' },
+             { id: 'syrup_vanilla', name: 'Сироп ваниль', price: 30, description: 'Нежный ванильный аромат' },
+           ]
+         },
+           { 
+           id: 'cappuccino', 
+           name: 'Капучино', 
+           description: 'Эспрессо с молоком и молочной пенкой в равных пропорциях. Итальянская классика.',
+           basePrice: 210, 
+           image: CoffeeIcons.cappuccino,
+           category: 'coffee',
+           badges: ['Классика'],
+           prepTime: '4-6 мин',
+           addons: [
+             { id: 'syrup_vanilla', name: 'Сироп ваниль', price: 30, description: 'Классический ванильный вкус' },
+             { id: 'cinnamon', name: 'Корица', price: 15, description: 'Теплый пряный аромат' },
+           ]
+         },
+           { 
+           id: 'green_tea', 
+           name: 'Зеленый чай', 
+           description: 'Свежий зеленый чай с нежным травяным вкусом. Отличная альтернатива кофе.',
+           basePrice: 150, 
+           image: CoffeeIcons.greenTea,
+           category: 'tea',
+           badges: ['Здоровье'],
+           prepTime: '3-4 мин',
+           new: true,
+           addons: [
+             { id: 'honey', name: 'Мед', price: 25, description: 'Натуральная сладость' },
+             { id: 'lemon', name: 'Лимон', price: 20, description: 'Освежающий цитрусовый вкус' },
+           ]
+         },
+           { 
+           id: 'tiramisu', 
+           name: 'Тирамису', 
+           description: 'Классический итальянский десерт с кофе, маскарпоне и какао. Нежный и воздушный.',
+           basePrice: 280, 
+           image: CoffeeIcons.tiramisu,
+           category: 'desserts',
+           badges: ['Популярное', 'Новинка'],
+           prepTime: 'Готово',
+           popular: true,
+           new: true,
+           addons: [
+             { id: 'extra_coffee', name: 'Доп. кофе', price: 20, description: 'Более насыщенный вкус' },
+           ]
+         },
+           { 
+           id: 'croissant', 
+           name: 'Круассан', 
+           description: 'Слоеный французский круассан с хрустящей корочкой. Идеально к кофе.',
+           basePrice: 120, 
+           image: CoffeeIcons.croissant,
+           category: 'snacks',
+           badges: ['Классика'],
+           prepTime: 'Готово',
+           addons: [
+             { id: 'chocolate', name: 'Шоколад', price: 30, description: 'Шоколадная начинка' },
+             { id: 'jam', name: 'Джем', price: 25, description: 'Фруктовый джем' },
+           ]
+         },
 ];
 
 const BRANCHES = ['Центр', 'Юг', 'Север', 'Запад'];
