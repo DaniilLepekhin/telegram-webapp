@@ -53,10 +53,14 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         timestamp: Date.now()
       });
       
+      // Принудительно устанавливаем позицию
+      console.log('Setting modal position:', { top: `${topValue}px`, left: `${leftValue}px` });
+      
       if (clickPosition) {
         // Смещаем горизонтально в сторону клика, но не сильно
         const clickOffset = Math.min(100, Math.max(-100, (clickPosition.x - viewportWidth / 2) * 0.3));
         leftValue += clickOffset;
+        console.log('Click position detected, adjusting leftValue:', { clickPosition, clickOffset, finalLeftValue: leftValue });
       }
       
       // Проверяем, чтобы модальное окно не выходило за границы экрана
@@ -74,11 +78,14 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         leftValue = viewportWidth - modalWidth - 20;
       }
       
-      setModalPosition({ 
+      const finalPosition = { 
         top: `${topValue}px`, 
         left: `${leftValue}px`, 
         transform: 'none' 
-      });
+      };
+      
+      console.log('Final modal position:', finalPosition);
+      setModalPosition(finalPosition);
       
       return () => {
         // Плавно восстанавливаем скролл
