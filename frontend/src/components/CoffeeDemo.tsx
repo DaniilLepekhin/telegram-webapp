@@ -5,7 +5,7 @@ import CafeTheme from './cafe/CafeTheme';
        import CafeCartBar from './cafe/CafeCartBar';
        import CafeLoyalty from './cafe/CafeLoyalty';
        import ItemDetailModal from './cafe/ItemDetailModal';
-       import CoffeeIcons from './assets/images/coffee-icons';
+       import CoffeeIcons from '../assets/images/coffee-icons';
 
        const MENU: PremiumCoffeeItem[] = [
          { 
