@@ -45,8 +45,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
             const modalWidth = modalRect.width;
             
             // Вычисляем позицию, чтобы модалка была видна
-            let topValue = clickPosition.y;
-            let leftValue = clickPosition.x;
+            let topValue = clickPosition.y - 20;
+            let leftValue = clickPosition.x - (modalWidth / 2);
             
             // Проверяем, не выходит ли модалка за границы экрана
             if (topValue + modalHeight > viewportHeight - 20) {
@@ -120,7 +120,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         height: '100vh',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         zIndex: 999999,
-        padding: '16px',
+        padding: '12px',
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center'
@@ -132,9 +132,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           background: 'linear-gradient(180deg, rgba(30,41,59,0.96) 0%, rgba(15,23,42,0.96) 100%)',
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.15)',
-          width: '100%',
-          maxWidth: '560px',
-          maxHeight: 'calc(100vh - 32px)',
+          width: '90vw',
+          maxWidth: '480px',
+          maxHeight: '80vh',
           overflow: 'hidden',
           boxShadow: '0 25px 80px rgba(0, 0, 0, 0.5)',
           position: 'absolute',
@@ -147,7 +147,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         
         {/* Header */}
         <div style={{
-          padding: '16px 20px',
+          padding: '12px 16px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
           display: 'flex',
           alignItems: 'center',
@@ -155,15 +155,15 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 100%)',
           flexShrink: 0
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ 
-              width: '28px', 
-              height: '28px', 
-              borderRadius: '8px', 
+              width: '24px', 
+              height: '24px', 
+              borderRadius: '6px', 
               background: 'linear-gradient(135deg, #8b5cf6, #22d3ee)', 
-              boxShadow: '0 6px 16px rgba(34,211,238,0.35)' 
+              boxShadow: '0 4px 12px rgba(34,211,238,0.35)' 
             }} />
-            <h2 style={{ color: 'white', fontSize: '18px', fontWeight: 700, margin: 0 }}>{title}</h2>
+            <h2 style={{ color: 'white', fontSize: '16px', fontWeight: 600, margin: 0 }}>{title}</h2>
           </div>
           <button 
             onClick={onClose}
@@ -171,11 +171,11 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
               background: 'none',
               border: 'none',
               color: 'rgba(255, 255, 255, 0.6)',
-              fontSize: '24px',
+              fontSize: '20px',
               cursor: 'pointer',
               padding: '0',
-              width: '30px',
-              height: '30px',
+              width: '26px',
+              height: '26px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -191,8 +191,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         {/* Content */}
         <div style={{ 
           overflowY: 'auto',
-          maxHeight: 'calc(100vh - 120px)',
-          padding: '20px'
+          maxHeight: 'calc(80vh - 60px)',
+          padding: '16px'
         }}>
           {children}
         </div>
