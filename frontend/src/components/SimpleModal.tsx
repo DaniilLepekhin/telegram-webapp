@@ -42,14 +42,15 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       let leftValue = (viewportWidth - modalWidth) / 2 + 250;
       
       // Отладочная информация
-      console.log('Modal positioning:', {
+      console.log('Modal positioning v2:', {
         viewportHeight,
         viewportWidth,
         modalHeight,
         modalWidth,
         topValue,
         leftValue,
-        clickPosition
+        clickPosition,
+        timestamp: Date.now()
       });
       
       if (clickPosition) {
@@ -130,7 +131,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       <div 
         ref={modalRef}
         style={{
-          background: 'linear-gradient(180deg, rgba(30,41,59,0.96) 0%, rgba(15,23,42,0.96) 100%)',
+          background: 'linear-gradient(180deg, rgba(139,92,246,0.96) 0%, rgba(34,211,238,0.96) 100%)',
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.15)',
           width: '90vw',
