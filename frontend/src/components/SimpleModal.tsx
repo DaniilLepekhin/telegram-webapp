@@ -37,11 +37,11 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       const modalHeight = 400;
       const modalWidth = 480;
       
-      // Всегда центрируем по вертикали
-      let topValue = (viewportHeight - modalHeight) / 2;
+      // Центрируем по вертикали, но смещаем чуть вверх
+      let topValue = (viewportHeight - modalHeight) / 2 - 50;
       
-      // По горизонтали центрируем, но с небольшим смещением в сторону клика
-      let leftValue = (viewportWidth - modalWidth) / 2;
+      // По горизонтали центрируем, но смещаем вправо
+      let leftValue = (viewportWidth - modalWidth) / 2 + 80;
       
       if (clickPosition) {
         // Смещаем горизонтально в сторону клика, но не сильно
