@@ -4,7 +4,7 @@ import CafeTheme from './cafe/CafeTheme';
        import PremiumCafeMenu, { PremiumCoffeeItem } from './cafe/PremiumCafeMenu';
        import CafeCartBar from './cafe/CafeCartBar';
        import CafeLoyalty from './cafe/CafeLoyalty';
-       import ItemDetailModal from './cafe/ItemDetailModal';
+       import SimpleModal from './SimpleModal';
        import CoffeeIcons from '../assets/images/coffee-icons';
 
        const MENU: PremiumCoffeeItem[] = [
@@ -169,7 +169,10 @@ const CoffeeDemo: React.FC = () => {
     });
   };
 
-  const handleItemClick = (item: PremiumCoffeeItem) => {
+  const [clickPos, setClickPos] = useState<{x: number; y: number} | null>(null);
+  
+  const handleItemClick = (item: PremiumCoffeeItem, event: React.MouseEvent) => {
+    setClickPos({x: event.clientX, y: event.clientY});
     setSelectedItem(item);
     setIsDetailModalOpen(true);
   };
@@ -217,15 +220,154 @@ const CoffeeDemo: React.FC = () => {
       </div>
 
       {/* Модальное окно деталей блюда */}
-      <ItemDetailModal
-        item={selectedItem}
+      <SimpleModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        cart={cart}
-        onAdd={addItem}
-        onRemove={removeItem}
-        onToggleAddon={toggleAddon}
-      />
+        title={selectedItem?.name || 'Детали блюда'}
+        clickPosition={clickPos}
+      >
+        {selectedItem && (
+          <div className="space-y-6">
+            {/* Изображение и бейджи */}
+            <div className="relative">
+              <div className="w-full h-48 bg-gradient-to-br from-amber-600/30 to-amber-800/30 rounded-2xl flex items-center justify-center">
+                {typeof selectedItem.image === 'string' ? (
+                  <span className="text-8xl opacity-40">{selectedItem.image}</span>
+                ) : (
+                  <div className="opacity-80 scale-150">{selectedItem.image}</div>
+                )}
+              </div>
+              
+              {/* Бейджи */}
+              <div className="absolute top-4 left-4 flex flex-col gap-2">
+                {selectedItem.popular && (
+                  <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                    🔥 Популярное
+                  </div>
+                )}
+                {selectedItem.new && (
+                  <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                    ✨ Новинка
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Название и описание */}
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">{selectedItem.name}</h2>
+              <p className="text-white/70 leading-relaxed">{selectedItem.description}</p>
+              <div className="flex items-center gap-4 mt-3 text-sm text-white/60">
+                <span>⏱️ {selectedItem.prepTime}</span>
+                <span>💰 {selectedItem.basePrice} ₽</span>
+              </div>
+            </div>
+
+            {/* Быстрые пресеты */}
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">Быстрые пресеты</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => {
+                    // Классический - без дополнений
+                    Object.keys(cart[selectedItem.id]?.addons || {}).forEach(addonId => {
+                      if (cart[selectedItem.id]?.addons[addonId]) {
+                        onToggleAddon(selectedItem.id, addonId);
+                      }
+                    });
+                  }}
+                  className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-3 text-white text-sm transition-all duration-200 hover:scale-105"
+                >
+                  <div className="text-lg mb-1">☕</div>
+                  <div className="font-medium">Классический</div>
+                  <div className="text-xs text-white/60">Без дополнений</div>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    // Сладкий - с первым дополнением
+                    const firstAddon = selectedItem.addons[0];
+                    if (firstAddon) {
+                      if (!cart[selectedItem.id]?.addons[firstAddon.id]) {
+                        onToggleAddon(selectedItem.id, firstAddon.id);
+                      }
+                    }
+                  }}
+                  className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-3 text-white text-sm transition-all duration-200 hover:scale-105"
+                >
+                  <div className="text-lg mb-1">🍯</div>
+                  <div className="font-medium">Сладкий</div>
+                  <div className="text-xs text-white/60">С сиропом</div>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    // Премиум - все дополнения
+                    selectedItem.addons.forEach(addon => {
+                      if (!cart[selectedItem.id]?.addons[addon.id]) {
+                        onToggleAddon(selectedItem.id, addon.id);
+                      }
+                    });
+                  }}
+                  className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-3 text-white text-sm transition-all duration-200 hover:scale-105"
+                >
+                  <div className="text-lg mb-1">⭐</div>
+                  <div className="font-medium">Премиум</div>
+                  <div className="text-xs text-white/60">Все дополнения</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Дополнения */}
+            {selectedItem.addons.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Дополнения</h3>
+                <div className="space-y-3">
+                  {selectedItem.addons.map(addon => (
+                    <label key={addon.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-200">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={!!cart[selectedItem.id]?.addons[addon.id]}
+                          onChange={() => onToggleAddon(selectedItem.id, addon.id)}
+                          className="w-5 h-5 text-emerald-600 bg-white/10 border-white/20 rounded focus:ring-emerald-500 focus:ring-2"
+                        />
+                        <div>
+                          <div className="text-white font-medium">{addon.name}</div>
+                          <div className="text-white/60 text-sm">{addon.description}</div>
+                        </div>
+                      </div>
+                      <div className="text-emerald-400 font-semibold">+{addon.price} ₽</div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Управление количеством */}
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+              <div className="text-white font-medium">Количество</div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => onRemove(selectedItem.id)}
+                  className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all duration-200 hover:scale-110"
+                >
+                  -
+                </button>
+                <span className="text-white font-semibold text-lg min-w-[2ch] text-center">
+                  {cart[selectedItem.id]?.qty || 0}
+                </span>
+                <button
+                  onClick={() => onAdd(selectedItem.id)}
+                  className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 rounded-full flex items-center justify-center text-white transition-all duration-200 hover:scale-110 shadow-lg shadow-emerald-500/25"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </SimpleModal>
     </CafeTheme>
   );
 };

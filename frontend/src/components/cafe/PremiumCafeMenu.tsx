@@ -28,7 +28,7 @@ interface PremiumCafeMenuProps {
   onAdd: (itemId: string) => void;
   onRemove: (itemId: string) => void;
   onToggleAddon: (itemId: string, addonId: string) => void;
-  onItemClick: (item: PremiumCoffeeItem) => void;
+  onItemClick: (item: PremiumCoffeeItem, event: React.MouseEvent) => void;
 }
 
 const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({ 
@@ -75,7 +75,7 @@ const PremiumCafeMenu: React.FC<PremiumCafeMenuProps> = ({
           <div 
             key={item.id} 
             className="group cursor-pointer"
-            onClick={() => onItemClick(item)}
+            onClick={(e) => onItemClick(item, e)}
           >
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-3xl p-4 transition-all duration-500 hover:bg-white/20 hover:border-white/40 hover:shadow-2xl hover:shadow-purple-500/30 hover:-translate-y-2 hover:scale-105 group-hover:shadow-2xl group-hover:shadow-purple-500/20">
               {/* Изображение */}
