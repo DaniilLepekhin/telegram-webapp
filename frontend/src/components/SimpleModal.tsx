@@ -29,74 +29,46 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       document.body.style.overflow = 'hidden';
       document.body.style.width = '100%';
       
-      // Сразу устанавливаем правильную позицию, чтобы избежать "прыжков"
+      // Всегда центрируем модальное окно по экрану, но с небольшим смещением в сторону клика
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      
+      // Базовые размеры модального окна
+      const modalHeight = 400;
+      const modalWidth = 480;
+      
+      // Всегда центрируем по вертикали
+      let topValue = (viewportHeight - modalHeight) / 2;
+      
+      // По горизонтали центрируем, но с небольшим смещением в сторону клика
+      let leftValue = (viewportWidth - modalWidth) / 2;
+      
       if (clickPosition) {
-        const viewportHeight = window.innerHeight;
-        const viewportWidth = window.innerWidth;
-        
-        // Предполагаемые размеры модального окна (примерные)
-        const estimatedModalHeight = 400;
-        const estimatedModalWidth = 480;
-        
-        let topValue = clickPosition.y - 20;
-        let leftValue = clickPosition.x - (estimatedModalWidth / 2);
-        
-        // Проверяем границы экрана
-        if (topValue + estimatedModalHeight > viewportHeight - 20) {
-          topValue = viewportHeight - estimatedModalHeight - 20;
-        }
-        if (topValue < 20) {
-          topValue = 20;
-        }
-        
-        if (leftValue + estimatedModalWidth > viewportWidth - 20) {
-          leftValue = viewportWidth - estimatedModalWidth - 20;
-        }
-        if (leftValue < 20) {
-          leftValue = 20;
-        }
-        
-        setModalPosition({ 
-          top: `${topValue}px`, 
-          left: `${leftValue}px`, 
-          transform: 'none' 
-        });
-      } else if (triggerElement) {
-        const triggerRect = triggerElement.getBoundingClientRect();
-        const estimatedModalHeight = 400;
-        const estimatedModalWidth = 480;
-        
-        let topValue = triggerRect.bottom + 10;
-        let leftValue = triggerRect.left + (triggerRect.width / 2) - (estimatedModalWidth / 2);
-        
-        // Проверяем границы экрана
-        if (topValue + estimatedModalHeight > window.innerHeight - 20) {
-          topValue = triggerRect.top - estimatedModalHeight - 10;
-        }
-        if (topValue < 20) {
-          topValue = 20;
-        }
-        
-        if (leftValue < 20) {
-          leftValue = 20;
-        }
-        if (leftValue + estimatedModalWidth > window.innerWidth - 20) {
-          leftValue = window.innerWidth - estimatedModalWidth - 20;
-        }
-        
-        setModalPosition({ 
-          top: `${topValue}px`, 
-          left: `${leftValue}px`, 
-          transform: 'none' 
-        });
-      } else {
-        // Центрируем по умолчанию
-        setModalPosition({ 
-          top: '50%', 
-          left: '50%', 
-          transform: 'translate(-50%, -50%)' 
-        });
+        // Смещаем горизонтально в сторону клика, но не сильно
+        const clickOffset = Math.min(100, Math.max(-100, (clickPosition.x - viewportWidth / 2) * 0.3));
+        leftValue += clickOffset;
       }
+      
+      // Проверяем, чтобы модальное окно не выходило за границы экрана
+      if (topValue < 20) {
+        topValue = 20;
+      }
+      if (topValue + modalHeight > viewportHeight - 20) {
+        topValue = viewportHeight - modalHeight - 20;
+      }
+      
+      if (leftValue < 20) {
+        leftValue = 20;
+      }
+      if (leftValue + modalWidth > viewportWidth - 20) {
+        leftValue = viewportWidth - modalWidth - 20;
+      }
+      
+      setModalPosition({ 
+        top: `${topValue}px`, 
+        left: `${leftValue}px`, 
+        transform: 'none' 
+      });
       
       return () => {
         // Плавно восстанавливаем скролл
@@ -120,11 +92,11 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
     @keyframes modalFadeIn {
       from {
         opacity: 0;
-        transform: ${modalPosition.transform === 'translate(-50%, -50%)' ? 'translate(-50%, -50%) scale(0.9)' : 'scale(0.9)'};
+        transform: scale(0.9);
       }
       to {
         opacity: 1;
-        transform: ${modalPosition.transform === 'translate(-50%, -50%)' ? 'translate(-50%, -50%) scale(1)' : 'scale(1)'};
+        transform: scale(1);
       }
     }
   `;
