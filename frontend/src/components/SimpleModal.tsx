@@ -37,9 +37,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       const modalHeight = 400;
       const modalWidth = 480;
       
-      // Строго центрируем модальное окно по экрану
-      let topValue = (viewportHeight - modalHeight) / 2;
-      let leftValue = (viewportWidth - modalWidth) / 2 + 250;
+      // Строго центрируем модальное окно по экрану, но поднимаем выше и сдвигаем вправо
+      let topValue = (viewportHeight - modalHeight) / 2 - (viewportHeight * 0.2); // Поднимаем на 20% выше
+      let leftValue = (viewportWidth - modalWidth) / 2 + 300; // Увеличиваем смещение вправо
       
       // Отладочная информация
       console.log('Modal positioning v2:', {
@@ -57,8 +57,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       console.log('Setting modal position:', { top: `${topValue}px`, left: `${leftValue}px` });
       
       if (clickPosition) {
-        // Смещаем горизонтально в сторону клика, но не сильно
-        const clickOffset = Math.min(100, Math.max(-100, (clickPosition.x - viewportWidth / 2) * 0.3));
+        // Смещаем горизонтально в сторону клика, но НЕ перезаписываем базовое смещение вправо
+        // Только небольшое корректирующее смещение
+        const clickOffset = Math.min(50, Math.max(-50, (clickPosition.x - viewportWidth / 2) * 0.1));
         leftValue += clickOffset;
         console.log('Click position detected, adjusting leftValue:', { clickPosition, clickOffset, finalLeftValue: leftValue });
       }
