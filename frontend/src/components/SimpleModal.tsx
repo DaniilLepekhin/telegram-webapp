@@ -23,12 +23,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
-  const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-
   const computeAndSetPosition = useCallback(() => {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const margin = 16; // безопасный отступ от краев
 
     // СТРОГО МАТЕМАТИЧЕСКИЙ ЦЕНТР - никаких смещений!
     const targetX = viewportWidth / 2;
@@ -45,12 +42,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       if (rect.height > 0) modalHeight = Math.ceil(rect.height);
     }
 
-    // Вычисляем координаты так, чтобы модалка была по центру таргета и не выходила за края
-    let leftValue = Math.round(targetX - modalWidth / 2);
-    let topValue = Math.round(targetY - modalHeight / 2);
-
-    leftValue = clamp(leftValue, margin, viewportWidth - modalWidth - margin);
-    topValue = clamp(topValue, margin, viewportHeight - modalHeight - margin);
+    // ЧИСТОЕ ЦЕНТРИРОВАНИЕ без clamp - модалка точно по центру
+    const leftValue = Math.round(targetX - modalWidth / 2);
+    const topValue = Math.round(targetY - modalHeight / 2);
 
     const finalPosition = {
       top: `${topValue}px`,
@@ -66,11 +60,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       console.log('[Modal] size', { modalWidth, modalHeight });
       console.log('[Modal] target (PURE CENTER)', { targetX, targetY });
       console.log('[Modal] calculated', { leftValue, topValue });
-      console.log('[Modal] clamp check', { 
-        leftMin: margin, 
-        leftMax: viewportWidth - modalWidth - margin,
-        topMin: margin,
-        topMax: viewportHeight - modalHeight - margin
+      console.log('[Modal] should be PURE CENTER:', { 
+        expectedLeft: targetX - modalWidth / 2,
+        expectedTop: targetY - modalHeight / 2
       });
       console.log('[Modal] final', finalPosition);
     } catch (_) {}
