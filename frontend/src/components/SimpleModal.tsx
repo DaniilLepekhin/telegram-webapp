@@ -30,16 +30,34 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
     const viewportHeight = window.innerHeight;
     const margin = 16; // безопасный отступ от краев
 
-    // Базовая точка притяжения: центр экрана
-    let targetX = viewportWidth / 2;
-    let targetY = viewportHeight / 2;
+    // Центр экрана
+    const centerX = viewportWidth / 2;
+    const centerY = viewportHeight / 2;
 
-    // Легкое смещение к клику, если он есть
-    if (clickPosition) {
-      const bias = 0.25; // 25% смещение к месту клика
-      targetX = targetX * (1 - bias) + clickPosition.x * bias;
-      targetY = targetY * (1 - bias) + clickPosition.y * bias;
+    // Определяем якорь: клик или центр триггер-элемента
+    let anchorX = centerX;
+    let anchorY = centerY;
+    if (clickPosition && typeof clickPosition.x === 'number' && typeof clickPosition.y === 'number') {
+      anchorX = clickPosition.x;
+      anchorY = clickPosition.y;
+    } else if (triggerElement) {
+      try {
+        const rect = triggerElement.getBoundingClientRect();
+        anchorX = rect.left + rect.width / 2;
+        anchorY = rect.top + rect.height / 2;
+      } catch (_) {}
     }
+
+    // Мягкое притяжение к якорю
+    const biasX = 0.22;
+    const biasY = 0.22;
+    const targetX = centerX + (anchorX - centerX) * biasX;
+    const targetYBase = centerY + (anchorY - centerY) * biasY;
+
+    // Адаптивный лифт: если клик ниже середины — приподнимаем сильнее (до 15% vh)
+    const liftFactor = 0.15;
+    const lift = liftFactor * viewportHeight * Math.max(0, (anchorY - viewportHeight * 0.4) / (viewportHeight * 0.6));
+    const targetY = targetYBase - lift;
 
     // Реальные размеры модалки
     const node = modalRef.current;
@@ -54,7 +72,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
 
     // Вычисляем координаты так, чтобы модалка была по центру таргета и не выходила за края
     let leftValue = Math.round(targetX - modalWidth / 2);
-    let topValue = Math.round(targetY - modalHeight / 2 - viewportHeight * 0.15); // поднять на 15%
+    let topValue = Math.round(targetY - modalHeight / 2);
 
     leftValue = clamp(leftValue, margin, viewportWidth - modalWidth - margin);
     topValue = clamp(topValue, margin, viewportHeight - modalHeight - margin);
@@ -71,10 +89,11 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
     try {
       console.log('[Modal] viewport', { viewportWidth, viewportHeight });
       console.log('[Modal] size', { modalWidth, modalHeight });
-      console.log('[Modal] target', { targetX, targetY });
+      console.log('[Modal] anchor', { anchorX, anchorY });
+      console.log('[Modal] target', { targetX, targetY, lift });
       console.log('[Modal] final', finalPosition);
     } catch (_) {}
-  }, [clickPosition]);
+  }, [clickPosition, triggerElement]);
 
   useEffect(() => {
     if (isOpen) {
