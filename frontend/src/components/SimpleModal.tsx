@@ -28,6 +28,13 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       // Плавно блокируем скролл без резких изменений
       document.body.style.overflow = 'hidden';
       document.body.style.width = '100%';
+      // Telegram WebApp: разворачиваем и активируем системные элементы
+      const tg = (window as any).Telegram?.WebApp;
+      try {
+        tg?.expand?.();
+        tg?.BackButton?.show?.();
+        tg?.HapticFeedback?.impactOccurred?.('medium');
+      } catch (_) {}
       
       // Всегда центрируем модальное окно по экрану, но с небольшим смещением в сторону клика
       const viewportHeight = window.innerHeight;
@@ -38,7 +45,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       const modalWidth = 480;
       
       // Строго центрируем модальное окно по экрану, но поднимаем выше и сдвигаем вправо
-      let topValue = (viewportHeight - modalHeight) / 2 - (viewportHeight * 0.2); // Поднимаем на 20% выше
+      let topValue = (viewportHeight - modalHeight) / 2 - (viewportHeight * 0.15); // Поднимаем на 15% выше
       let leftValue = (viewportWidth - modalWidth) / 2 + 300; // Увеличиваем смещение вправо
       
       // Отладочная информация
@@ -86,6 +93,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       };
       
       console.log('Final modal position:', finalPosition);
+      console.log('Raw values - topValue:', topValue, 'leftValue:', leftValue);
+      console.log('Calculations - viewportWidth:', viewportWidth, 'modalWidth:', modalWidth, 'center:', (viewportWidth - modalWidth) / 2, 'offset:', 300);
+      
       setModalPosition(finalPosition);
       
       return () => {
@@ -97,9 +107,26 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         // Удаляем добавленные стили
         const addedStyles = document.querySelectorAll('style[data-modal-animation]');
         addedStyles.forEach(style => style.remove());
+
+        // Telegram WebApp: скрываем BackButton и снимаем обработчики
+        try {
+          tg?.BackButton?.hide?.();
+          tg?.offEvent?.('backButtonClicked', onClose);
+        } catch (_) {}
       };
     }
   }, [isOpen, clickPosition, triggerElement]);
+
+  // Отдельно подписываемся на backButtonClicked при открытии
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (isOpen && tg?.onEvent) {
+      tg.onEvent('backButtonClicked', onClose);
+      return () => {
+        try { tg.offEvent('backButtonClicked', onClose); } catch (_) {}
+      };
+    }
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -127,7 +154,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         top: 0,
         left: 0,
         width: '100vw',
-        height: '100vh',
+        height: '100dvh',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         zIndex: 999999,
         padding: '12px',
@@ -147,7 +174,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           maxHeight: '80vh',
           overflow: 'hidden',
           boxShadow: '0 25px 80px rgba(0, 0, 0, 0.5)',
-          position: 'absolute',
+          position: 'fixed',
           top: modalPosition.top,
           left: modalPosition.left,
           transform: modalPosition.transform,

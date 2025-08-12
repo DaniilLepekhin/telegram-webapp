@@ -45,3 +45,4 @@ const CafeMenu: React.FC<CafeMenuProps> = ({ items, cart, onAdd, onRemove, onTog
 export default CafeMenu;
 
 
+

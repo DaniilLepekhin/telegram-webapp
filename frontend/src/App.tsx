@@ -38,6 +38,13 @@ function App() {
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
       webApp.ready();
+      // Лучшие практики: мгновенно разворачиваем, подхватываем тему и настраиваем цвет фона
+      try {
+        webApp.expand();
+        const theme = (webApp as any).themeParams || {};
+        const bgColor = theme.bg_color || '#0f172a';
+        document.body.style.backgroundColor = bgColor;
+      } catch (_) {}
       // Если пришли через deep-link t.me/<bot>/app?startapp=TOKEN — отправим TOKEN на backend и сразу уйдём в redirect
       try {
         const url = new URL(window.location.href);

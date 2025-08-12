@@ -17,3 +17,4 @@ const CafeLoyalty: React.FC<CafeLoyaltyProps> = ({ code }) => {
 export default CafeLoyalty;
 
 
+

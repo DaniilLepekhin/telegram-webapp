@@ -42,3 +42,4 @@ bot.on('error', (error) => {
 });
 
 console.log('🚀 Bot is ready. Send any message!');
+
