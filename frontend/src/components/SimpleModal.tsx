@@ -48,15 +48,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       } catch (_) {}
     }
 
-    // Горизонталь: по умолчанию центр. Смещаем только если клик у краев
-    // Левая зона: < 20% ширины, Правая зона: > 80% ширины
-    let targetX = centerX;
-    const edgeOffsetX = viewportWidth * 0.15; // на сколько смещать от центра
-    if (anchorX < viewportWidth * 0.2) {
-      targetX = centerX - edgeOffsetX;
-    } else if (anchorX > viewportWidth * 0.8) {
-      targetX = centerX + edgeOffsetX;
-    }
+    // Горизонталь: ВСЕГДА строго по центру экрана, без смещений
+    const targetX = centerX;
 
     // Вертикаль: поднимаем только если клик ниже 70% высоты экрана
     let targetY = centerY;
