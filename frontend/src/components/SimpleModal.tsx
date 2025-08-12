@@ -48,16 +48,27 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       } catch (_) {}
     }
 
-    // Мягкое притяжение к якорю
-    const biasX = 0.22;
-    const biasY = 0.22;
-    const targetX = centerX + (anchorX - centerX) * biasX;
-    const targetYBase = centerY + (anchorY - centerY) * biasY;
+    // Горизонталь: по умолчанию центр. Смещаем только если клик у краев
+    // Левая зона: < 20% ширины, Правая зона: > 80% ширины
+    let targetX = centerX;
+    const edgeOffsetX = viewportWidth * 0.15; // на сколько смещать от центра
+    if (anchorX < viewportWidth * 0.2) {
+      targetX = centerX - edgeOffsetX;
+    } else if (anchorX > viewportWidth * 0.8) {
+      targetX = centerX + edgeOffsetX;
+    }
 
-    // Адаптивный лифт: если клик ниже середины — приподнимаем сильнее (до 15% vh)
-    const liftFactor = 0.15;
-    const lift = liftFactor * viewportHeight * Math.max(0, (anchorY - viewportHeight * 0.4) / (viewportHeight * 0.6));
-    const targetY = targetYBase - lift;
+    // Вертикаль: поднимаем только если клик ниже 70% высоты экрана
+    let targetY = centerY;
+    if (anchorY > viewportHeight * 0.7) {
+      const maxLift = viewportHeight * 0.18; // максимум 18% vh
+      // Чем ниже клик, тем больше лифт (от 0 до maxLift)
+      const t = (anchorY - viewportHeight * 0.7) / (viewportHeight * 0.3);
+      targetY = centerY - maxLift * Math.max(0, Math.min(1, t));
+    } else if (anchorY < viewportHeight * 0.3) {
+      // Если клик высоко, слегка опускаем, чтобы не прилипало к верху
+      targetY = centerY + viewportHeight * 0.06;
+    }
 
     // Реальные размеры модалки
     const node = modalRef.current;
@@ -90,7 +101,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       console.log('[Modal] viewport', { viewportWidth, viewportHeight });
       console.log('[Modal] size', { modalWidth, modalHeight });
       console.log('[Modal] anchor', { anchorX, anchorY });
-      console.log('[Modal] target', { targetX, targetY, lift });
+      console.log('[Modal] target', { targetX, targetY });
       console.log('[Modal] final', finalPosition);
     } catch (_) {}
   }, [clickPosition, triggerElement]);
