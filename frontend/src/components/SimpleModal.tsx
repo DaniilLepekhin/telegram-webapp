@@ -30,38 +30,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
     const viewportHeight = window.innerHeight;
     const margin = 16; // безопасный отступ от краев
 
-    // Центр экрана
-    const centerX = viewportWidth / 2;
-    const centerY = viewportHeight / 2;
-
-    // Определяем якорь: клик или центр триггер-элемента
-    let anchorX = centerX;
-    let anchorY = centerY;
-    if (clickPosition && typeof clickPosition.x === 'number' && typeof clickPosition.y === 'number') {
-      anchorX = clickPosition.x;
-      anchorY = clickPosition.y;
-    } else if (triggerElement) {
-      try {
-        const rect = triggerElement.getBoundingClientRect();
-        anchorX = rect.left + rect.width / 2;
-        anchorY = rect.top + rect.height / 2;
-      } catch (_) {}
-    }
-
-    // Горизонталь: ВСЕГДА строго по центру экрана, без смещений
-    const targetX = centerX;
-
-    // Вертикаль: поднимаем только если клик ниже 70% высоты экрана
-    let targetY = centerY;
-    if (anchorY > viewportHeight * 0.7) {
-      const maxLift = viewportHeight * 0.18; // максимум 18% vh
-      // Чем ниже клик, тем больше лифт (от 0 до maxLift)
-      const t = (anchorY - viewportHeight * 0.7) / (viewportHeight * 0.3);
-      targetY = centerY - maxLift * Math.max(0, Math.min(1, t));
-    } else if (anchorY < viewportHeight * 0.3) {
-      // Если клик высоко, слегка опускаем, чтобы не прилипало к верху
-      targetY = centerY + viewportHeight * 0.06;
-    }
+    // СТРОГО МАТЕМАТИЧЕСКИЙ ЦЕНТР - никаких смещений!
+    const targetX = viewportWidth / 2;
+    const targetY = viewportHeight / 2;
 
     // Реальные размеры модалки
     const node = modalRef.current;
@@ -93,11 +64,10 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
     try {
       console.log('[Modal] viewport', { viewportWidth, viewportHeight });
       console.log('[Modal] size', { modalWidth, modalHeight });
-      console.log('[Modal] anchor', { anchorX, anchorY });
-      console.log('[Modal] target', { targetX, targetY });
+      console.log('[Modal] target (PURE CENTER)', { targetX, targetY });
       console.log('[Modal] final', finalPosition);
     } catch (_) {}
-  }, [clickPosition, triggerElement]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -157,7 +127,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         }
       };
     }
-  }, [isOpen, clickPosition, triggerElement, computeAndSetPosition]);
+  }, [isOpen, computeAndSetPosition]);
 
   // Отдельно подписываемся на backButtonClicked при открытии
   useEffect(() => {
