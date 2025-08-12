@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
 interface SimpleModalProps {
@@ -19,7 +19,62 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
   clickPosition 
 }) => {
   const [modalPosition, setModalPosition] = useState({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
+  const [isMeasuring, setIsMeasuring] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+
+  const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+  const computeAndSetPosition = useCallback(() => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 16; // безопасный отступ от краев
+
+    // Базовая точка притяжения: центр экрана
+    let targetX = viewportWidth / 2;
+    let targetY = viewportHeight / 2;
+
+    // Легкое смещение к клику, если он есть
+    if (clickPosition) {
+      const bias = 0.25; // 25% смещение к месту клика
+      targetX = targetX * (1 - bias) + clickPosition.x * bias;
+      targetY = targetY * (1 - bias) + clickPosition.y * bias;
+    }
+
+    // Реальные размеры модалки
+    const node = modalRef.current;
+    let modalWidth = 480;
+    let modalHeight = 400;
+    if (node) {
+      const rect = node.getBoundingClientRect();
+      // Если модалка в offscreen-режиме — размеры уже валидны
+      if (rect.width > 0) modalWidth = Math.ceil(rect.width);
+      if (rect.height > 0) modalHeight = Math.ceil(rect.height);
+    }
+
+    // Вычисляем координаты так, чтобы модалка была по центру таргета и не выходила за края
+    let leftValue = Math.round(targetX - modalWidth / 2);
+    let topValue = Math.round(targetY - modalHeight / 2 - viewportHeight * 0.15); // поднять на 15%
+
+    leftValue = clamp(leftValue, margin, viewportWidth - modalWidth - margin);
+    topValue = clamp(topValue, margin, viewportHeight - modalHeight - margin);
+
+    const finalPosition = {
+      top: `${topValue}px`,
+      left: `${leftValue}px`,
+      transform: 'none'
+    };
+
+    setModalPosition(finalPosition);
+
+    // Диагностика
+    try {
+      console.log('[Modal] viewport', { viewportWidth, viewportHeight });
+      console.log('[Modal] size', { modalWidth, modalHeight });
+      console.log('[Modal] target', { targetX, targetY });
+      console.log('[Modal] final', finalPosition);
+    } catch (_) {}
+  }, [clickPosition]);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,68 +90,25 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         tg?.BackButton?.show?.();
         tg?.HapticFeedback?.impactOccurred?.('medium');
       } catch (_) {}
-      
-      // Всегда центрируем модальное окно по экрану, но с небольшим смещением в сторону клика
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
-      
-      // Базовые размеры модального окна
-      const modalHeight = 400;
-      const modalWidth = 480;
-      
-      // Строго центрируем модальное окно по экрану, но поднимаем выше и сдвигаем вправо
-      let topValue = (viewportHeight - modalHeight) / 2 - (viewportHeight * 0.15); // Поднимаем на 15% выше
-      let leftValue = (viewportWidth - modalWidth) / 2 + 300; // Увеличиваем смещение вправо
-      
-      // Отладочная информация
-      console.log('Modal positioning v2:', {
-        viewportHeight,
-        viewportWidth,
-        modalHeight,
-        modalWidth,
-        topValue,
-        leftValue,
-        clickPosition,
-        timestamp: Date.now()
+
+      // Инициализируем измерение после монтирования DOM-узла
+      setIsMeasuring(true);
+      requestAnimationFrame(() => {
+        computeAndSetPosition();
+        setIsMeasuring(false);
       });
-      
-      // Принудительно устанавливаем позицию
-      console.log('Setting modal position:', { top: `${topValue}px`, left: `${leftValue}px` });
-      
-      if (clickPosition) {
-        // Смещаем горизонтально в сторону клика, но НЕ перезаписываем базовое смещение вправо
-        // Только небольшое корректирующее смещение
-        const clickOffset = Math.min(50, Math.max(-50, (clickPosition.x - viewportWidth / 2) * 0.1));
-        leftValue += clickOffset;
-        console.log('Click position detected, adjusting leftValue:', { clickPosition, clickOffset, finalLeftValue: leftValue });
+
+      // Отслеживаем изменение размеров модалки (динамический контент)
+      if (modalRef.current && 'ResizeObserver' in window) {
+        resizeObserverRef.current = new ResizeObserver(() => computeAndSetPosition());
+        resizeObserverRef.current.observe(modalRef.current);
       }
-      
-      // Проверяем, чтобы модальное окно не выходило за границы экрана
-      if (topValue < 20) {
-        topValue = 20;
-      }
-      if (topValue + modalHeight > viewportHeight - 20) {
-        topValue = viewportHeight - modalHeight - 20;
-      }
-      
-      if (leftValue < 20) {
-        leftValue = 20;
-      }
-      if (leftValue + modalWidth > viewportWidth - 20) {
-        leftValue = viewportWidth - modalWidth - 20;
-      }
-      
-      const finalPosition = { 
-        top: `${topValue}px`, 
-        left: `${leftValue}px`, 
-        transform: 'none' 
-      };
-      
-      console.log('Final modal position:', finalPosition);
-      console.log('Raw values - topValue:', topValue, 'leftValue:', leftValue);
-      console.log('Calculations - viewportWidth:', viewportWidth, 'modalWidth:', modalWidth, 'center:', (viewportWidth - modalWidth) / 2, 'offset:', 300);
-      
-      setModalPosition(finalPosition);
+
+      // Реагируем на изменение вьюпорта
+      const handleReposition = () => computeAndSetPosition();
+      window.addEventListener('resize', handleReposition);
+      window.addEventListener('orientationchange', handleReposition);
+      tg?.onEvent?.('viewportChanged', handleReposition);
       
       return () => {
         // Плавно восстанавливаем скролл
@@ -112,10 +124,17 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         try {
           tg?.BackButton?.hide?.();
           tg?.offEvent?.('backButtonClicked', onClose);
+          tg?.offEvent?.('viewportChanged', handleReposition);
         } catch (_) {}
+
+        window.removeEventListener('resize', handleReposition);
+        window.removeEventListener('orientationchange', handleReposition);
+        if (resizeObserverRef.current && modalRef.current) {
+          try { resizeObserverRef.current.unobserve(modalRef.current); } catch (_) {}
+        }
       };
     }
-  }, [isOpen, clickPosition, triggerElement]);
+  }, [isOpen, clickPosition, triggerElement, computeAndSetPosition]);
 
   // Отдельно подписываемся на backButtonClicked при открытии
   useEffect(() => {
@@ -169,9 +188,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           background: 'linear-gradient(180deg, rgba(139,92,246,0.96) 0%, rgba(34,211,238,0.96) 100%)',
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.15)',
-          width: '90vw',
-          maxWidth: '480px',
-          maxHeight: '80vh',
+          width: 'min(92vw, 520px)',
+          maxHeight: 'min(84dvh, 80vh)',
           overflow: 'hidden',
           boxShadow: '0 25px 80px rgba(0, 0, 0, 0.5)',
           position: 'fixed',
@@ -180,7 +198,10 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           transform: modalPosition.transform,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           opacity: 0,
-          animation: 'modalFadeIn 0.3s ease-out forwards'
+          animation: 'modalFadeIn 0.3s ease-out forwards',
+          // Во время измерения переносим за пределы экрана, сохраняя реальный размер
+          visibility: isMeasuring ? 'hidden' : 'visible',
+          ...(isMeasuring ? { top: '-10000px', left: '-10000px' } : {})
         }} 
         onClick={(e) => e.stopPropagation()}>
         
