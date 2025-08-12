@@ -65,6 +65,13 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       console.log('[Modal] viewport', { viewportWidth, viewportHeight });
       console.log('[Modal] size', { modalWidth, modalHeight });
       console.log('[Modal] target (PURE CENTER)', { targetX, targetY });
+      console.log('[Modal] calculated', { leftValue, topValue });
+      console.log('[Modal] clamp check', { 
+        leftMin: margin, 
+        leftMax: viewportWidth - modalWidth - margin,
+        topMin: margin,
+        topMax: viewportHeight - modalHeight - margin
+      });
       console.log('[Modal] final', finalPosition);
     } catch (_) {}
   }, []);
@@ -168,11 +175,7 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
         width: '100vw',
         height: '100dvh',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        zIndex: 999999,
-        padding: '12px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center'
+        zIndex: 999999
       }} 
       onClick={onClose}>
       <div 
