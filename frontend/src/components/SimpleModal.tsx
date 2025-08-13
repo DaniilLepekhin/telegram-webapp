@@ -20,6 +20,8 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
 }) => {
   const [modalPosition, setModalPosition] = useState({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
   const [isMeasuring, setIsMeasuring] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<string>('');
+  const [copied, setCopied] = useState<boolean>(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
@@ -66,6 +68,27 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
       });
       console.log('[Modal] final', finalPosition);
     } catch (_) {}
+
+    // Собираем и сохраняем диагностику в UI (после отрисовки позиции)
+    requestAnimationFrame(() => {
+      try {
+        const node = modalRef.current;
+        const rect = node ? node.getBoundingClientRect() : null;
+        const cs = node ? getComputedStyle(node) : null;
+        const expectedLeft = Math.round(targetX - (rect?.width || 0) / 2);
+        const expectedTop = Math.round(targetY - (rect?.height || 0) / 2);
+        const payload = {
+          viewport: { width: viewportWidth, height: viewportHeight },
+          rect: rect ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height } : null,
+          styles: cs ? { position: cs.position, left: cs.left, top: cs.top, transform: cs.transform, width: cs.width, maxWidth: cs.maxWidth } : null,
+          expected: { left: expectedLeft, top: expectedTop },
+          deltas: rect ? { dx: Math.round(rect.left - expectedLeft), dy: Math.round(rect.top - expectedTop) } : null,
+          applied: finalPosition,
+          ts: Date.now()
+        };
+        setDiagnostics(JSON.stringify(payload, null, 2));
+      } catch (_) {}
+    });
   }, []);
 
   useEffect(() => {
@@ -243,6 +266,49 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           padding: '16px'
         }}>
           {children}
+        </div>
+
+        {/* Diagnostics Panel */}
+        <div style={{
+          borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+          background: 'rgba(0,0,0,0.15)',
+          padding: '10px 12px',
+          color: 'rgba(255,255,255,0.8)',
+          fontSize: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div style={{ fontWeight: 600, opacity: 0.9 }}>Diagnostics</div>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  await navigator.clipboard.writeText(diagnostics || '');
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
+                } catch (_) {}
+              }}
+              style={{
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.9), rgba(34,211,238,0.9))',
+                border: 'none',
+                color: '#fff',
+                fontSize: '12px',
+                padding: '6px 10px',
+                borderRadius: '10px',
+                cursor: 'pointer'
+              }}
+            >
+              {copied ? 'Скопировано' : 'Скопировать'}
+            </button>
+          </div>
+          <pre style={{
+            margin: 0,
+            maxHeight: '160px',
+            overflow: 'auto',
+            background: 'rgba(255,255,255,0.06)',
+            borderRadius: '8px',
+            padding: '8px',
+            color: '#fff'
+          }}>{diagnostics || '{ }'}</pre>
         </div>
       </div>
     </div>
