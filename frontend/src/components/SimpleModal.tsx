@@ -168,15 +168,9 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
   const style = document.createElement('style');
   style.setAttribute('data-modal-animation', 'true');
   style.textContent = `
-    @keyframes modalFadeIn {
-      from {
-        opacity: 0;
-        transform: scale(0.9);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+    @keyframes modalFadeInOpacity {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   `;
   document.head.appendChild(style);
@@ -207,9 +201,10 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           top: modalPosition.top,
           left: modalPosition.left,
           transform: modalPosition.transform,
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'opacity 0.18s ease-out, box-shadow 0.3s ease',
           opacity: 0,
-          animation: 'modalFadeIn 0.3s ease-out forwards',
+          animation: 'modalFadeInOpacity 0.18s ease-out forwards',
+          transformOrigin: 'top left',
           // Во время измерения переносим за пределы экрана, сохраняя реальный размер
           visibility: isMeasuring ? 'hidden' : 'visible',
           ...(isMeasuring ? { top: '-10000px', left: '-10000px' } : {})
