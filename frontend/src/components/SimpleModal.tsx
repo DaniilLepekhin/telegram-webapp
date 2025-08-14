@@ -259,56 +259,57 @@ const SimpleModal: React.FC<SimpleModalProps> = ({
           </button>
         </div>
         
-        {/* Content */}
+        {/* Content (+ Diagnostics inside scrollable area) */}
         <div style={{ 
           overflowY: 'auto',
           maxHeight: 'calc(80vh - 60px)',
           padding: '16px'
         }}>
           {children}
-        </div>
 
-        {/* Diagnostics Panel */}
-        <div style={{
-          borderTop: '1px solid rgba(255, 255, 255, 0.12)',
-          background: 'rgba(0,0,0,0.15)',
-          padding: '10px 12px',
-          color: 'rgba(255,255,255,0.8)',
-          fontSize: '12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <div style={{ fontWeight: 600, opacity: 0.9 }}>Diagnostics</div>
-            <button
-              onClick={async (e) => {
-                e.stopPropagation();
-                try {
-                  await navigator.clipboard.writeText(diagnostics || '');
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1500);
-                } catch (_) {}
-              }}
-              style={{
-                background: 'linear-gradient(135deg, rgba(139,92,246,0.9), rgba(34,211,238,0.9))',
-                border: 'none',
-                color: '#fff',
-                fontSize: '12px',
-                padding: '6px 10px',
-                borderRadius: '10px',
-                cursor: 'pointer'
-              }}
-            >
-              {copied ? 'Скопировано' : 'Скопировать'}
-            </button>
+          <div style={{
+            marginTop: '12px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+            background: 'rgba(0,0,0,0.12)',
+            padding: '10px 12px',
+            color: 'rgba(255,255,255,0.8)',
+            fontSize: '12px',
+            borderRadius: '10px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ fontWeight: 600, opacity: 0.9 }}>Diagnostics</div>
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    await navigator.clipboard.writeText(diagnostics || '');
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1500);
+                  } catch (_) {}
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(139,92,246,0.9), rgba(34,211,238,0.9))',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: '12px',
+                  padding: '6px 10px',
+                  borderRadius: '10px',
+                  cursor: 'pointer'
+                }}
+              >
+                {copied ? 'Скопировано' : 'Скопировать'}
+              </button>
+            </div>
+            <pre style={{
+              margin: 0,
+              maxHeight: '160px',
+              overflow: 'auto',
+              background: 'rgba(255,255,255,0.06)',
+              borderRadius: '8px',
+              padding: '8px',
+              color: '#fff'
+            }}>{diagnostics || '{ }'}</pre>
           </div>
-          <pre style={{
-            margin: 0,
-            maxHeight: '160px',
-            overflow: 'auto',
-            background: 'rgba(255,255,255,0.06)',
-            borderRadius: '8px',
-            padding: '8px',
-            color: '#fff'
-          }}>{diagnostics || '{ }'}</pre>
         </div>
       </div>
     </div>

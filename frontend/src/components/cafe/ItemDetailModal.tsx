@@ -192,3 +192,4 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
 export default ItemDetailModal;
 
+
