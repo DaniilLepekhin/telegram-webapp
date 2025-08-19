@@ -51,15 +51,21 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
       }
 
       addLog('📡 Отправляем запрос к API...');
+      
+      const requestBody = {
+        initData: window.Telegram.WebApp.initData,
+        user: window.Telegram.WebApp.initDataUnsafe?.user
+      };
+      
+      addLog(`📤 Данные запроса: ${JSON.stringify(requestBody, null, 2)}`);
+      console.log('Request body:', requestBody);
+      
       const response = await fetch('/api/telegram/get-channels', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          initData: window.Telegram.WebApp.initData,
-          user: window.Telegram.WebApp.initDataUnsafe?.user
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -68,12 +74,16 @@ const ChannelAnalytics: React.FC<ChannelAnalyticsProps> = ({ onBack }) => {
 
       const data = await response.json();
       
-      if (data.success && data.channels.length > 0) {
+      // Добавляем детальное логирование для диагностики
+      addLog(`📊 Ответ сервера: ${JSON.stringify(data, null, 2)}`);
+      console.log('Channel API Response:', data);
+      
+      if (data.success && data.channels && data.channels.length > 0) {
         addLog(`✅ Найдено каналов: ${data.channels.length}`);
         setChannels(data.channels);
         setSelectedChannel(data.channels[0]);
       } else {
-        addLog('⚠️ Каналы не найдены');
+        addLog(`⚠️ Каналы не найдены. Success: ${data.success}, Channels: ${data.channels ? data.channels.length : 'undefined'}`);
         setChannels([]);
         setSelectedChannel(null);
       }
