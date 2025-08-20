@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import BackButton from './BackButton';
 import FullscreenButton from './FullscreenButton';
+import { usePaste } from '../hooks/usePaste';
 
 interface Message {
   id: string;
@@ -21,6 +22,9 @@ const DemoChat: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Хук для вставки из буфера
+  const inputPaste = usePaste((text) => setInputValue(text));
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -134,6 +138,7 @@ const DemoChat: React.FC = () => {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
+                onPaste={inputPaste.handlePaste}
                 onKeyPress={handleKeyPress}
                 placeholder="Введите сообщение..."
                 className="flex-1 bg-white/10 backdrop-blur-sm text-white placeholder-white/50 border border-white/20 rounded-2xl px-4 py-3 focus:outline-none focus:border-white/40 transition-colors"

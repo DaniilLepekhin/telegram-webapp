@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePaste } from '../hooks/usePaste';
 
 interface TelegramChannel {
   id: number;
@@ -19,6 +20,10 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
   const [linkTitle, setLinkTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [generatedLink, setGeneratedLink] = useState<string>('');
+  
+  // Хуки для вставки из буфера
+  const postUrlPaste = usePaste((text) => setPostUrl(text));
+  const linkTitlePaste = usePaste((text) => setLinkTitle(text));
 
   const generateTrackingLink = async () => {
     if (!selectedChannel || !linkTitle.trim()) {
@@ -148,10 +153,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
                     type="url"
                     value={postUrl}
                     onChange={(e) => setPostUrl(e.target.value)}
-                    onPaste={(e)=>{
-                      const text = e.clipboardData.getData('text');
-                      if (text) setPostUrl(text);
-                    }}
+                    onPaste={postUrlPaste.handlePaste}
                     placeholder="https://t.me/channel/123"
                     className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400 focus:outline-none"
                   />
@@ -165,6 +167,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({ channels, onClose }) => {
                   type="text"
                   value={linkTitle}
                   onChange={(e) => setLinkTitle(e.target.value)}
+                  onPaste={linkTitlePaste.handlePaste}
                   placeholder="Моя кампания"
                   className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-purple-400 focus:outline-none"
                 />

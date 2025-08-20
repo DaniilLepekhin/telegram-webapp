@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePaste } from '../hooks/usePaste';
 import UserStats from './UserStats';
 
 interface TelegramChannel {
@@ -41,6 +42,10 @@ const PostBuilder: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [sessionStartTime] = useState(() => Date.now());
+  
+  // Хуки для вставки из буфера
+  const titlePaste = usePaste((text) => setPost(prev => ({ ...prev, title: text })));
+  const contentPaste = usePaste((text) => setPost(prev => ({ ...prev, content: text })));
   
   const [post, setPost] = useState<Partial<Post>>({
     title: '',
@@ -433,6 +438,7 @@ const PostBuilder: React.FC = () => {
                     type="text"
                     value={post.title}
                     onChange={(e) => setPost(prev => ({ ...prev, title: e.target.value }))}
+                    onPaste={titlePaste.handlePaste}
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-purple-500"
                     placeholder="Введите заголовок поста..."
                   />
@@ -443,6 +449,7 @@ const PostBuilder: React.FC = () => {
                   <textarea
                     value={post.content}
                     onChange={(e) => setPost(prev => ({ ...prev, content: e.target.value }))}
+                    onPaste={contentPaste.handlePaste}
                     rows={6}
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-purple-500 resize-none"
                     placeholder="Введите текст поста... Поддерживается HTML разметка"
