@@ -18,6 +18,7 @@ const telegramService = new TelegramService(
 
 // Получение каналов пользователя
 router.post('/get-channels', async (req, res) => {
+  console.log('🔍 GET-CHANNELS route called:', req.method, req.url, req.body);
   try {
     const { initData, user, sessionId } = req.body;
 
