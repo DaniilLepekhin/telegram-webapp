@@ -41,7 +41,16 @@ pool.query('SELECT NOW()', (err, res) => {
 });
 
 // Routes
-app.use('/api/telegram', require('./routes/telegram.js'));
+console.log('🔧 Loading telegram routes...');
+try {
+  const telegramRouter = require('./routes/telegram.js');
+  console.log('✅ Telegram router loaded, routes:', telegramRouter.stack?.length || 0);
+  app.use('/api/telegram', telegramRouter);
+} catch (error) {
+  console.error('❌ Failed to load telegram router:', error.message);
+}
+
+console.log('🔧 Loading tracking routes...');
 app.use('/api/tracking', require('./routes/tracking.js'));
 
 // Специальный роут для трекинговых ссылок (без /api префикса)
