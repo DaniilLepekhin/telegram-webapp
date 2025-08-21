@@ -20,11 +20,12 @@ import TelegramIntegration from './components/TelegramIntegration';
 import PostTracking from './components/PostTracking';
 import PostBuilder from './components/PostBuilder';
 import TestPage from './components/TestPage';
+import MyLinks from './components/MyLinks';
 import BackButton from './components/BackButton';
 import FullscreenButton from './components/FullscreenButton';
 import { useRef } from 'react';
 
-type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test' | 'coffee' | 'ref-program';
+type Page = 'main' | 'analytics' | 'showcase' | 'demo-chat' | 'referral' | 'user-profile' | 'feedback' | 'post-analytics' | 'telegram-integration' | 'post-tracking' | 'post-builder' | 'test' | 'coffee' | 'ref-program' | 'my-links';
 
 function App() {
   // ЭЛЕГАНТНОЕ РЕШЕНИЕ: Telegram WebApp History API + плавные переходы
@@ -435,6 +436,30 @@ function App() {
                     </div>
                   </div>
 
+                  {/* My Links Card */}
+                  <div 
+                    onClick={() => navigateTo('my-links')}
+                    className="group relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 hover:border-white/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer hover:bg-white/10"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-violet-400 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <span className="text-xl sm:text-2xl">🔗</span>
+                        </div>
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-violet-200 transition-colors duration-300">Мои ссылки</h3>
+                      <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+                        Список трекинговых ссылок, клики и подписки
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Post Builder Card */}
                   <div 
                     onClick={() => navigateTo('post-builder')}
@@ -552,6 +577,22 @@ function App() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'my-links':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full filter blur-xl opacity-20"></div>
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full filter blur-xl opacity-20"></div>
+            </div>
+            <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+              <BackButton onClick={goBack} />
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6">Мои трекинговые ссылки</h2>
+                <MyLinks />
               </div>
             </div>
           </div>
