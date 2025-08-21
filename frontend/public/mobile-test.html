@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Test - Telegram WebApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .test-item {
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .info { background: rgba(33, 150, 243, 0.3); }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Mobile Diagnostic Test</h1>
+        <p>Эта страница поможет диагностировать проблемы с мобильными устройствами</p>
+        
+        <div class="test-item info">
+            <strong>User Agent:</strong><br>
+            <span id="userAgent"></span>
+        </div>
+        
+        <div class="test-item info">
+            <strong>Screen Size:</strong><br>
+            <span id="screenSize"></span>
+        </div>
+        
+        <div class="test-item info">
+            <strong>Viewport:</strong><br>
+            <span id="viewport"></span>
+        </div>
+        
+        <div class="test-item info">
+            <strong>Connection:</strong><br>
+            <span id="connection"></span>
+        </div>
+        
+        <div class="test-item" id="telegramTest">
+            <strong>Telegram WebApp:</strong><br>
+            <span id="telegramStatus"></span>
+        </div>
+        
+        <div class="test-item info">
+            <strong>Current URL:</strong><br>
+            <span id="currentUrl"></span>
+        </div>
+        
+        <div class="test-item info">
+            <strong>Timestamp:</strong><br>
+            <span id="timestamp"></span>
+        </div>
+        
+        <button onclick="testAPI()">Test API</button>
+        <button onclick="location.href='/'">Go to Main App</button>
+        <button onclick="location.reload()">Refresh</button>
+        
+        <div class="test-item" id="apiTest" style="display: none;">
+            <strong>API Test Result:</strong><br>
+            <span id="apiResult"></span>
+        </div>
+    </div>
+
+    <script>
+        // Заполняем информацию о устройстве
+        document.getElementById('userAgent').textContent = navigator.userAgent;
+        document.getElementById('screenSize').textContent = `${screen.width} x ${screen.height}`;
+        document.getElementById('viewport').textContent = `${window.innerWidth} x ${window.innerHeight}`;
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        
+        // Информация о соединении
+        if (navigator.connection) {
+            const conn = navigator.connection;
+            document.getElementById('connection').textContent = 
+                `Type: ${conn.effectiveType || 'unknown'}, Downlink: ${conn.downlink || 'unknown'} Mbps`;
+        } else {
+            document.getElementById('connection').textContent = 'Connection API not available';
+        }
+        
+        // Проверка Telegram WebApp
+        const telegramTest = document.getElementById('telegramTest');
+        const telegramStatus = document.getElementById('telegramStatus');
+        
+        if (window.Telegram && window.Telegram.WebApp) {
+            telegramStatus.textContent = 'Available ✅';
+            telegramTest.className = 'test-item success';
+            
+            // Дополнительная информация о Telegram
+            const tg = window.Telegram.WebApp;
+            telegramStatus.innerHTML = `
+                Available ✅<br>
+                Version: ${tg.version || 'unknown'}<br>
+                Platform: ${tg.platform || 'unknown'}<br>
+                Theme: ${tg.colorScheme || 'unknown'}
+            `;
+        } else {
+            telegramStatus.textContent = 'Not Available ❌';
+            telegramTest.className = 'test-item error';
+        }
+        
+        // Тест API
+        async function testAPI() {
+            const apiTest = document.getElementById('apiTest');
+            const apiResult = document.getElementById('apiResult');
+            
+            apiTest.style.display = 'block';
+            apiResult.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    apiResult.innerHTML = `✅ API Working<br>Status: ${data.status}<br>Time: ${data.timestamp}`;
+                    apiTest.className = 'test-item success';
+                } else {
+                    apiResult.textContent = `❌ API Error: ${response.status}`;
+                    apiTest.className = 'test-item error';
+                }
+            } catch (error) {
+                apiResult.textContent = `❌ Network Error: ${error.message}`;
+                apiTest.className = 'test-item error';
+            }
+        }
+        
+        // Автоматический тест API при загрузке
+        setTimeout(testAPI, 1000);
+    </script>
+</body>
+</html>
