@@ -38,3 +38,4 @@ export const usePaste = (onPaste?: (text: string) => void) => {
 
   return { handlePaste };
 };
+

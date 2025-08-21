@@ -19,6 +19,18 @@ const MyLinks: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const openInTelegram = (url: string) => {
+    const tg = (window as any)?.Telegram?.WebApp;
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(url);
+    } else {
+      // Fallback: open normally
+      window.location.href = url;
+    }
+  };
+
+  const isTelegramLink = (url: string) => /^(https?:\/\/t\.me\/|tg:\/\/)/i.test(url);
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -80,7 +92,16 @@ const MyLinks: React.FC = () => {
                   </div>
                   <div className="text-white/70 text-sm">
                     <div className="truncate">Канал: {link.username ? `@${link.username}` : (link.chat_title || '—')}</div>
-                    <div className="truncate">Цель: <a href={link.target_url} className="underline decoration-dotted" target="_blank" rel="noreferrer">{link.target_url}</a></div>
+                    <div className="truncate">Цель: <a
+                      href={link.target_url}
+                      className="underline decoration-dotted"
+                      onClick={(e) => {
+                        if (isTelegramLink(link.target_url)) {
+                          e.preventDefault();
+                          openInTelegram(link.target_url);
+                        }
+                      }}
+                    >{link.target_url}</a></div>
                     <div className="mt-1 text-xs text-white/60">Создана: {new Date(link.created_at).toLocaleString()}</div>
                   </div>
                 </div>
@@ -100,14 +121,12 @@ const MyLinks: React.FC = () => {
                 >
                   Скопировать
                 </button>
-                <a
-                  href={shareUrl}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() => openInTelegram(isTelegramLink(link.target_url) ? link.target_url : shareUrl)}
                   className="px-3 py-1.5 rounded-md text-xs bg-white/10 text-white hover:bg-white/15"
                 >
                   Открыть
-                </a>
+                </button>
               </div>
             </div>
           );
@@ -118,5 +137,6 @@ const MyLinks: React.FC = () => {
 };
 
 export default MyLinks;
+
 
 
