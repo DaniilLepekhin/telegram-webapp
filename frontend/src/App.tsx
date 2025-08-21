@@ -45,32 +45,68 @@ function App() {
         const bgColor = theme.bg_color || '#0f172a';
         document.body.style.backgroundColor = bgColor;
       } catch (_) {}
-      // Если пришли через deep-link t.me/<bot>/app?startapp=TOKEN — отправим TOKEN на backend и сразу уйдём в redirect
+      // НЕВИДИМОЕ ТРЕКИНГ ПЕРЕНАПРАВЛЕНИЕ: обрабатываем deep-link токены
       try {
         const url = new URL(window.location.href);
         const tgInit = (window as any).Telegram?.WebApp?.initDataUnsafe;
         const startParam = (tgInit && tgInit?.start_param) || url.searchParams.get('startapp') || url.searchParams.get('start_param');
+        
         if (startParam) {
+          console.log('🔗 Tracking redirect detected:', startParam);
+          
+          // Скрываем интерфейс мгновенно
+          document.body.style.opacity = '0';
+          document.body.style.background = 'transparent';
+          
+          // Сохраняем клик и получаем целевой URL
           fetch('/api/tracking/webapp-start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: startParam, user: tgInit?.user || null })
+            body: JSON.stringify({ 
+              token: startParam, 
+              user: tgInit?.user || null,
+              timestamp: Date.now(),
+              userAgent: navigator.userAgent
+            })
           })
           .then(res => res.json())
           .then(data => {
             if (data?.success && data?.redirectUrl) {
-              // Открываем канал/пост и закрываем WebApp
+              console.log('✅ Redirecting to:', data.redirectUrl);
+              
+              // Мгновенное перенаправление через Telegram API
               if ((window as any).Telegram?.WebApp?.openTelegramLink) {
                 (window as any).Telegram.WebApp.openTelegramLink(data.redirectUrl);
-                setTimeout(() => (window as any).Telegram?.WebApp?.close(), 100);
+                // Закрываем WebApp практически мгновенно
+                setTimeout(() => (window as any).Telegram?.WebApp?.close(), 50);
               } else {
-                window.location.href = data.redirectUrl;
+                // Fallback для браузера
+                window.location.replace(data.redirectUrl);
               }
+            } else {
+              console.error('❌ Tracking error:', data);
+              // В случае ошибки показываем приложение
+              document.body.style.opacity = '1';
             }
           })
-          .catch(() => {});
+          .catch(error => {
+            console.error('❌ Network error:', error);
+            // В случае ошибки показываем приложение  
+            document.body.style.opacity = '1';
+          });
+          
+          // Превентивное закрытие через 2 секунды если что-то пошло не так
+          setTimeout(() => {
+            if ((window as any).Telegram?.WebApp?.close) {
+              (window as any).Telegram.WebApp.close();
+            }
+          }, 2000);
+          
+          return; // Не инициализируем остальное приложение
         }
-      } catch (_) {}
+      } catch (error) {
+        console.error('❌ Deep-link processing error:', error);
+      }
       
       // Синхронизация состояния полноэкранного режима
       setIsExpanded(webApp.isExpanded);

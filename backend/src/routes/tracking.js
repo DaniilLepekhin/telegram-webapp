@@ -426,10 +426,12 @@ router.get('/track/:linkId', async (req, res) => {
 // WebApp сообщает о старте с токеном и получает конечный redirectUrl
 router.post('/webapp-start', async (req, res) => {
   try {
-    const { token, user } = req.body || {};
+    const { token, user, timestamp, userAgent } = req.body || {};
     if (!token) {
       return res.status(400).json({ success: false, error: 'token is required' });
     }
+    
+    console.log('🚀 WebApp start with token:', token, 'User:', user?.id);
 
     // Гарантируем таблицу
     await pool.query(`
@@ -472,11 +474,11 @@ router.post('/webapp-start', async (req, res) => {
     }
     const link = linkResult.rows[0];
 
-    // Логируем старт
+    // Логируем старт с дополнительными данными
     const telegramUserId = user?.id || null;
     await pool.query(
-      'INSERT INTO link_starts (link_id, telegram_user_id, utm_params) VALUES ($1, $2, $3)',
-      [tokenData.link_id, telegramUserId, tokenData.utm_params || null]
+      'INSERT INTO link_starts (link_id, telegram_user_id, utm_params, user_agent, started_at) VALUES ($1, $2, $3, $4, $5)',
+      [tokenData.link_id, telegramUserId, tokenData.utm_params || null, userAgent, timestamp ? new Date(timestamp) : new Date()]
     );
     await pool.query('UPDATE tracking_start_tokens SET used_at = CURRENT_TIMESTAMP WHERE token = $1', [token]);
 
@@ -486,6 +488,61 @@ router.post('/webapp-start', async (req, res) => {
   } catch (e) {
     console.error('webapp-start error:', e);
     return res.status(500).json({ success: false, error: 'internal error' });
+  }
+});
+
+// Трекинг подписки (вызывается ботом когда пользователь подписывается)
+router.post('/subscription', async (req, res) => {
+  try {
+    const { userId, channelId, linkId, action } = req.body;
+    
+    if (!userId || !channelId) {
+      return res.status(400).json({ success: false, error: 'userId and channelId required' });
+    }
+    
+    console.log('📊 Subscription tracking:', { userId, channelId, linkId, action });
+    
+    // Создаем таблицу подписок если не существует
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS link_subscriptions (
+        id SERIAL PRIMARY KEY,
+        link_id TEXT,
+        telegram_user_id BIGINT NOT NULL,
+        channel_id BIGINT NOT NULL,
+        action VARCHAR(20) NOT NULL DEFAULT 'joined',
+        subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        utm_params JSONB
+      );
+    `);
+    
+    // Ищем активные стартовые токены для этого пользователя (в течение последних 10 минут)
+    const recentStarts = await pool.query(`
+      SELECT ls.link_id, ls.utm_params 
+      FROM link_starts ls
+      JOIN tracking_links tl ON ls.link_id = tl.link_id
+      WHERE ls.telegram_user_id = $1 
+        AND tl.channel_id = $2
+        AND ls.started_at > CURRENT_TIMESTAMP - INTERVAL '10 minutes'
+      ORDER BY ls.started_at DESC
+      LIMIT 1
+    `, [userId, channelId]);
+    
+    const finalLinkId = linkId || (recentStarts.rows.length > 0 ? recentStarts.rows[0].link_id : null);
+    const utmParams = recentStarts.rows.length > 0 ? recentStarts.rows[0].utm_params : null;
+    
+    // Сохраняем подписку
+    await pool.query(
+      'INSERT INTO link_subscriptions (link_id, telegram_user_id, channel_id, action, utm_params) VALUES ($1, $2, $3, $4, $5)',
+      [finalLinkId, userId, channelId, action || 'joined', utmParams]
+    );
+    
+    console.log(`✅ Subscription recorded: User ${userId} ${action || 'joined'} channel ${channelId} via link ${finalLinkId}`);
+    
+    res.json({ success: true, linkId: finalLinkId });
+    
+  } catch (error) {
+    console.error('Error tracking subscription:', error);
+    res.status(500).json({ success: false, error: 'Internal error' });
   }
 });
 

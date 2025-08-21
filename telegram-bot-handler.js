@@ -392,6 +392,48 @@ async function handleTrackingAction(query) {
   }
 }
 
+// Обработка событий подписки/отписки в каналах для трекинга
+bot.on('my_chat_member', async (update) => {
+  try {
+    const { chat, from, new_chat_member } = update;
+    
+    if (chat.type !== 'channel' && chat.type !== 'supergroup') return;
+    
+    const userId = from.id;
+    const channelId = chat.id;
+    const action = new_chat_member.status;
+    
+    console.log(`📊 Chat member update: User ${userId} ${action} in channel ${channelId}`);
+    
+    // Отправляем данные в систему трекинга
+    if (action === 'member' || action === 'left') {
+      try {
+        const trackingAction = action === 'member' ? 'joined' : 'left';
+        
+        const response = await fetch(`${WEBAPP_URL}/api/tracking/subscription`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            channelId,
+            action: trackingAction,
+            timestamp: Date.now()
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`✅ Subscription tracked: ${trackingAction} for link ${data.linkId || 'unknown'}`);
+        }
+      } catch (trackError) {
+        console.error('❌ Error tracking subscription:', trackError);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error processing chat member update:', error);
+  }
+});
+
 // Обработка ошибок и событий polling
 bot.on('error', (error) => {
   console.error('❌ Ошибка бота:', error?.message || error);
