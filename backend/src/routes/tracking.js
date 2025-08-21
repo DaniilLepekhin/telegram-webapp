@@ -194,10 +194,17 @@ router.post('/create-link', async (req, res) => {
 
     console.log(`✅ Created tracking link: ${linkId} for channel: ${channelCheck.rows[0].chat_title}`);
 
-    // Формируем URL для ответа
-    const baseUrl = `https://app.daniillepekhin.com/track/${linkId}`;
+    // Generate direct Telegram link with pre-generated token
+    const preToken = generateShortId(12);
+    await pool.query(
+      'INSERT INTO tracking_start_tokens (token, link_id, utm_params) VALUES ($1, $2, $3)',
+      [preToken, linkId, JSON.stringify(utmParams || {})]
+    );
+    
+    // Формируем прямую Telegram ссылку
+    const baseUrl = `https://t.me/daniil_lepekhin_bot/app?startapp=${preToken}`;
     const utmString = Object.keys(utmParams || {}).length > 0 
-      ? '?' + Object.entries(utmParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
+      ? '&' + Object.entries(utmParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
       : '';
 
     res.json({
