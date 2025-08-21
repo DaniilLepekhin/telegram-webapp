@@ -397,6 +397,10 @@ router.get('/track/:linkId', async (req, res) => {
 
     const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'daniil_lepekhin_bot';
     const deepLink = `https://t.me/${botUsername}/app?startapp=${startToken}`;
+    
+    console.log(`🔗 Redirecting to Telegram WebApp: ${deepLink}`);
+    console.log(`📊 Tracking: Click saved, token generated, redirecting to: ${finalTargetUrl}`);
+    
     // Редиректим напрямую в Telegram, где WebApp заберет токен и сразу отправит в целевой канал/пост
     return res.redirect(302, deepLink);
 
@@ -474,13 +478,35 @@ router.post('/webapp-start', async (req, res) => {
     }
     const link = linkResult.rows[0];
 
-    // Логируем старт с дополнительными данными
+    // Логируем старт с tg_id и временем (ПЕРВИЧНЫЙ ПЕРЕХОД)
     const telegramUserId = user?.id || null;
-    await pool.query(
-      'INSERT INTO link_starts (link_id, telegram_user_id, utm_params, user_agent, started_at) VALUES ($1, $2, $3, $4, $5)',
-      [tokenData.link_id, telegramUserId, tokenData.utm_params || null, userAgent, timestamp ? new Date(timestamp) : new Date()]
+    const startTime = timestamp ? new Date(timestamp) : new Date();
+    
+    console.log(`📱 WebApp start: User ${telegramUserId} opened link ${tokenData.link_id} at ${startTime.toISOString()}`);
+    
+    // Создаем таблицу стартов если не существует
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS link_starts (
+        id SERIAL PRIMARY KEY,
+        link_id TEXT NOT NULL,
+        telegram_user_id BIGINT,
+        utm_params JSONB,
+        user_agent TEXT,
+        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        token TEXT,
+        is_subscription_tracked BOOLEAN DEFAULT FALSE
+      );
+    `);
+    
+    // Сохраняем первичный переход с tg_id и временем
+    const startResult = await pool.query(
+      'INSERT INTO link_starts (link_id, telegram_user_id, utm_params, user_agent, started_at, token) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+      [tokenData.link_id, telegramUserId, tokenData.utm_params || null, userAgent, startTime, token]
     );
+    
     await pool.query('UPDATE tracking_start_tokens SET used_at = CURRENT_TIMESTAMP WHERE token = $1', [token]);
+    
+    console.log(`✅ Primary transition saved: Start ID ${startResult.rows[0].id}, User ${telegramUserId}, Link ${tokenData.link_id}`);
 
     // Конечный URL: пост или канал
     const redirectUrl = link.target_url;
@@ -511,32 +537,47 @@ router.post('/subscription', async (req, res) => {
         channel_id BIGINT NOT NULL,
         action VARCHAR(20) NOT NULL DEFAULT 'joined',
         subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        utm_params JSONB
+        utm_params JSONB,
+        start_id INTEGER REFERENCES link_starts(id)
       );
     `);
     
-    // Ищем активные стартовые токены для этого пользователя (в течение последних 10 минут)
+    // Ищем первичный переход этого пользователя в этот канал (в течение последних 30 минут)
     const recentStarts = await pool.query(`
-      SELECT ls.link_id, ls.utm_params 
+      SELECT ls.id, ls.link_id, ls.utm_params, ls.started_at, ls.is_subscription_tracked
       FROM link_starts ls
       JOIN tracking_links tl ON ls.link_id = tl.link_id
       WHERE ls.telegram_user_id = $1 
         AND tl.channel_id = $2
-        AND ls.started_at > CURRENT_TIMESTAMP - INTERVAL '10 minutes'
+        AND ls.started_at > CURRENT_TIMESTAMP - INTERVAL '30 minutes'
+        AND ls.is_subscription_tracked = FALSE
       ORDER BY ls.started_at DESC
       LIMIT 1
     `, [userId, channelId]);
     
     const finalLinkId = linkId || (recentStarts.rows.length > 0 ? recentStarts.rows[0].link_id : null);
     const utmParams = recentStarts.rows.length > 0 ? recentStarts.rows[0].utm_params : null;
+    const startId = recentStarts.rows.length > 0 ? recentStarts.rows[0].id : null;
     
-    // Сохраняем подписку
-    await pool.query(
-      'INSERT INTO link_subscriptions (link_id, telegram_user_id, channel_id, action, utm_params) VALUES ($1, $2, $3, $4, $5)',
-      [finalLinkId, userId, channelId, action || 'joined', utmParams]
+    // Сохраняем подписку с привязкой к первичному переходу
+    const subscriptionResult = await pool.query(
+      'INSERT INTO link_subscriptions (link_id, telegram_user_id, channel_id, action, utm_params, start_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+      [finalLinkId, userId, channelId, action || 'joined', utmParams, startId]
     );
     
-    console.log(`✅ Subscription recorded: User ${userId} ${action || 'joined'} channel ${channelId} via link ${finalLinkId}`);
+    // Отмечаем что для этого перехода подписка уже отслежена
+    if (startId) {
+      await pool.query(
+        'UPDATE link_starts SET is_subscription_tracked = TRUE WHERE id = $1',
+        [startId]
+      );
+    }
+    
+    const timeDiff = recentStarts.rows.length > 0 
+      ? Math.round((Date.now() - new Date(recentStarts.rows[0].started_at).getTime()) / 1000)
+      : null;
+    
+    console.log(`✅ Subscription recorded: User ${userId} ${action || 'joined'} channel ${channelId} via link ${finalLinkId} (${timeDiff ? timeDiff + 's after click' : 'no recent click found'})`);
     
     res.json({ success: true, linkId: finalLinkId });
     
