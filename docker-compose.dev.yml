@@ -1,0 +1,58 @@
+name: showcase-platform-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: showcase
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d showcase"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - showcase-net
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass devpassword --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "devpassword", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - showcase-net
+
+  # Optional: pgAdmin for DB inspection
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@showcase.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - showcase-net
+    profiles:
+      - tools
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+
+networks:
+  showcase-net:
+    driver: bridge

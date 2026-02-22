@@ -1,5 +1,16 @@
 # Dependencies
 node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# Drizzle migrations (generated)
+drizzle/
+
+# Turbo
+.turbo/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

@@ -1,0 +1,44 @@
+{
+  "name": "@showcase/backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "start": "bun dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src/",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun run src/db/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@elysiajs/bearer": "^1.1.2",
+    "@elysiajs/cors": "^1.1.1",
+    "@elysiajs/jwt": "^1.1.1",
+    "@elysiajs/swagger": "^1.1.4",
+    "@showcase/shared": "workspace:*",
+    "drizzle-orm": "^0.45.1",
+    "elysia": "^1.4.19",
+    "geoip-lite": "^1.4.10",
+    "ioredis": "^5.3.2",
+    "postgres": "^3.4.4",
+    "qrcode": "^1.5.4",
+    "ua-parser-js": "^1.0.39",
+    "valibot": "^1.1.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "nanoid": "^5.1.5",
+    "dayjs": "^1.11.13"
+  },
+  "devDependencies": {
+    "@types/geoip-lite": "^1.4.4",
+    "@types/qrcode": "^1.5.5",
+    "@types/ua-parser-js": "^0.7.39",
+    "drizzle-kit": "^0.30.5",
+    "typescript": "^5.7.3",
+    "bun-types": "latest"
+  }
+}
