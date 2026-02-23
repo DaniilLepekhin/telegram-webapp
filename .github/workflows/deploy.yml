@@ -43,7 +43,7 @@ jobs:
       - name: Build webapp (smoke test)
         run: pnpm --filter @showcase/webapp build
         env:
-          NEXT_PUBLIC_API_URL: https://myapp.daniillepekhin.com/api/v1
+          NEXT_PUBLIC_API_URL: https://myapp.daniillepekhin.com
           NEXT_PUBLIC_BOT_USERNAME: myapp_showcase_bot
 
   # ── Build & Push Docker images ────────────────────────────────────────────
@@ -90,7 +90,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}-${{ matrix.app }}:latest
             ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}-${{ matrix.app }}:${{ github.sha }}
           build-args: |
-            NEXT_PUBLIC_API_URL=https://myapp.daniillepekhin.com/api/v1
+            NEXT_PUBLIC_API_URL=https://myapp.daniillepekhin.com
             NEXT_PUBLIC_BOT_USERNAME=myapp_showcase_bot
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,scope=${{ matrix.app }},mode=max

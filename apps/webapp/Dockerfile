@@ -16,7 +16,7 @@ COPY --from=deps /app/apps/webapp/node_modules ./apps/webapp/node_modules
 COPY packages/shared ./packages/shared
 COPY apps/webapp ./apps/webapp
 WORKDIR /app/apps/webapp
-ARG NEXT_PUBLIC_API_URL=https://myapp.daniillepekhin.com/api/v1
+ARG NEXT_PUBLIC_API_URL=https://myapp.daniillepekhin.com
 ARG NEXT_PUBLIC_BOT_USERNAME=myapp_showcase_bot
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_BOT_USERNAME=$NEXT_PUBLIC_BOT_USERNAME
