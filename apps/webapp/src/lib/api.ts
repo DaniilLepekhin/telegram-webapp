@@ -2,6 +2,14 @@ import { useAuthStore } from '@/store/auth';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3100';
 
+/** Error with HTTP status code for fine-grained retry logic */
+export class ApiError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
@@ -47,7 +55,7 @@ class ApiClient {
         }
       }
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message ?? `HTTP ${res.status}`);
+      throw new ApiError(res.status, err?.error?.message ?? `HTTP ${res.status}`);
     }
 
     return res.json();

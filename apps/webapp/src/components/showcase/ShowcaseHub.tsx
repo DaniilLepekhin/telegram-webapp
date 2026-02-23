@@ -18,7 +18,7 @@ type View = 'hub' | 'scenario';
 
 export function ShowcaseHub() {
   const { user, initData, haptic, isReady } = useTelegram();
-  const { setUser, isAuthenticated } = useAuthStore();
+  const { setUser, isAuthenticated, streakUpdated, setStreakUpdated } = useAuthStore();
   const [scenarios, setScenarios] = useState<DemoScenario[]>([]);
   const [selectedScenario, setSelectedScenario] = useState<DemoScenario | null>(null);
   const [view, setView] = useState<View>('hub');
@@ -46,8 +46,11 @@ export function ShowcaseHub() {
             if (ageMs < 2 * 60 * 1000) setShowOnboarding(true);
           }
 
-          // Award streak XP on login (fire-and-forget)
-          api.updateStreak().catch(() => {});
+          // Award streak XP on login — once per session
+          if (!streakUpdated) {
+            setStreakUpdated();
+            api.updateStreak().catch(() => {});
+          }
           await api.trackEvent('page_view', { page: 'showcase_hub' });
         }
       } catch (err) {
@@ -59,7 +62,7 @@ export function ShowcaseHub() {
     };
 
     authenticate();
-  }, [isReady, initData, setUser]);
+  }, [isReady, initData, setUser, streakUpdated, setStreakUpdated]);
 
   // Load scenarios (public, no auth required)
   useEffect(() => {

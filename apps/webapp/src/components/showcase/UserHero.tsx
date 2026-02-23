@@ -21,7 +21,9 @@ export function UserHero({ user }: UserHeroProps) {
       return r.data as { xp: number; level: number; xpToNextLevel: number; streak: number };
     },
     enabled: hasHydrated && isAuthenticated && !!accessToken,
-    refetchInterval: 30_000,
+    // Don't refetch on interval — data is updated after scenario completion via invalidateQueries
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const level = gamification?.level ?? 0;

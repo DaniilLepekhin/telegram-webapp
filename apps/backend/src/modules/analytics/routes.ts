@@ -22,38 +22,65 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
   .get('/live', ({ set }) => {
     set.headers['Content-Type'] = 'text/event-stream';
     set.headers['Cache-Control'] = 'no-cache';
-    set.headers['Connection'] = 'keep-alive';
+    set.headers.Connection = 'keep-alive';
     set.headers['X-Accel-Buffering'] = 'no';
+
+    const encoder = new TextEncoder();
+    let closed = false;
+    let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+    let demoTimer: ReturnType<typeof setInterval> | null = null;
+    let autoCloseTimer: ReturnType<typeof setTimeout> | null = null;
+    let subscriber: Subscriber | null = null;
+
+    const cleanup = () => {
+      if (closed) return;
+      closed = true;
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      if (demoTimer) clearInterval(demoTimer);
+      if (autoCloseTimer) clearTimeout(autoCloseTimer);
+      if (subscriber) subscribers.delete(subscriber);
+      heartbeatTimer = null;
+      demoTimer = null;
+      autoCloseTimer = null;
+      subscriber = null;
+    };
 
     const stream = new ReadableStream({
       start(controller) {
-        const encoder = new TextEncoder();
-
-        const send = (event: LiveEvent) => {
-          const data = `data: ${JSON.stringify(event)}\n\n`;
-          controller.enqueue(encoder.encode(data));
+        const safeEnqueue = (data: string) => {
+          if (closed) return;
+          try {
+            controller.enqueue(encoder.encode(data));
+          } catch {
+            cleanup();
+          }
         };
 
-        const heartbeat = setInterval(() => {
-          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        subscriber = (event: LiveEvent) => {
+          safeEnqueue(`data: ${JSON.stringify(event)}\n\n`);
+        };
+        subscribers.add(subscriber);
+
+        heartbeatTimer = setInterval(() => {
+          safeEnqueue(': heartbeat\n\n');
         }, 15_000);
 
-        const demoInterval = setInterval(() => {
+        demoTimer = setInterval(() => {
+          if (closed) return;
           const demoEvent = generateDemoEvent();
-          send(demoEvent);
+          if (subscriber) subscriber(demoEvent);
           emitLiveEvent(demoEvent);
         }, 3000 + Math.random() * 4000);
 
-        subscribers.add(send);
-
-        const cleanup = () => {
-          clearInterval(heartbeat);
-          clearInterval(demoInterval);
-          subscribers.delete(send);
+        // Auto-close after 5 min
+        autoCloseTimer = setTimeout(() => {
+          cleanup();
           try { controller.close(); } catch {}
-        };
-
-        setTimeout(cleanup, 5 * 60 * 1000);
+        }, 5 * 60 * 1000);
+      },
+      cancel() {
+        // Client disconnected — clean up all timers/subscribers
+        cleanup();
       },
     });
 
@@ -64,8 +91,8 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
   .use(authMiddleware)
   .post(
     '/events',
-    async ({ body, user }: any) => {
-      const userId = (user as { id: string } | null)?.id ?? null;
+    async ({ body, user }: { body: { type: string; payload?: Record<string, unknown>; sessionId?: string }; user: { id: string } | null }) => {
+      const userId = user?.id ?? null;
       if (!userId) return { success: true }; // anonymous — silently ignore
       await db.insert(analyticsEvents).values({
         userId,
@@ -97,8 +124,8 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
 
   // ─── Dashboard stats (auth required) ────────────────────────────────────
   .use(requireAuth)
-  .get('/dashboard', async ({ user }: any) => {
-    const userId = (user as { id: string }).id;
+  .get('/dashboard', async ({ user }: { user: { id: string } }) => {
+    const userId = user.id;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
