@@ -18,27 +18,36 @@ type View = 'hub' | 'scenario';
 
 export function ShowcaseHub() {
   const { user, initData, haptic, isReady } = useTelegram();
-  const { setUser, isAuthenticated, streakUpdated, setStreakUpdated } = useAuthStore();
+  const { setUser, setStreakUpdated } = useAuthStore();
   const [scenarios, setScenarios] = useState<DemoScenario[]>([]);
   const [selectedScenario, setSelectedScenario] = useState<DemoScenario | null>(null);
   const [view, setView] = useState<View>('hub');
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  // Refs prevent stale closures and eliminate unstable deps from useEffect
   const authAttempted = useRef(false);
+  const streakSent = useRef(false);
+  // Store latest values in refs so useEffect deps stay stable
+  const initDataRef = useRef(initData);
+  const setUserRef = useRef(setUser);
+  const setStreakUpdatedRef = useRef(setStreakUpdated);
+  useEffect(() => { initDataRef.current = initData; }, [initData]);
+  useEffect(() => { setUserRef.current = setUser; }, [setUser]);
+  useEffect(() => { setStreakUpdatedRef.current = setStreakUpdated; }, [setStreakUpdated]);
 
-  // Authenticate on mount — runs only once when isReady becomes true
+  // Authenticate on mount — runs exactly once when Telegram SDK is ready
   useEffect(() => {
     if (!isReady || authAttempted.current) return;
     authAttempted.current = true;
 
     const authenticate = async () => {
       try {
-        const res = await api.loginWithTelegram(initData);
+        const res = await api.loginWithTelegram(initDataRef.current);
         if (res.success && res.data) {
           const { user: userData, accessToken } = res.data as { user: User & { createdAt?: string }; accessToken: string };
-          api.setToken(accessToken);
-          setUser(userData, accessToken);
+          // setUser calls _apiSetToken internally — api token is set synchronously
+          setUserRef.current(userData, accessToken);
 
           // Show onboarding for new users (registered within last 2 minutes)
           if (userData.createdAt) {
@@ -46,12 +55,13 @@ export function ShowcaseHub() {
             if (ageMs < 2 * 60 * 1000) setShowOnboarding(true);
           }
 
-          // Award streak XP on login — once per session
-          if (!streakUpdated) {
-            setStreakUpdated();
+          // Award streak XP once per session — guarded by ref
+          if (!streakSent.current) {
+            streakSent.current = true;
+            setStreakUpdatedRef.current();
             api.updateStreak().catch(() => {});
           }
-          await api.trackEvent('page_view', { page: 'showcase_hub' });
+          api.trackEvent('page_view', { page: 'showcase_hub' }).catch(() => {});
         }
       } catch (err) {
         console.error('Auth failed:', err);
@@ -62,7 +72,7 @@ export function ShowcaseHub() {
     };
 
     authenticate();
-  }, [isReady, initData, setUser, streakUpdated, setStreakUpdated]);
+  }, [isReady]); // stable — only re-run when SDK becomes ready
 
   // Load scenarios (public, no auth required)
   useEffect(() => {

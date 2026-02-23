@@ -64,13 +64,13 @@ interface XpEvent {
 }
 
 export function GamificationPage() {
-  const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
+  const { isAuthenticated, accessToken, isAuthReady } = useAuthStore();
   const { haptic } = useTelegram();
   const qc = useQueryClient();
   const { ref: statsRef, inView } = useInView({ triggerOnce: true, threshold: 0.2 });
   const [activeTab, setActiveTab] = useState<Tab>('stats');
 
-  const enabled = hasHydrated && isAuthenticated && !!accessToken;
+  const enabled = isAuthReady && isAuthenticated && !!accessToken;
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['gamification'],
@@ -86,13 +86,13 @@ export function GamificationPage() {
       const j = await r.json();
       return j.data as Achievement[];
     },
-    enabled: hasHydrated,
+    enabled: isAuthReady,
   });
 
   const { data: leaderboard, isLoading: lbLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => { const r = await api.getLeaderboard(20); return r.data as LeaderboardEntry[]; },
-    enabled: hasHydrated && activeTab === 'leaderboard',
+    enabled: isAuthReady && activeTab === 'leaderboard',
   });
 
   const { data: activity } = useQuery({

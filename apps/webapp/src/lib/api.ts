@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/store/auth';
+import { useAuthStore, registerApiSetToken } from '@/store/auth';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3100';
 
@@ -199,3 +199,7 @@ class ApiClient {
 }
 
 export const api = new ApiClient(API_BASE);
+
+// Register setToken with the store so it can be called synchronously during hydration
+// This breaks the race condition where React Query fires before useEffect sets the token
+registerApiSetToken((token) => api.setToken(token));

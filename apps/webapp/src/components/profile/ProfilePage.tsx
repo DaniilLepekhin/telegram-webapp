@@ -55,12 +55,12 @@ interface Plan {
 
 export function ProfilePage() {
   const { user: tgUser, haptic } = useTelegram();
-  const { clearAuth, isAuthenticated, accessToken, hasHydrated } = useAuthStore();
+  const { clearAuth, isAuthenticated, accessToken, isAuthReady } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const { ref, inView } = useInView({ triggerOnce: true });
   const qc = useQueryClient();
 
-  const enabled = hasHydrated && isAuthenticated && !!accessToken;
+  const enabled = isAuthReady && isAuthenticated && !!accessToken;
 
   const { data: profile } = useQuery({
     queryKey: ['profile-me'],
@@ -83,7 +83,7 @@ export function ProfilePage() {
   const { data: plans } = useQuery({
     queryKey: ['plans'],
     queryFn: async () => { const r = await api.getPlans(); return r.data as Plan[]; },
-    enabled: hasHydrated,
+    enabled: isAuthReady,
   });
 
   const startTrialMutation = useMutation({

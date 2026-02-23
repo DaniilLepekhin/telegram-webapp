@@ -21,11 +21,11 @@ export function TrackingPage() {
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
+  const { isAuthenticated, accessToken, isAuthReady } = useAuthStore();
   const { haptic } = useTelegram();
   const qc = useQueryClient();
 
-  const enabled = hasHydrated && isAuthenticated && !!accessToken;
+  const enabled = isAuthReady && isAuthenticated && !!accessToken;
 
   const { data: linksData, isLoading } = useQuery({
     queryKey: ['tracking-links'],

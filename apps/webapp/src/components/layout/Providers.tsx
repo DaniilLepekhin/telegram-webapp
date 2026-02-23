@@ -2,17 +2,13 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Toaster } from 'sonner';
-import { useAuthStore } from '@/store/auth';
-import { api, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const accessToken = useAuthStore((s) => s.accessToken);
-
-  useEffect(() => {
-    api.setToken(accessToken);
-  }, [accessToken]);
+  // NOTE: api token is now synced synchronously in onRehydrateStorage (store/auth.ts)
+  // via registerApiSetToken — no useEffect needed here
 
   const [queryClient] = useState(
     () =>
@@ -22,15 +18,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
             staleTime: 30_000,
             gcTime: 5 * 60_000,
             retry: (failureCount, error) => {
-              // Use status code if available (ApiError), otherwise fall back to message parsing
+              // Use .status from ApiError for precise retry decisions
               const status = error instanceof ApiError ? error.status : 0;
               const message = error instanceof Error ? error.message : '';
-              // Never retry 401/403 — token is invalid, re-login is the only fix
+              // 401/403 — never retry, token is invalid
               if (status === 401 || status === 403) return false;
               if (message.includes('401') || message.includes('403')) return false;
-              // Don't retry other 4xx client errors
+              // Other 4xx — client error, don't retry
               if (status >= 400 && status < 500) return false;
-              // Retry 5xx (backend restart) once
+              // 5xx — retry once (backend restart / transient)
               return failureCount < 1;
             },
             refetchOnWindowFocus: false,

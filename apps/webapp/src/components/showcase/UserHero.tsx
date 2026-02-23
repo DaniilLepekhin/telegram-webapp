@@ -12,7 +12,7 @@ interface UserHeroProps {
 }
 
 export function UserHero({ user }: UserHeroProps) {
-  const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
+  const { isAuthenticated, accessToken, isAuthReady } = useAuthStore();
 
   const { data: gamification } = useQuery({
     queryKey: ['gamification'],
@@ -20,7 +20,7 @@ export function UserHero({ user }: UserHeroProps) {
       const r = await api.getGamificationStats();
       return r.data as { xp: number; level: number; xpToNextLevel: number; streak: number };
     },
-    enabled: hasHydrated && isAuthenticated && !!accessToken,
+    enabled: isAuthReady && isAuthenticated && !!accessToken,
     // Don't refetch on interval — data is updated after scenario completion via invalidateQueries
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
