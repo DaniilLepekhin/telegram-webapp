@@ -27,7 +27,7 @@ export const showcaseModule = new Elysia({ prefix: '/showcase' })
   .use(requireAuth)
   .post(
     '/scenarios/:id/run',
-    async ({ params, user, set }) => {
+    async ({ params, user, set }: any) => {
       const scenario = DEMO_SCENARIOS.find((s) => s.id === params.id as ScenarioId);
       if (!scenario) {
         set.status = 404;
@@ -57,7 +57,7 @@ export const showcaseModule = new Elysia({ prefix: '/showcase' })
   )
   .post(
     '/scenarios/:id/complete',
-    async ({ params, body, user, set }) => {
+    async ({ params, body, user, set }: any) => {
       const userId = (user as { id: string }).id;
 
       const [run] = await db

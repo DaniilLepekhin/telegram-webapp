@@ -13,6 +13,8 @@ import { trackingModule, trackingRedirectModule } from './modules/tracking/route
 import { gamificationModule } from './modules/gamification/routes.ts';
 import { showcaseModule } from './modules/showcase/routes.ts';
 import { analyticsModule } from './modules/analytics/routes.ts';
+import { subscriptionsModule } from './modules/subscriptions/routes.ts';
+import { usersModule } from './modules/users/routes.ts';
 
 // Middleware
 import { auditMiddleware } from './middlewares/audit.ts';
@@ -79,6 +81,8 @@ const app = new Elysia()
       .use(gamificationModule)
       .use(showcaseModule)
       .use(analyticsModule)
+      .use(subscriptionsModule)
+      .use(usersModule)
   )
 
   // ─── Global error handler ─────────────────────────────────────────────────

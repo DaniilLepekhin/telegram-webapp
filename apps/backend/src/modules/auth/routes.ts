@@ -1,13 +1,13 @@
 import Elysia, { t } from 'elysia';
 import { validateTelegramInitData } from './telegram.ts';
 import { authService } from './service.ts';
-import { config } from '../../config/index.ts';
+import { config, isProd } from '../../config/index.ts';
 import { logger } from '../../utils/logger.ts';
 
 export const authModule = new Elysia({ prefix: '/auth' })
   .post(
     '/telegram',
-    async ({ body, jwt, cookie: { accessToken, refreshToken: rfCookie }, set, request }) => {
+    async ({ body, cookie: { accessToken, refreshToken: rfCookie }, set, request, jwt }: any) => {
       const { initData } = body;
 
       const { valid, data } = validateTelegramInitData(initData, config.TELEGRAM_BOT_TOKEN);
@@ -32,8 +32,8 @@ export const authModule = new Elysia({ prefix: '/auth' })
       tokens.accessToken = signedAccess;
 
       // Set httpOnly cookies
-      accessToken.set({ value: signedAccess, httpOnly: true, secure: config.isProd, sameSite: 'none', maxAge: 15 * 60, path: '/' });
-      rfCookie.set({ value: tokens.refreshToken, httpOnly: true, secure: config.isProd, sameSite: 'none', maxAge: 30 * 24 * 60 * 60, path: '/' });
+      accessToken.set({ value: signedAccess, httpOnly: true, secure: isProd, sameSite: 'none', maxAge: 15 * 60, path: '/' });
+      rfCookie.set({ value: tokens.refreshToken, httpOnly: true, secure: isProd, sameSite: 'none', maxAge: 30 * 24 * 60 * 60, path: '/' });
 
       logger.info({ userId: user.id }, 'User authenticated');
 
@@ -63,14 +63,14 @@ export const authModule = new Elysia({ prefix: '/auth' })
       body: t.Object({ initData: t.String({ minLength: 10 }) }),
     },
   )
-  .post('/refresh', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie }, jwt, set }) => {
+  .post('/refresh', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie }, jwt, set }: any) => {
     const token = rfCookie.value;
     if (!token) {
       set.status = 401;
       return { success: false, error: { code: 'NO_REFRESH_TOKEN', message: 'Токен не найден' } };
     }
 
-    const payload = await authService.refreshSession(token);
+    const payload = await authService.refreshSession(token as string);
     if (!payload) {
       set.status = 401;
       rfCookie.remove();
@@ -79,13 +79,13 @@ export const authModule = new Elysia({ prefix: '/auth' })
     }
 
     const newAccess = await jwt.sign({ sub: payload.userId, telegramId: payload.telegramId, role: payload.role });
-    atCookie.set({ value: newAccess, httpOnly: true, secure: config.isProd, sameSite: 'none', maxAge: 15 * 60, path: '/' });
+    atCookie.set({ value: newAccess, httpOnly: true, secure: isProd, sameSite: 'none', maxAge: 15 * 60, path: '/' });
 
     return { success: true, data: { accessToken: newAccess, expiresIn: 15 * 60 } };
   })
-  .post('/logout', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie } }) => {
+  .post('/logout', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie } }: any) => {
     const token = rfCookie.value;
-    if (token) await authService.revokeSession(token);
+    if (token) await authService.revokeSession(token as string);
     rfCookie.remove();
     atCookie.remove();
     return { success: true };

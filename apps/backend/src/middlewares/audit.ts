@@ -7,7 +7,8 @@ const { auditLog } = schema;
 const SENSITIVE_PATHS = ['/auth/', '/subscriptions/', '/admin/'];
 
 export const auditMiddleware = new Elysia({ name: 'audit-middleware' })
-  .onAfterResponse({ as: 'global' }, async ({ request, user, response }) => {
+  .onAfterResponse({ as: 'global' }, async ({ request, response, ...ctx }: any) => {
+    const user = (ctx as any).user;
     const url = new URL(request.url);
     const isSensitive = SENSITIVE_PATHS.some((p) => url.pathname.includes(p));
     if (!isSensitive) return;

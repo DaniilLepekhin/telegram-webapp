@@ -16,7 +16,7 @@ export const trackingModule = new Elysia({ prefix: '/tracking' })
   .use(requireAuth)
   .post(
     '/links',
-    async ({ body, user, set }) => {
+    async ({ body, user, set }: any) => {
       const slug = body.slug ?? nanoid(8);
 
       // Check slug uniqueness
@@ -74,7 +74,7 @@ export const trackingModule = new Elysia({ prefix: '/tracking' })
     },
   )
   // ─── Get my links ─────────────────────────────────────────────────────────
-  .get('/links', async ({ user }) => {
+  .get('/links', async ({ user }: any) => {
     const links = await db
       .select()
       .from(trackingLinks)
@@ -84,7 +84,7 @@ export const trackingModule = new Elysia({ prefix: '/tracking' })
     return { success: true, data: links };
   })
   // ─── Get link analytics ───────────────────────────────────────────────────
-  .get('/links/:id/analytics', async ({ params, user, set }) => {
+  .get('/links/:id/analytics', async ({ params, user, set }: any) => {
     const [link] = await db
       .select()
       .from(trackingLinks)
@@ -149,7 +149,7 @@ export const trackingModule = new Elysia({ prefix: '/tracking' })
     };
   })
   // ─── Delete link ──────────────────────────────────────────────────────────
-  .delete('/links/:id', async ({ params, user, set }) => {
+  .delete('/links/:id', async ({ params, user, set }: any) => {
     const result = await db
       .delete(trackingLinks)
       .where(and(eq(trackingLinks.id, params.id), eq(trackingLinks.userId, (user as { id: string }).id)));

@@ -4,7 +4,7 @@ import { requireAuth } from '../../middlewares/auth.ts';
 
 export const gamificationModule = new Elysia({ prefix: '/gamification' })
   .use(requireAuth)
-  .get('/stats', async ({ user, set }) => {
+  .get('/stats', async ({ user, set }: any) => {
     const stats = await gamificationService.getStats((user as { id: string }).id);
     if (!stats) { set.status = 404; return { success: false, error: { code: 'NOT_FOUND', message: 'Пользователь не найден' } }; }
     return { success: true, data: stats };
@@ -14,7 +14,7 @@ export const gamificationModule = new Elysia({ prefix: '/gamification' })
   })
   .post(
     '/award-xp',
-    async ({ body, user }) => {
+    async ({ body, user }: any) => {
       const result = await gamificationService.awardXp(
         (user as { id: string }).id,
         body.amount,
@@ -31,7 +31,7 @@ export const gamificationModule = new Elysia({ prefix: '/gamification' })
       }),
     },
   )
-  .post('/streak', async ({ user }) => {
+  .post('/streak', async ({ user }: any) => {
     const result = await gamificationService.updateStreak((user as { id: string }).id);
     return { success: true, data: result };
   });

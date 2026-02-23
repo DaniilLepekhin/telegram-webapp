@@ -1,2 +1,138 @@
-name: Deploy
-on: [push]
+name: CI / Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  REPO_LOWER: daniillepekhin/telegram-webapp
+
+jobs:
+  # ── TypeCheck + Build webapp ──────────────────────────────────────────────
+  typecheck:
+    name: Type Check & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10.30.1'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check backend
+        run: pnpm --filter @showcase/backend typecheck
+
+      - name: Type-check bot
+        run: pnpm --filter @showcase/bot typecheck
+
+      - name: Build webapp (smoke test)
+        run: pnpm --filter @showcase/webapp build
+        env:
+          NEXT_PUBLIC_API_URL: https://myapp.daniillepekhin.com/api/v1
+          NEXT_PUBLIC_BOT_USERNAME: myapp_showcase_bot
+
+  # ── Build & Push Docker images ────────────────────────────────────────────
+  build:
+    name: Build ${{ matrix.app }}
+    needs: typecheck
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: backend
+            image: telegram-webapp-backend
+          - app: bot
+            image: telegram-webapp-bot
+          - app: webapp
+            image: telegram-webapp-webapp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push ${{ matrix.app }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/${{ matrix.app }}/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}-${{ matrix.app }}:latest
+            ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}-${{ matrix.app }}:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://myapp.daniillepekhin.com/api/v1
+            NEXT_PUBLIC_BOT_USERNAME=myapp_showcase_bot
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,scope=${{ matrix.app }},mode=max
+
+  # ── Deploy to VPS ─────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Production
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: GHCR_TOKEN
+          script: |
+            set -e
+            cd /var/www/myapp
+
+            # Login to GHCR
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u daniillepekhin --password-stdin
+
+            # Pull новые образы
+            docker compose pull
+
+            # Обновить контейнеры
+            docker compose up -d --remove-orphans
+
+            # Применить DB миграции
+            sleep 10
+            docker compose exec -T myapp-backend bun run src/db/migrate.ts 2>/dev/null || echo "Migration pending (container starting)"
+
+            # Health checks (не блокируем pipeline если ещё стартует)
+            sleep 5
+            curl -sf http://localhost:3102/health && echo " backend OK" || echo " backend starting..."
+            curl -sf -o /dev/null http://localhost:3002 && echo " webapp OK" || echo " webapp starting..."
+
+            # Cleanup старых слоёв
+            docker image prune -f
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}

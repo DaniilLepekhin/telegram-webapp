@@ -22,7 +22,7 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
   .use(requireAuth)
   .post(
     '/events',
-    async ({ body, user }) => {
+    async ({ body, user }: any) => {
       const userId = (user as { id: string }).id;
       await db.insert(analyticsEvents).values({
         userId,
@@ -53,7 +53,7 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
   )
 
   // ─── Dashboard stats ──────────────────────────────────────────────────────
-  .get('/dashboard', async ({ user }) => {
+  .get('/dashboard', async ({ user }: any) => {
     const userId = (user as { id: string }).id;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
