@@ -4,9 +4,12 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell
+  ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts';
-import { BarChart3, Link2, MousePointerClick, TrendingUp, Zap } from 'lucide-react';
+import {
+  BarChart3, Link2, MousePointerClick, TrendingUp, Zap,
+  Activity, CheckCircle2, PlayCircle, Clock,
+} from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { LiveMetricsBar } from './LiveMetricsBar';
@@ -14,31 +17,83 @@ import { cn } from '@/lib/utils';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'];
 
+const EVENT_ICONS: Record<string, string> = {
+  page_view: '👁️', button_click: '🖱️', scenario_start: '▶️', scenario_complete: '✅',
+  tracking_link_click: '🔗', subscription_start: '⭐', subscription_cancel: '❌',
+  payment_success: '💳', payment_fail: '⚠️', referral_click: '👥', referral_convert: '🎉',
+  xp_earned: '⚡', achievement_unlock: '🏆', quest_complete: '🗺️', streak_update: '🔥',
+};
+
+const EVENT_LABELS: Record<string, string> = {
+  page_view: 'Просмотр', button_click: 'Клик', scenario_start: 'Запуск сценария',
+  scenario_complete: 'Сценарий завершён', tracking_link_click: 'Клик по ссылке',
+  subscription_start: 'Подписка', subscription_cancel: 'Отмена подписки',
+  payment_success: 'Оплата', xp_earned: 'XP', achievement_unlock: 'Достижение',
+  streak_update: 'Стрик',
+};
+
+interface DashboardData {
+  summary: {
+    totalLinks: number;
+    totalClicks: number;
+    totalConversions: number;
+    conversionRate: number;
+    completedScenarios: number;
+    totalScenarioRuns: number;
+  };
+  charts: {
+    eventsByDay: Array<{ date: string; count: number }>;
+    linksByClicks: Array<{ slug: string; clicks: number; conversions: number }>;
+  };
+  recentEvents: Array<{
+    id: string;
+    type: string;
+    payload?: Record<string, unknown>;
+    createdAt: string;
+  }>;
+}
+
 export function AnalyticsDashboard() {
   const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ['analytics-dashboard'],
-    queryFn: async () => { const r = await api.getDashboard(); return r.data as any; },
+    queryFn: async () => { const r = await api.getDashboard(); return r.data as DashboardData; },
     enabled: hasHydrated && isAuthenticated && !!accessToken,
     refetchInterval: 60_000,
   });
 
   const summary = data?.summary;
   const charts = data?.charts;
+  const recentEvents = data?.recentEvents ?? [];
 
   const summaryCards = [
-    { label: 'Ссылок',       value: summary?.totalLinks ?? 0,       icon: Link2,            color: 'text-violet-400', bg: 'bg-violet-500/10' },
-    { label: 'Кликов',       value: summary?.totalClicks ?? 0,      icon: MousePointerClick, color: 'text-cyan-400',   bg: 'bg-cyan-500/10' },
-    { label: 'Конверсий',    value: summary?.totalConversions ?? 0,  icon: TrendingUp,        color: 'text-emerald-400',bg: 'bg-emerald-500/10' },
-    { label: 'Conv. rate',   value: `${summary?.conversionRate ?? 0}%`, icon: Zap,           color: 'text-amber-400',  bg: 'bg-amber-500/10', isText: true },
+    { label: 'Ссылок',     value: summary?.totalLinks ?? 0,           icon: Link2,             color: 'text-violet-400', bg: 'bg-violet-500/10' },
+    { label: 'Кликов',     value: summary?.totalClicks ?? 0,           icon: MousePointerClick,  color: 'text-cyan-400',   bg: 'bg-cyan-500/10' },
+    { label: 'Конверсий',  value: summary?.totalConversions ?? 0,       icon: TrendingUp,         color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'CVR',        value: `${summary?.conversionRate ?? 0}%`,   icon: Zap,               color: 'text-amber-400',  bg: 'bg-amber-500/10' },
   ];
+
+  // Build event type breakdown from recentEvents
+  const eventBreakdown = recentEvents.reduce<Record<string, number>>((acc, e) => {
+    acc[e.type] = (acc[e.type] ?? 0) + 1;
+    return acc;
+  }, {});
+  const breakdownList = Object.entries(eventBreakdown)
+    .map(([type, count]) => ({ type, count, label: EVENT_LABELS[type] ?? type, icon: EVENT_ICONS[type] ?? '📊' }))
+    .sort((a, b) => b.count - a.count);
+  const breakdownMax = breakdownList[0]?.count ?? 1;
+
+  // Funnel: scenario runs
+  const scenarioRuns = summary?.totalScenarioRuns ?? 0;
+  const scenarioCompleted = summary?.completedScenarios ?? 0;
 
   return (
     <div className="min-h-screen bg-surface-0 relative">
       {/* Ambient */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-600/6 rounded-full blur-[100px]" />
+        <div className="absolute bottom-40 left-0 w-48 h-48 bg-violet-600/5 rounded-full blur-[80px]" />
       </div>
 
       <div className="relative z-10">
@@ -66,7 +121,7 @@ export function AnalyticsDashboard() {
                   className="glass-card p-4"
                 >
                   <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-2', card.bg)}>
-                    <Icon className={cn('w-4.5 h-4.5', card.color)} />
+                    <Icon className={cn('w-4 h-4', card.color)} />
                   </div>
                   <div className={cn('text-2xl font-bold', card.color)}>
                     {isLoading ? <div className="h-7 w-16 bg-white/5 rounded animate-pulse" /> : card.value}
@@ -77,6 +132,57 @@ export function AnalyticsDashboard() {
             })}
           </div>
         </div>
+
+        {/* Scenario funnel */}
+        {(scenarioRuns > 0 || !isLoading) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="px-4 mb-4"
+          >
+            <div className="glass-card p-4">
+              <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-brand-400" />
+                Воронка сценариев
+              </h3>
+              {isLoading ? (
+                <div className="h-20 bg-white/5 rounded-xl animate-pulse" />
+              ) : scenarioRuns === 0 ? (
+                <div className="text-center py-4">
+                  <PlayCircle className="w-8 h-8 text-white/10 mx-auto mb-2" />
+                  <p className="text-white/30 text-xs">Запусти сценарии, чтобы увидеть воронку</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <FunnelRow
+                    icon={<PlayCircle className="w-3.5 h-3.5 text-brand-400" />}
+                    label="Запущено"
+                    value={scenarioRuns}
+                    max={scenarioRuns}
+                    color="bg-brand-500"
+                  />
+                  <FunnelRow
+                    icon={<CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                    label="Завершено"
+                    value={scenarioCompleted}
+                    max={scenarioRuns}
+                    color="bg-emerald-500"
+                  />
+                  <div className="pt-1 flex items-center justify-between">
+                    <span className="text-xs text-white/30 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Completion rate
+                    </span>
+                    <span className="text-sm font-bold text-emerald-400">
+                      {scenarioRuns > 0 ? Math.round((scenarioCompleted / scenarioRuns) * 100) : 0}%
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Events timeline chart */}
         <motion.div
@@ -92,6 +198,10 @@ export function AnalyticsDashboard() {
             </h3>
             {isLoading ? (
               <div className="h-40 bg-white/5 rounded-xl animate-pulse" />
+            ) : (charts?.eventsByDay?.length ?? 0) === 0 ? (
+              <div className="h-40 flex items-center justify-center">
+                <p className="text-white/20 text-xs">Нет данных за период</p>
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={160}>
                 <AreaChart data={charts?.eventsByDay ?? []}>
@@ -107,7 +217,7 @@ export function AnalyticsDashboard() {
                     tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(v) => v.slice(5)}
+                    tickFormatter={(v: string) => v.slice(5)}
                   />
                   <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} tickLine={false} axisLine={false} />
                   <Tooltip
@@ -121,8 +231,46 @@ export function AnalyticsDashboard() {
           </div>
         </motion.div>
 
+        {/* Event type breakdown */}
+        {breakdownList.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="px-4 mb-4"
+          >
+            <div className="glass-card p-4">
+              <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-400" />
+                Разбивка по событиям
+              </h3>
+              <div className="space-y-2.5">
+                {breakdownList.slice(0, 8).map(({ type, count, label, icon }) => (
+                  <div key={type}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-white/60 flex items-center gap-1.5">
+                        <span>{icon}</span>
+                        {label}
+                      </span>
+                      <span className="text-xs font-semibold text-white">{count}</span>
+                    </div>
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-brand-500/70 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(count / breakdownMax) * 100}%` }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Top links chart */}
-        {charts?.linksByClicks?.length > 0 && (
+        {(charts?.linksByClicks?.length ?? 0) > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -134,20 +282,50 @@ export function AnalyticsDashboard() {
                 <Link2 className="w-4 h-4 text-cyan-400" />
                 Топ ссылок по кликам
               </h3>
-              <ResponsiveContainer width="100%" height={140}>
-                <BarChart data={charts.linksByClicks} layout="vertical">
+              <ResponsiveContainer width="100%" height={Math.min((charts?.linksByClicks?.length ?? 1) * 36, 180)}>
+                <BarChart data={charts?.linksByClicks} layout="vertical">
                   <XAxis type="number" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} tickLine={false} axisLine={false} />
-                  <YAxis dataKey="slug" type="category" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} tickLine={false} axisLine={false} width={60} />
+                  <YAxis dataKey="slug" type="category" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} tickLine={false} axisLine={false} width={70} />
                   <Tooltip
                     contentStyle={{ background: 'rgba(18,18,42,0.95)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 12, color: '#fff', fontSize: 12 }}
                   />
                   <Bar dataKey="clicks" fill="#6366f1" radius={[0, 6, 6, 0]}>
-                    {(charts.linksByClicks as any[]).map((_: unknown, index: number) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    {(charts?.linksByClicks ?? []).map((entry, index) => (
+                      <Cell key={entry.slug} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Recent events feed */}
+        {recentEvents.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="px-4 mb-4"
+          >
+            <div className="glass-card p-4">
+              <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-400" />
+                Последние события
+              </h3>
+              <div className="space-y-2">
+                {recentEvents.slice(0, 10).map((event) => (
+                  <div key={event.id} className="flex items-center gap-3 py-1.5 border-b border-white/5 last:border-0">
+                    <span className="text-base flex-shrink-0">{EVENT_ICONS[event.type] ?? '📊'}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white/70 truncate">{EVENT_LABELS[event.type] ?? event.type}</p>
+                    </div>
+                    <span className="text-[10px] text-white/20 flex-shrink-0">
+                      {new Date(event.createdAt).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
@@ -162,6 +340,34 @@ export function AnalyticsDashboard() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Funnel Row ────────────────────────────────────────────────────────────────
+function FunnelRow({ icon, label, value, max, color }: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  max: number;
+  color: string;
+}) {
+  const pct = max > 0 ? (value / max) * 100 : 0;
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-white/50 flex items-center gap-1.5">{icon}{label}</span>
+        <span className="text-xs font-semibold text-white">{value} <span className="text-white/30">({Math.round(pct)}%)</span></span>
+      </div>
+      <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+        <motion.div
+          className={cn('h-full rounded-full', color)}
+          style={{ opacity: 0.75 }}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+        />
       </div>
     </div>
   );

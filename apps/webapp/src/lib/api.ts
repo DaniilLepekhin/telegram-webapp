@@ -184,6 +184,10 @@ class ApiClient {
   async getLinkAnalytics(id: string) {
     return this.request<{ success: boolean; data: unknown }>(`/api/v1/tracking/links/${id}/analytics`);
   }
+
+  async deleteLink(id: string) {
+    return this.request(`/api/v1/tracking/links/${id}`, { method: 'DELETE' });
+  }
 }
 
 export const api = new ApiClient(API_BASE);

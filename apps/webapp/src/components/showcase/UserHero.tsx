@@ -16,7 +16,10 @@ export function UserHero({ user }: UserHeroProps) {
 
   const { data: gamification } = useQuery({
     queryKey: ['gamification'],
-    queryFn: async () => { const r = await api.getGamificationStats(); return r.data as any; },
+    queryFn: async () => {
+      const r = await api.getGamificationStats();
+      return r.data as { xp: number; level: number; xpToNextLevel: number; streak: number };
+    },
     enabled: hasHydrated && isAuthenticated && !!accessToken,
     refetchInterval: 30_000,
   });

@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from '@/components/layout/Providers';
 import { TelegramInit } from '@/components/layout/TelegramInit';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -36,9 +37,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-surface-0 text-white antialiased overflow-x-hidden">
         <TelegramInit />
         <Providers>
-          <main className="pb-24">
-            {children}
-          </main>
+          <ErrorBoundary>
+            <main className="pb-24">
+              {children}
+            </main>
+          </ErrorBoundary>
           <BottomNav />
         </Providers>
       </body>
