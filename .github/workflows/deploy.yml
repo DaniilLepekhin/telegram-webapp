@@ -130,8 +130,17 @@ jobs:
             sleep 10
             docker compose exec -T myapp-backend bun dist/migrate.js 2>/dev/null || echo "Migration skipped or pending"
 
-            # Health checks (не блокируем pipeline если ещё стартует)
+            # Зарегистрировать Telegram webhook
             sleep 5
+            BOT_TOKEN=$(grep TELEGRAM_BOT_TOKEN .env | cut -d= -f2)
+            WEBHOOK_SECRET=$(grep TELEGRAM_WEBHOOK_SECRET .env | cut -d= -f2)
+            curl -s "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+              -d "url=https://myapp.daniillepekhin.com/bot/webhook" \
+              -d "secret_token=${WEBHOOK_SECRET}" \
+              -d "allowed_updates=[\"message\",\"callback_query\",\"my_chat_member\"]" \
+              -d "drop_pending_updates=false" | grep -q '"ok":true' && echo " webhook OK" || echo " webhook FAILED"
+
+            # Health checks (не блокируем pipeline если ещё стартует)
             curl -sf http://localhost:3102/health && echo " backend OK" || echo " backend starting..."
             curl -sf -o /dev/null http://localhost:3004 && echo " webapp OK" || echo " webapp starting..."
 
