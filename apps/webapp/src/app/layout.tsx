@@ -30,8 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru" className={inter.variable}>
       <head>
-        {/* Telegram WebApp SDK */}
-        <script src="https://telegram.org/js/telegram-web-app.js" async />
+        {/* Telegram WebApp SDK — Bot API 9.1 */}
+        <script src="https://telegram.org/js/telegram-web-app.js?59" async />
       </head>
       <body className="bg-surface-0 text-white antialiased overflow-x-hidden">
         <TelegramInit />
