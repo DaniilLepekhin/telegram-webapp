@@ -6,8 +6,8 @@ node_modules/
 .next/
 out/
 
-# Drizzle migrations (generated)
-drizzle/
+# Drizzle migrations are tracked (do not ignore)
+# drizzle/
 
 # Turbo
 .turbo/
