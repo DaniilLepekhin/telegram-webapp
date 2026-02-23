@@ -91,8 +91,9 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
   .use(authMiddleware)
   .post(
     '/events',
-    async ({ body, user }: { body: { type: string; payload?: Record<string, unknown>; sessionId?: string }; user: { id: string } | null }) => {
-      const userId = user?.id ?? null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async ({ body, user }: any) => {
+      const userId = (user as { id: string } | null)?.id ?? null;
       if (!userId) return { success: true }; // anonymous — silently ignore
       await db.insert(analyticsEvents).values({
         userId,
@@ -124,8 +125,9 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
 
   // ─── Dashboard stats (auth required) ────────────────────────────────────
   .use(requireAuth)
-  .get('/dashboard', async ({ user }: { user: { id: string } }) => {
-    const userId = user.id;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  .get('/dashboard', async ({ user }: any) => {
+    const userId = (user as { id: string }).id;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
