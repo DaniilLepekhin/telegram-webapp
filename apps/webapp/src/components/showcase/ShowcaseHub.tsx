@@ -10,7 +10,7 @@ import { ScenarioRunner } from './ScenarioRunner';
 import { LiveMetricsBar } from '../analytics/LiveMetricsBar';
 import { UserHero } from './UserHero';
 import { GlobalStats } from './GlobalStats';
-import type { DemoScenario } from '@showcase/shared';
+import type { DemoScenario, User } from '@showcase/shared';
 
 type View = 'hub' | 'scenario';
 
@@ -32,7 +32,7 @@ export function ShowcaseHub() {
       try {
         const res = await api.loginWithTelegram(initData);
         if (res.success && res.data) {
-          const { user: userData, accessToken } = res.data as { user: unknown; accessToken: string };
+          const { user: userData, accessToken } = res.data as { user: User; accessToken: string };
           api.setToken(accessToken);
           setUser(userData, accessToken);
           await api.trackEvent('page_view', { page: 'showcase_hub' });
