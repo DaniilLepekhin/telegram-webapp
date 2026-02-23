@@ -1,7 +1,7 @@
 import Elysia, { t } from 'elysia';
 import { desc, eq, gte, sql, and } from 'drizzle-orm';
 import { db, schema } from '../../db/index.ts';
-import { requireAuth } from '../../middlewares/auth.ts';
+import { requireAuth, authMiddleware } from '../../middlewares/auth.ts';
 import { getRedis } from '../../utils/redis.ts';
 import type { LiveEvent, EventType } from '@showcase/shared';
 
@@ -60,12 +60,13 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
     return stream;
   })
 
-  // ─── Auth-required routes ─────────────────────────────────────────────────
-  .use(requireAuth)
+  // ─── Track event (optionally authenticated) ──────────────────────────────
+  .use(authMiddleware)
   .post(
     '/events',
     async ({ body, user }: any) => {
-      const userId = (user as { id: string }).id;
+      const userId = (user as { id: string } | null)?.id ?? null;
+      if (!userId) return { success: true }; // anonymous — silently ignore
       await db.insert(analyticsEvents).values({
         userId,
         type: body.type as EventType,
@@ -94,7 +95,8 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
     },
   )
 
-  // ─── Dashboard stats ──────────────────────────────────────────────────────
+  // ─── Dashboard stats (auth required) ────────────────────────────────────
+  .use(requireAuth)
   .get('/dashboard', async ({ user }: any) => {
     const userId = (user as { id: string }).id;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);

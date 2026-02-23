@@ -110,6 +110,7 @@ class ApiClient {
 
   // Analytics
   async trackEvent(type: string, payload?: Record<string, unknown>) {
+    if (!this.token) return; // skip if not authenticated
     return this.request('/api/v1/analytics/events', {
       method: 'POST',
       body: JSON.stringify({ type, payload }),

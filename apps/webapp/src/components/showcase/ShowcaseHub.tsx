@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTelegram } from '@/hooks/useTelegram';
 import { useAuthStore } from '@/store/auth';
@@ -21,16 +21,18 @@ export function ShowcaseHub() {
   const [selectedScenario, setSelectedScenario] = useState<DemoScenario | null>(null);
   const [view, setView] = useState<View>('hub');
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const authAttempted = useRef(false);
 
-  // Authenticate on mount
+  // Authenticate on mount — runs only once when isReady becomes true
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || authAttempted.current) return;
+    authAttempted.current = true;
 
     const authenticate = async () => {
       try {
         const res = await api.loginWithTelegram(initData);
         if (res.success && res.data) {
-          const { user: userData, accessToken } = res.data as { user: any; accessToken: string };
+          const { user: userData, accessToken } = res.data as { user: unknown; accessToken: string };
           api.setToken(accessToken);
           setUser(userData, accessToken);
           await api.trackEvent('page_view', { page: 'showcase_hub' });
