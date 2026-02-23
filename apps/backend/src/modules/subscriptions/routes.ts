@@ -1,10 +1,45 @@
 import Elysia, { t } from 'elysia';
 import { eq, desc } from 'drizzle-orm';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { db, schema } from '../../db/index.ts';
 import { requireAuth } from '../../middlewares/auth.ts';
 import { gamificationService } from '../gamification/service.ts';
 import { getRedis, cacheKey } from '../../utils/redis.ts';
 import { logger } from '../../utils/logger.ts';
+
+// ─── Webhook signature verification ──────────────────────────────────────────
+
+/**
+ * Verify Lava webhook: HMAC-SHA256 of raw body with LAVA_WEBHOOK_SECRET.
+ * Header: X-Api-Signature
+ */
+function verifyLavaSignature(rawBody: string, signature: string | null): boolean {
+  const secret = process.env.LAVA_WEBHOOK_SECRET;
+  if (!secret) return true; // secret not configured — skip in dev
+  if (!signature) return false;
+  const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
+  try {
+    return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Verify CloudPayments webhook: HMAC-SHA256(base64) of raw body with CP_WEBHOOK_SECRET.
+ * Header: X-Content-HMAC
+ */
+function verifyCloudPaymentsSignature(rawBody: string, signature: string | null): boolean {
+  const secret = process.env.CP_WEBHOOK_SECRET;
+  if (!secret) return true;
+  if (!signature) return false;
+  const expected = createHmac('sha256', secret).update(rawBody).digest('base64');
+  try {
+    return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  } catch {
+    return false;
+  }
+}
 
 const { subscriptions, users } = schema;
 
@@ -186,10 +221,29 @@ export const subscriptionsModule = new Elysia({ prefix: '/subscriptions' })
       const { provider } = params;
       const payload = body as Record<string, unknown>;
 
-      logger.info({ provider, payload }, 'Payment webhook received');
+      // Read raw body text for HMAC verification
+      const rawBody = JSON.stringify(payload);
 
-      // In production: verify HMAC signature from provider
-      // For demo: just process the event
+      // ── Signature verification ────────────────────────────────────────────
+      if (provider === 'lava') {
+        const sig = request.headers.get('x-api-signature');
+        if (!verifyLavaSignature(rawBody, sig)) {
+          logger.warn({ provider }, 'Webhook signature verification failed');
+          set.status = 401;
+          return { success: false, error: { code: 'INVALID_SIGNATURE', message: 'Неверная подпись вебхука' } };
+        }
+      }
+
+      if (provider === 'cloudpayments') {
+        const sig = request.headers.get('x-content-hmac');
+        if (!verifyCloudPaymentsSignature(rawBody, sig)) {
+          logger.warn({ provider }, 'Webhook signature verification failed');
+          set.status = 401;
+          return { success: false, error: { code: 'INVALID_SIGNATURE', message: 'Неверная подпись вебхука' } };
+        }
+      }
+
+      logger.info({ provider, payload }, 'Payment webhook received');
 
       if (provider === 'lava') {
         const { userId, status, amount } = payload as { userId: string; status: string; amount: number };
@@ -204,7 +258,6 @@ export const subscriptionsModule = new Elysia({ prefix: '/subscriptions' })
       }
 
       if (provider === 'cloudpayments') {
-        // CloudPayments sends different format
         const { AccountId: userId, Status: status } = payload as { AccountId: string; Status: string };
         if (status === 'Completed') {
           const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);

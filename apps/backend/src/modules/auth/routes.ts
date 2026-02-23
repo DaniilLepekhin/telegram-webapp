@@ -4,8 +4,10 @@ import { authService } from './service.ts';
 import { gamificationService } from '../gamification/service.ts';
 import { config, isProd } from '../../config/index.ts';
 import { logger } from '../../utils/logger.ts';
+import { rateLimit } from '../../middlewares/rateLimit.ts';
 
 export const authModule = new Elysia({ prefix: '/auth' })
+  .use(rateLimit({ max: 5, windowMs: 60_000, keyPrefix: 'auth-telegram' }))
   .post(
     '/telegram',
     async ({ body, cookie: { accessToken, refreshToken: rfCookie }, set, request, jwt }: any) => {

@@ -14,6 +14,12 @@ const { trackingLinks, trackingClicks } = schema;
 export const trackingModule = new Elysia({ prefix: '/tracking' })
   // ─── Create link ─────────────────────────────────────────────────────────────
   .use(requireAuth)
+  .use(rateLimit({
+    max: 20,
+    windowMs: 60_000,
+    keyPrefix: 'create-link',
+    keyBy: ({ user }) => user?.id ?? 'anon',
+  }))
   .post(
     '/links',
     async ({ body, user, set }: any) => {

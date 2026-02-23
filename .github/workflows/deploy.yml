@@ -148,3 +148,44 @@ jobs:
             docker image prune -f
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
+  # ── Smoke tests ───────────────────────────────────────────────────────────
+  smoke:
+    name: Smoke Tests
+    needs: deploy
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Wait for services to be ready
+        run: sleep 20
+
+      - name: Health check — backend
+        run: |
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" https://myapp.daniillepekhin.com/health)
+          echo "Health status: $STATUS"
+          [ "$STATUS" = "200" ] || (echo "FAIL: /health returned $STATUS" && exit 1)
+
+      - name: Smoke — public scenarios list
+        run: |
+          BODY=$(curl -sf https://myapp.daniillepekhin.com/api/v1/showcase/scenarios)
+          echo "$BODY" | grep -q '"success":true' || (echo "FAIL: /showcase/scenarios" && exit 1)
+          echo "OK: scenarios"
+
+      - name: Smoke — public achievements list
+        run: |
+          BODY=$(curl -sf https://myapp.daniillepekhin.com/api/v1/gamification/achievements)
+          echo "$BODY" | grep -q '"success":true' || (echo "FAIL: /gamification/achievements" && exit 1)
+          echo "OK: achievements"
+
+      - name: Smoke — public plans list
+        run: |
+          BODY=$(curl -sf https://myapp.daniillepekhin.com/api/v1/subscriptions/plans)
+          echo "$BODY" | grep -q '"success":true' || (echo "FAIL: /subscriptions/plans" && exit 1)
+          echo "OK: plans"
+
+      - name: Smoke — webapp responds
+        run: |
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" https://myapp.daniillepekhin.com)
+          echo "Webapp status: $STATUS"
+          [ "$STATUS" = "200" ] || (echo "FAIL: webapp returned $STATUS" && exit 1)

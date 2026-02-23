@@ -1,4 +1,4 @@
-import { useAuthStore, registerApiSetToken } from '@/store/auth';
+import { useAuthStore, registerApiSetToken, clearAuth } from '@/store/auth';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3100';
 
@@ -67,11 +67,18 @@ class ApiClient {
         method: 'POST',
         credentials: 'include',
       });
-      if (!res.ok) return false;
+      if (!res.ok) {
+        // Refresh failed — clear auth to prevent infinite broken-state loops
+        this.token = null;
+        clearAuth();
+        return false;
+      }
       const data = await res.json();
       this.token = data.data.accessToken;
       return true;
     } catch {
+      this.token = null;
+      clearAuth();
       return false;
     }
   }

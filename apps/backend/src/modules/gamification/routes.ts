@@ -1,6 +1,7 @@
 import Elysia, { t } from 'elysia';
 import { gamificationService, ACHIEVEMENTS } from './service.ts';
 import { requireAuth } from '../../middlewares/auth.ts';
+import { rateLimit } from '../../middlewares/rateLimit.ts';
 
 export const gamificationModule = new Elysia({ prefix: '/gamification' })
   // Public — no auth needed
@@ -14,6 +15,12 @@ export const gamificationModule = new Elysia({ prefix: '/gamification' })
     if (!stats) { set.status = 404; return { success: false, error: { code: 'NOT_FOUND', message: 'Пользователь не найден' } }; }
     return { success: true, data: stats };
   })
+  .use(rateLimit({
+    max: 10,
+    windowMs: 60_000,
+    keyPrefix: 'award-xp',
+    keyBy: ({ user }) => user?.id ?? 'anon',
+  }))
   .post(
     '/award-xp',
     async ({ body, user }: any) => {

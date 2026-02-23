@@ -25,6 +25,11 @@ interface AuthState {
   setStreakUpdated: () => void;
 }
 
+/** Standalone helper for use outside React (e.g. in api.ts) */
+export function clearAuth() {
+  useAuthStore.getState().clearAuth();
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({

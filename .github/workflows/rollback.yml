@@ -1,0 +1,89 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Git SHA to rollback to (short or full). Leave empty to rollback to previous deploy.'
+        required: false
+        default: ''
+
+env:
+  REGISTRY: ghcr.io
+  REPO_LOWER: daniillepekhin/telegram-webapp
+
+jobs:
+  rollback:
+    name: Rollback to ${{ inputs.sha || 'previous' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
+
+      - name: Resolve target SHA
+        id: resolve
+        run: |
+          if [ -n "${{ inputs.sha }}" ]; then
+            TARGET="${{ inputs.sha }}"
+          else
+            # Use second-to-last commit on main as "previous"
+            TARGET=$(git log --oneline -2 | tail -1 | awk '{print $1}')
+          fi
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "Rolling back to: $TARGET"
+
+      - name: Deploy rollback via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: GHCR_TOKEN,TARGET_SHA
+          script: |
+            set -e
+            cd /var/www/myapp
+
+            TARGET_SHA="${TARGET_SHA}"
+            echo "Rolling back to SHA: $TARGET_SHA"
+
+            # Login to GHCR
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u daniillepekhin --password-stdin
+
+            # Pull versioned images for that SHA
+            docker pull ghcr.io/daniillepekhin/telegram-webapp-backend:${TARGET_SHA} || \
+              (echo "ERROR: Image not found for SHA $TARGET_SHA" && exit 1)
+            docker pull ghcr.io/daniillepekhin/telegram-webapp-webapp:${TARGET_SHA}
+            docker pull ghcr.io/daniillepekhin/telegram-webapp-bot:${TARGET_SHA}
+
+            # Re-tag as :latest
+            docker tag ghcr.io/daniillepekhin/telegram-webapp-backend:${TARGET_SHA} \
+                       ghcr.io/daniillepekhin/telegram-webapp-backend:latest
+            docker tag ghcr.io/daniillepekhin/telegram-webapp-webapp:${TARGET_SHA} \
+                       ghcr.io/daniillepekhin/telegram-webapp-webapp:latest
+            docker tag ghcr.io/daniillepekhin/telegram-webapp-bot:${TARGET_SHA} \
+                       ghcr.io/daniillepekhin/telegram-webapp-bot:latest
+
+            # Restart services
+            docker compose down --remove-orphans || true
+            docker compose up -d
+
+            sleep 10
+
+            # Verify health after rollback
+            curl -sf http://localhost:3102/health && echo "Backend OK after rollback" || echo "WARNING: backend not responding"
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          TARGET_SHA: ${{ steps.resolve.outputs.target }}
+
+      - name: Verify smoke after rollback
+        run: |
+          sleep 15
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" https://myapp.daniillepekhin.com/health)
+          echo "Health after rollback: $STATUS"
+          [ "$STATUS" = "200" ] || (echo "Rollback health check FAILED" && exit 1)
+          echo "Rollback successful"
