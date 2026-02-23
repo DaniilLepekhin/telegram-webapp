@@ -15,12 +15,12 @@ import { cn } from '@/lib/utils';
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'];
 
 export function AnalyticsDashboard() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ['analytics-dashboard'],
     queryFn: async () => { const r = await api.getDashboard(); return r.data as any; },
-    enabled: isAuthenticated,
+    enabled: hasHydrated && isAuthenticated && !!accessToken,
     refetchInterval: 60_000,
   });
 

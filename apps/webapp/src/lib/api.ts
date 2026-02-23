@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store/auth';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3100';
 
 class ApiClient {
@@ -16,13 +18,18 @@ class ApiClient {
     path: string,
     options: RequestInit = {},
   ): Promise<T> {
+    if (!this.token) {
+      const persistedToken = useAuthStore.getState().accessToken;
+      if (persistedToken) this.token = persistedToken;
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+      headers.Authorization = `Bearer ${this.token}`;
     }
 
     const res = await fetch(`${this.baseUrl}${path}`, {

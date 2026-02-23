@@ -24,7 +24,7 @@ const RARITY_LABELS = {
 } as const;
 
 export function GamificationPage() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
   const { haptic } = useTelegram();
   const qc = useQueryClient();
   const { ref: statsRef, inView } = useInView({ triggerOnce: true, threshold: 0.2 });
@@ -32,7 +32,7 @@ export function GamificationPage() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['gamification'],
     queryFn: async () => { const r = await api.getGamificationStats(); return r.data as any; },
-    enabled: isAuthenticated,
+    enabled: hasHydrated && isAuthenticated && !!accessToken,
     refetchInterval: 30_000,
   });
 
@@ -43,6 +43,7 @@ export function GamificationPage() {
       const j = await r.json();
       return j.data as any[];
     },
+    enabled: hasHydrated,
   });
 
   const awardMutation = useMutation({

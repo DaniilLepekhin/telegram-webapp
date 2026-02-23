@@ -2,10 +2,18 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
+import { useAuthStore } from '@/store/auth';
+import { api } from '@/lib/api';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  useEffect(() => {
+    api.setToken(accessToken);
+  }, [accessToken]);
+
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -13,7 +21,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 30_000,
             gcTime: 5 * 60_000,
-            retry: 2,
+            retry: (failureCount, error) => {
+              const message = error instanceof Error ? error.message : '';
+              if (message.includes('401')) return false;
+              return failureCount < 2;
+            },
             refetchOnWindowFocus: false,
           },
         },

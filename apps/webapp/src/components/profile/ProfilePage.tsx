@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 export function ProfilePage() {
   const { user: tgUser, haptic } = useTelegram();
-  const { user, clearAuth, isAuthenticated } = useAuthStore();
+  const { user, clearAuth, isAuthenticated, accessToken, hasHydrated } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const { ref, inView } = useInView({ triggerOnce: true });
   const qc = useQueryClient();
@@ -24,19 +24,19 @@ export function ProfilePage() {
   const { data: profile } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => { const r = await api.getDashboard(); return (r as any).data; },
-    enabled: isAuthenticated,
+    enabled: hasHydrated && isAuthenticated && !!accessToken,
   });
 
   const { data: referralData } = useQuery({
     queryKey: ['referrals'],
     queryFn: async () => {
       const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/referrals`, {
-        headers: { Authorization: `Bearer ${useAuthStore.getState().accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
         credentials: 'include',
       });
       return r.json().then((j) => j.data);
     },
-    enabled: isAuthenticated,
+    enabled: hasHydrated && isAuthenticated && !!accessToken,
   });
 
   const { data: subStatus } = useQuery({
@@ -47,7 +47,7 @@ export function ProfilePage() {
       });
       return r.json().then((j) => j.data);
     },
-    enabled: isAuthenticated,
+    enabled: hasHydrated && isAuthenticated,
   });
 
   const startTrialMutation = useMutation({

@@ -16,20 +16,20 @@ export function TrackingPage() {
   const [view, setView] = useState<View>('list');
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
   const { haptic } = useTelegram();
   const qc = useQueryClient();
 
   const { data: linksData, isLoading } = useQuery({
     queryKey: ['tracking-links'],
     queryFn: async () => { const r = await api.getMyLinks(); return r.data as any[]; },
-    enabled: isAuthenticated,
+    enabled: hasHydrated && isAuthenticated && !!accessToken,
   });
 
   const { data: analyticsData } = useQuery({
     queryKey: ['link-analytics', selectedLinkId],
     queryFn: async () => { const r = await api.getLinkAnalytics(selectedLinkId!); return r.data as any; },
-    enabled: !!selectedLinkId && view === 'analytics',
+    enabled: hasHydrated && isAuthenticated && !!accessToken && !!selectedLinkId && view === 'analytics',
   });
 
   const createMutation = useMutation({

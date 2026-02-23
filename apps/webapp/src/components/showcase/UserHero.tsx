@@ -12,12 +12,12 @@ interface UserHeroProps {
 }
 
 export function UserHero({ user }: UserHeroProps) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, accessToken, hasHydrated } = useAuthStore();
 
   const { data: gamification } = useQuery({
     queryKey: ['gamification'],
     queryFn: async () => { const r = await api.getGamificationStats(); return r.data as any; },
-    enabled: isAuthenticated,
+    enabled: hasHydrated && isAuthenticated && !!accessToken,
     refetchInterval: 30_000,
   });
 
