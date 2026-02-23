@@ -120,8 +120,11 @@ jobs:
             # Pull новые образы
             docker compose pull
 
-            # Обновить контейнеры
-            docker compose up -d --remove-orphans
+            # Остановить текущие контейнеры перед обновлением (избегаем конфликт портов)
+            docker compose down --remove-orphans || true
+
+            # Запустить обновлённые контейнеры
+            docker compose up -d
 
             # Применить DB миграции
             sleep 10

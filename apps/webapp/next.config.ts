@@ -1,7 +1,10 @@
 import type { NextConfig } from 'next';
+import path from 'node:path';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  // Point to monorepo root so pnpm symlinks resolve correctly in standalone output
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   reactStrictMode: true,
   transpilePackages: ['@showcase/shared'],
   images: {
