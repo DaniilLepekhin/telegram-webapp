@@ -1,6 +1,7 @@
 import Elysia, { t } from 'elysia';
 import { validateTelegramInitData } from './telegram.ts';
 import { authService } from './service.ts';
+import { gamificationService } from '../gamification/service.ts';
 import { config, isProd } from '../../config/index.ts';
 import { logger } from '../../utils/logger.ts';
 
@@ -17,6 +18,14 @@ export const authModule = new Elysia({ prefix: '/auth' })
       }
 
       const user = await authService.findOrCreateUser(data.user);
+
+      // Auto-grant first_login achievement for new users (created within last 30 seconds)
+      const isNewUser = (Date.now() - new Date(user.createdAt as unknown as string).getTime()) < 30_000;
+      if (isNewUser) {
+        gamificationService.checkAndAwardAchievement(user.id, 'first_login').catch(() => {});
+        // Award starter XP
+        gamificationService.awardXp(user.id, 50, 'Первый вход в приложение', 'first_login').catch(() => {});
+      }
 
       const tokens = await authService.createTokens(user.id, user.telegramId, user.role, {
         ua: request.headers.get('user-agent') ?? undefined,

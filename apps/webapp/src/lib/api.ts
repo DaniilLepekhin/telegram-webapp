@@ -115,6 +115,47 @@ class ApiClient {
     });
   }
 
+  async updateStreak() {
+    return this.request('/api/v1/gamification/streak', { method: 'POST' });
+  }
+
+  // Users
+  async getMe() {
+    return this.request<{ success: boolean; data: unknown }>('/api/v1/users/me');
+  }
+
+  async getLeaderboard(limit = 20) {
+    return this.request<{ success: boolean; data: unknown[] }>(`/api/v1/users/leaderboard?limit=${limit}`);
+  }
+
+  async getReferrals() {
+    return this.request<{ success: boolean; data: unknown }>('/api/v1/users/referrals');
+  }
+
+  async getActivity() {
+    return this.request<{ success: boolean; data: unknown[] }>('/api/v1/users/activity');
+  }
+
+  // Subscriptions
+  async getPlans() {
+    return this.request<{ success: boolean; data: unknown[] }>('/api/v1/subscriptions/plans');
+  }
+
+  async getSubscriptionStatus() {
+    return this.request<{ success: boolean; data: unknown }>('/api/v1/subscriptions/status');
+  }
+
+  async startSubscription(plan: string, trial = true) {
+    return this.request('/api/v1/subscriptions/start', {
+      method: 'POST',
+      body: JSON.stringify({ plan, trial }),
+    });
+  }
+
+  async cancelSubscription() {
+    return this.request('/api/v1/subscriptions/cancel', { method: 'POST' });
+  }
+
   // Analytics
   async trackEvent(type: string, payload?: Record<string, unknown>) {
     if (!this.token) return; // skip if not authenticated

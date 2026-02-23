@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LogOut, Crown, Users, Zap, Star, Copy, ExternalLink, Check } from 'lucide-react';
+import { LogOut, Crown, Users, Zap, Copy, Check, Activity, Star, Shield } from 'lucide-react';
 import CountUp from 'react-countup';
 import { useInView } from 'react-intersection-observer';
 import { useState } from 'react';
@@ -10,58 +10,90 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { useTelegram } from '@/hooks/useTelegram';
-import { LEVEL_NAMES } from '@showcase/shared';
-import { getLevelFromXp } from '@showcase/shared';
+import { LEVEL_NAMES, getLevelFromXp } from '@showcase/shared';
 import { cn } from '@/lib/utils';
+
+interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName?: string;
+  username?: string;
+  photoUrl?: string;
+  isPremium?: boolean;
+  role: string;
+  xp: number;
+  level: number;
+  levelName: string;
+  streak: number;
+  longestStreak: number;
+  energyBalance: number;
+  referralCode?: string;
+}
+
+interface ReferralData {
+  referralCode: string;
+  referralLink: string;
+  totalReferrals: number;
+  totalXpEarned: number;
+}
+
+interface SubscriptionStatus {
+  isActive: boolean;
+  plan: string;
+  status: string;
+  expiresAt?: string;
+}
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  trialDays: number;
+  features: string[];
+}
 
 export function ProfilePage() {
   const { user: tgUser, haptic } = useTelegram();
-  const { user, clearAuth, isAuthenticated, accessToken, hasHydrated } = useAuthStore();
+  const { clearAuth, isAuthenticated, accessToken, hasHydrated } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const { ref, inView } = useInView({ triggerOnce: true });
   const qc = useQueryClient();
 
+  const enabled = hasHydrated && isAuthenticated && !!accessToken;
+
   const { data: profile } = useQuery({
-    queryKey: ['profile'],
-    queryFn: async () => { const r = await api.getDashboard(); return (r as any).data; },
-    enabled: hasHydrated && isAuthenticated && !!accessToken,
+    queryKey: ['profile-me'],
+    queryFn: async () => { const r = await api.getMe(); return r.data as UserProfile; },
+    enabled,
   });
 
   const { data: referralData } = useQuery({
     queryKey: ['referrals'],
-    queryFn: async () => {
-      const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/referrals`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        credentials: 'include',
-      });
-      return r.json().then((j) => j.data);
-    },
-    enabled: hasHydrated && isAuthenticated && !!accessToken,
+    queryFn: async () => { const r = await api.getReferrals(); return r.data as ReferralData; },
+    enabled,
   });
 
   const { data: subStatus } = useQuery({
     queryKey: ['subscription-status'],
-    queryFn: async () => {
-      const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/subscriptions/status`, {
-        credentials: 'include',
-      });
-      return r.json().then((j) => j.data);
-    },
-    enabled: hasHydrated && isAuthenticated,
+    queryFn: async () => { const r = await api.getSubscriptionStatus(); return r.data as SubscriptionStatus; },
+    enabled,
+  });
+
+  const { data: plans } = useQuery({
+    queryKey: ['plans'],
+    queryFn: async () => { const r = await api.getPlans(); return r.data as Plan[]; },
+    enabled: hasHydrated,
   });
 
   const startTrialMutation = useMutation({
-    mutationFn: () => fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/subscriptions/start`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: 'pro', trial: true }),
-    }).then(r => r.json()),
+    mutationFn: () => api.startSubscription('pro', true),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['subscription-status'] });
       haptic.notification('success');
-      toast.success('🎉 Pro Trial активирован на 7 дней!');
+      toast.success('Pro Trial активирован на 7 дней!');
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const handleCopyReferral = async () => {
@@ -73,9 +105,10 @@ export function ProfilePage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const level = getLevelFromXp(user?.xp ?? 0);
-  const levelName = LEVEL_NAMES[level] ?? 'Новичок';
+  const level = profile?.level ?? getLevelFromXp(profile?.xp ?? 0);
+  const levelName = profile?.levelName ?? LEVEL_NAMES[level] ?? 'Новичок';
   const isPro = subStatus?.isActive && subStatus?.plan !== 'free';
+  const proPlan = plans?.find((p) => p.id === 'pro');
 
   return (
     <div className="min-h-screen bg-surface-0 relative">
@@ -84,7 +117,6 @@ export function ProfilePage() {
       </div>
 
       <div className="relative z-10 pb-4">
-        {/* Header */}
         <div className="px-4 pt-4 pb-3">
           <h1 className="text-xl font-bold text-white">Профиль</h1>
         </div>
@@ -95,12 +127,11 @@ export function ProfilePage() {
             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-fuchsia-400/40 to-transparent" />
 
             <div className="flex items-center gap-4">
-              {/* Avatar */}
               <div className="relative flex-shrink-0">
                 <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-2xl font-bold text-white shadow-glow">
                   {tgUser?.photo_url
                     ? <img src={tgUser.photo_url} alt="" className="w-full h-full rounded-3xl object-cover" />
-                    : (tgUser?.first_name?.[0] ?? '?')
+                    : (profile?.firstName?.[0] ?? tgUser?.first_name?.[0] ?? '?')
                   }
                 </div>
                 {isPro && (
@@ -110,19 +141,24 @@ export function ProfilePage() {
                 )}
               </div>
 
-              {/* Info */}
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-white text-lg truncate">
-                  {tgUser?.first_name ?? 'Пользователь'} {tgUser?.last_name ?? ''}
+                  {profile?.firstName ?? tgUser?.first_name ?? 'Пользователь'}{' '}
+                  {profile?.lastName ?? tgUser?.last_name ?? ''}
                 </p>
-                {tgUser?.username && (
-                  <p className="text-white/40 text-sm">@{tgUser.username}</p>
+                {(profile?.username ?? tgUser?.username) && (
+                  <p className="text-white/40 text-sm">@{profile?.username ?? tgUser?.username}</p>
                 )}
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className={cn('badge text-xs', isPro ? 'badge-primary' : '')}>
-                    {isPro ? '⭐ Pro' : `Уровень ${level} • ${levelName}`}
+                    {isPro ? 'Pro' : `Ур. ${level} • ${levelName}`}
                   </span>
                   {tgUser?.is_premium && <span className="badge text-xs">Telegram Premium</span>}
+                  {profile?.role === 'admin' && (
+                    <span className="badge text-xs flex items-center gap-1">
+                      <Shield className="w-3 h-3" />Admin
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -130,23 +166,28 @@ export function ProfilePage() {
             {/* Stats */}
             <div ref={ref} className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-white/5">
               {[
-                { label: 'XP', value: user?.xp ?? 0, color: 'text-amber-400', icon: Zap },
-                { label: 'Стрик', value: user?.streak ?? 0, color: 'text-orange-400', suffix: 'дн', icon: Star },
-                { label: 'Энергия', value: user?.energyBalance ?? 0, color: 'text-cyan-400', icon: Star },
-              ].map((s) => (
-                <div key={s.label} className="text-center">
-                  <div className={cn('text-xl font-bold', s.color)}>
-                    {inView ? <CountUp end={s.value} duration={1.2} separator=" " /> : 0}
-                    {s.suffix && <span className="text-sm ml-0.5">{s.suffix}</span>}
+                { label: 'XP', value: profile?.xp ?? 0, color: 'text-amber-400', icon: Zap },
+                { label: 'Стрик', value: profile?.streak ?? 0, color: 'text-orange-400', suffix: 'дн', icon: Star },
+                { label: 'Энергия', value: profile?.energyBalance ?? 0, color: 'text-cyan-400', icon: Zap },
+              ].map((s) => {
+                const Icon = s.icon;
+                return (
+                  <div key={s.label} className="text-center">
+                    <div className={cn('text-xl font-bold', s.color)}>
+                      {inView ? <CountUp end={s.value} duration={1.2} separator=" " /> : 0}
+                      {s.suffix && <span className="text-sm ml-0.5">{s.suffix}</span>}
+                    </div>
+                    <p className="text-[10px] text-white/30 mt-0.5 flex items-center justify-center gap-1">
+                      <Icon className="w-3 h-3" />{s.label}
+                    </p>
                   </div>
-                  <p className="text-[10px] text-white/30 mt-0.5">{s.label}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </motion.div>
         </div>
 
-        {/* Subscription card */}
+        {/* Subscription */}
         <div className="px-4 mb-4">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             {isPro ? (
@@ -158,10 +199,11 @@ export function ProfilePage() {
                   <div className="flex-1">
                     <p className="font-bold text-white">Showcase Pro</p>
                     <p className="text-xs text-white/40">
-                      Активна до {subStatus?.expiresAt ? new Date(subStatus.expiresAt).toLocaleDateString('ru-RU') : '—'}
+                      {subStatus?.status === 'trial' ? 'Trial' : 'Активна'} до{' '}
+                      {subStatus?.expiresAt ? new Date(subStatus.expiresAt).toLocaleDateString('ru-RU') : '—'}
                     </p>
                   </div>
-                  <span className="badge badge-success">Активна</span>
+                  <span className="badge badge-success">{subStatus?.status === 'trial' ? 'Trial' : 'Pro'}</span>
                 </div>
               </div>
             ) : (
@@ -172,21 +214,22 @@ export function ProfilePage() {
                     <div>
                       <p className="font-bold text-white">Showcase Pro</p>
                       <p className="text-xs text-white/50 mt-0.5">
-                        Неограниченные ссылки, A/B тесты, AI функции
+                        {proPlan?.features?.slice(0, 2).join(' · ') ?? 'Неограниченные ссылки, A/B тесты'}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-white">₽2 990</p>
+                      <p className="font-bold text-white">₽{(proPlan?.price ?? 2990).toLocaleString('ru-RU')}</p>
                       <p className="text-[10px] text-white/30">/мес</p>
                     </div>
                   </div>
                   <motion.button
+                    type="button"
                     whileTap={{ scale: 0.97 }}
                     onClick={() => startTrialMutation.mutate()}
                     disabled={startTrialMutation.isPending}
                     className="w-full mt-3 btn-glow py-3 text-sm disabled:opacity-50"
                   >
-                    {startTrialMutation.isPending ? '⏳...' : '🎁 Попробовать 7 дней бесплатно'}
+                    {startTrialMutation.isPending ? 'Активация...' : `Попробовать ${proPlan?.trialDays ?? 7} дней бесплатно`}
                   </motion.button>
                 </div>
               </div>
@@ -194,27 +237,29 @@ export function ProfilePage() {
           </motion.div>
         </div>
 
-        {/* Referral card */}
+        {/* Referral */}
         {referralData && (
           <div className="px-4 mb-4">
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-                  <Users className="w-4.5 h-4.5 text-emerald-400" />
+                  <Users className="w-4 h-4 text-emerald-400" />
                 </div>
                 <div>
                   <p className="font-semibold text-white text-sm">Реферальная программа</p>
-                  <p className="text-xs text-white/40">Приглашено: {referralData.totalReferrals} • +{referralData.totalXpEarned} XP</p>
+                  <p className="text-xs text-white/40">
+                    Приглашено: {referralData.totalReferrals} • +{referralData.totalXpEarned} XP
+                  </p>
                 </div>
               </div>
-
               <div className="flex items-center gap-2">
                 <div className="flex-1 glass rounded-xl px-3 py-2 text-xs text-white/50 truncate font-mono">
-                  {referralData.referralLink ?? '...'}
+                  {referralData.referralLink}
                 </div>
                 <button
+                  type="button"
                   onClick={handleCopyReferral}
-                  className="w-9 h-9 glass rounded-xl flex items-center justify-center flex-shrink-0 transition-colors hover:bg-white/10"
+                  className="w-9 h-9 glass rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-white/10 transition-colors"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-white/50" />}
                 </button>
@@ -223,9 +268,32 @@ export function ProfilePage() {
           </div>
         )}
 
+        {/* Account details */}
+        <div className="px-4 mb-4">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-4">
+            <p className="text-xs text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5" /> Детали аккаунта
+            </p>
+            <div className="space-y-2">
+              {[
+                { label: 'ID', value: profile?.id?.slice(0, 8) ?? '—' },
+                { label: 'Telegram ID', value: String(tgUser?.id ?? '—') },
+                { label: 'Лучший стрик', value: `${profile?.longestStreak ?? 0} дней` },
+                { label: 'Реф. код', value: profile?.referralCode ?? '—' },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-xs text-white/40">{label}</span>
+                  <span className="text-xs text-white/70 font-mono">{value}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
         {/* Logout */}
         <div className="px-4">
           <button
+            type="button"
             onClick={() => {
               haptic.impact('light');
               api.logout().catch(() => {});

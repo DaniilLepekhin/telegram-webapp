@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, CheckCircle2, Clock, Zap, BarChart3, Bot, Globe, CreditCard, Bell } from 'lucide-react';
 import CountUp from 'react-countup';
 import type { DemoScenario } from '@showcase/shared';
 import { cn } from '@/lib/utils';
 import { useTelegram } from '@/hooks/useTelegram';
+import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
 
 interface ScenarioRunnerProps {
@@ -26,13 +27,16 @@ type RunState = 'intro' | 'running' | 'complete';
 
 export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
   const { haptic, backButton } = useTelegram();
+  const { isAuthenticated } = useAuthStore();
   const [state, setState] = useState<RunState>('intro');
   const [currentStep, setCurrentStep] = useState(-1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const [startTime, setStartTime] = useState<number>(0);
   const [elapsed, setElapsed] = useState(0);
-  const [runId, setRunId] = useState<string | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [xpEarned, setXpEarned] = useState(175);
+  const startTimeRef = useRef<number>(0);
+  const runIdRef = useRef<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stepTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     backButton.show(onBack);
@@ -43,53 +47,89 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
   useEffect(() => {
     if (state === 'running') {
       timerRef.current = setInterval(() => {
-        setElapsed(Date.now() - startTime);
+        setElapsed(Date.now() - startTimeRef.current);
       }, 100);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [state, startTime]);
+  }, [state]);
 
-  const handleStart = async () => {
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      stepTimeoutsRef.current.forEach(clearTimeout);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  const handleStart = useCallback(async () => {
     haptic.notification('success');
+    startTimeRef.current = Date.now();
     setState('running');
-    setStartTime(Date.now());
     setCurrentStep(0);
 
-    // Start run on backend
-    try {
-      const res = await api.runScenario(scenario.id) as any;
-      if (res?.data?.runId) setRunId(res.data.runId);
-    } catch {}
+    // Start run on backend (fire-and-forget if not authenticated)
+    if (isAuthenticated) {
+      try {
+        const res = await api.runScenario(scenario.id) as { data?: { runId?: string } };
+        if (res?.data?.runId) runIdRef.current = res.data.runId;
+      } catch { /* non-critical */ }
+    }
 
-    // Auto-advance steps
-    let step = 0;
-    const advance = () => {
-      if (step >= scenario.steps.length) return;
-      const s = scenario.steps[step];
-      haptic.impact(step === 0 ? 'heavy' : 'light');
-      setCurrentStep(step);
+    // Build the step timing schedule upfront — avoids closure over mutable state
+    let cumulativeDelay = 500;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
 
-      setTimeout(() => {
-        setCompletedSteps((prev) => new Set([...prev, step]));
-        step++;
-        if (step < scenario.steps.length) {
-          setTimeout(advance, 400);
-        } else {
-          // All done
-          setTimeout(() => {
-            setState('complete');
-            haptic.notification('success');
-            const timeMs = Date.now() - startTime;
-            if (runId) api.completeScenario(scenario.id, runId, timeMs).catch(() => {});
-          }, 600);
-        }
-      }, s.durationMs);
-    };
+    scenario.steps.forEach((step, stepIndex) => {
+      // Activate step
+      const activateAt = cumulativeDelay;
+      timeouts.push(setTimeout(() => {
+        haptic.impact(stepIndex === 0 ? 'heavy' : 'light');
+        setCurrentStep(stepIndex);
+      }, activateAt));
 
-    setTimeout(advance, 500);
-  };
+      // Complete step
+      const completeAt = cumulativeDelay + step.durationMs;
+      timeouts.push(setTimeout(() => {
+        setCompletedSteps((prev) => new Set([...prev, stepIndex]));
+      }, completeAt));
+
+      cumulativeDelay = completeAt + 400;
+    });
+
+    // Final completion
+    const finalAt = cumulativeDelay + 200;
+    timeouts.push(setTimeout(() => {
+      const timeMs = Date.now() - startTimeRef.current;
+      setState('complete');
+      haptic.notification('success');
+
+      if (isAuthenticated && runIdRef.current) {
+        api.completeScenario(scenario.id, runIdRef.current, timeMs)
+          .then((res: unknown) => {
+            const r = res as { data?: { newXp?: number; xp?: number } } | null;
+            if (r?.data?.newXp !== undefined && r?.data?.xp !== undefined) {
+              setXpEarned(r.data.newXp - r.data.xp + 150);
+            }
+          })
+          .catch(() => {});
+      }
+    }, finalAt));
+
+    stepTimeoutsRef.current = timeouts;
+  }, [scenario, haptic, isAuthenticated]);
+
+  const handleReset = useCallback(() => {
+    stepTimeoutsRef.current.forEach(clearTimeout);
+    stepTimeoutsRef.current = [];
+    runIdRef.current = null;
+    setState('intro');
+    setCurrentStep(-1);
+    setCompletedSteps(new Set());
+    setElapsed(0);
+    setXpEarned(175);
+  }, []);
 
   return (
     <div className="min-h-screen bg-surface-0 relative overflow-hidden">
@@ -102,6 +142,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
       <div className="relative z-10 pt-safe">
         <div className="flex items-center gap-3 px-4 py-4">
           <motion.button
+            type="button"
             whileTap={{ scale: 0.9 }}
             onClick={() => { haptic.impact('light'); onBack(); }}
             className="w-9 h-9 rounded-xl glass flex items-center justify-center"
@@ -198,6 +239,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
 
             {/* Start button */}
             <motion.button
+              type="button"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
@@ -232,7 +274,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
               <motion.div
                 className={cn('h-full rounded-full bg-gradient-to-r', scenario.gradient)}
                 initial={{ width: '0%' }}
-                animate={{ width: `${((completedSteps.size) / scenario.steps.length) * 100}%` }}
+                animate={{ width: `${(completedSteps.size / scenario.steps.length) * 100}%` }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
               />
             </div>
@@ -267,7 +309,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                       <motion.div
                         className={cn('absolute inset-0 opacity-20 bg-gradient-to-r to-transparent', scenario.gradient)}
                         animate={{ opacity: [0.1, 0.2, 0.1] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
+                        transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
                       />
                     )}
 
@@ -283,7 +325,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                         ) : isActive ? (
                           <motion.div
                             animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }}
                           >
                             <Icon className="w-5 h-5 text-white" />
                           </motion.div>
@@ -376,25 +418,27 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
             </div>
 
             {/* XP earned */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="glass-card p-4 mb-4 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-amber-400" />
+            {isAuthenticated && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="glass-card p-4 mb-4 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">XP заработано</p>
+                    <p className="text-xs text-white/40">За завершение сценария</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">XP заработано</p>
-                  <p className="text-xs text-white/40">За завершение сценария</p>
-                </div>
-              </div>
-              <span className="text-2xl font-bold text-amber-400">
-                +<CountUp end={175} duration={1.2} delay={0.5} />
-              </span>
-            </motion.div>
+                <span className="text-2xl font-bold text-amber-400">
+                  +<CountUp end={xpEarned} duration={1.2} delay={0.5} />
+                </span>
+              </motion.div>
+            )}
 
             {/* Metrics achieved */}
             <motion.div
@@ -431,12 +475,14 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
               className="space-y-3"
             >
               <button
-                onClick={() => { setState('intro'); setCurrentStep(-1); setCompletedSteps(new Set()); }}
+                type="button"
+                onClick={handleReset}
                 className="w-full py-3.5 rounded-2xl glass border border-white/10 text-white/70 font-medium text-sm hover:text-white hover:border-white/20 transition-all"
               >
                 Повторить сценарий
               </button>
               <button
+                type="button"
                 onClick={onBack}
                 className={cn(
                   'w-full py-3.5 rounded-2xl font-bold text-white text-sm',

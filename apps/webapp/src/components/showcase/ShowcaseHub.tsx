@@ -11,6 +11,8 @@ import { LiveMetricsBar } from '../analytics/LiveMetricsBar';
 import { UserHero } from './UserHero';
 import { GlobalStats } from './GlobalStats';
 import type { DemoScenario, User } from '@showcase/shared';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { OnboardingScreen } from '../onboarding/OnboardingScreen';
 
 type View = 'hub' | 'scenario';
 
@@ -21,6 +23,8 @@ export function ShowcaseHub() {
   const [selectedScenario, setSelectedScenario] = useState<DemoScenario | null>(null);
   const [view, setView] = useState<View>('hub');
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const authAttempted = useRef(false);
 
   // Authenticate on mount — runs only once when isReady becomes true
@@ -32,13 +36,23 @@ export function ShowcaseHub() {
       try {
         const res = await api.loginWithTelegram(initData);
         if (res.success && res.data) {
-          const { user: userData, accessToken } = res.data as { user: User; accessToken: string };
+          const { user: userData, accessToken } = res.data as { user: User & { createdAt?: string }; accessToken: string };
           api.setToken(accessToken);
           setUser(userData, accessToken);
+
+          // Show onboarding for new users (registered within last 2 minutes)
+          if (userData.createdAt) {
+            const ageMs = Date.now() - new Date(userData.createdAt).getTime();
+            if (ageMs < 2 * 60 * 1000) setShowOnboarding(true);
+          }
+
+          // Award streak XP on login (fire-and-forget)
+          api.updateStreak().catch(() => {});
           await api.trackEvent('page_view', { page: 'showcase_hub' });
         }
       } catch (err) {
         console.error('Auth failed:', err);
+        setAuthError('Не удалось войти. Открой приложение через Telegram.');
       } finally {
         setIsAuthLoading(false);
       }
@@ -47,7 +61,7 @@ export function ShowcaseHub() {
     authenticate();
   }, [isReady, initData, setUser]);
 
-  // Load scenarios
+  // Load scenarios (public, no auth required)
   useEffect(() => {
     api.getScenarios().then((res) => {
       if (res.success) setScenarios(res.data as DemoScenario[]);
@@ -58,7 +72,7 @@ export function ShowcaseHub() {
     haptic.impact('medium');
     setSelectedScenario(scenario);
     setView('scenario');
-    api.trackEvent('scenario_start', { scenarioId: scenario.id });
+    api.trackEvent('scenario_start', { scenarioId: scenario.id, scenarioTitle: scenario.title });
   };
 
   const handleBackToHub = () => {
@@ -69,6 +83,19 @@ export function ShowcaseHub() {
 
   if (!isReady || isAuthLoading) {
     return <LoadingScreen />;
+  }
+
+  if (authError) {
+    return <ErrorScreen message={authError} onRetry={() => { authAttempted.current = false; setAuthError(null); setIsAuthLoading(true); }} />;
+  }
+
+  if (showOnboarding) {
+    return (
+      <OnboardingScreen
+        userName={user?.first_name ?? ''}
+        onComplete={() => setShowOnboarding(false)}
+      />
+    );
   }
 
   return (
@@ -111,7 +138,9 @@ export function ShowcaseHub() {
                   <h2 className="text-lg font-bold text-white">Demo Кейсы</h2>
                   <p className="text-sm text-white/40 mt-0.5">Нажми — запустится интерактивный сценарий</p>
                 </div>
-                <span className="badge badge-primary">{scenarios.length} кейсов</span>
+                {scenarios.length > 0 && (
+                  <span className="badge badge-primary">{scenarios.length} кейсов</span>
+                )}
               </motion.div>
 
               <div className="grid grid-cols-1 gap-3">
@@ -125,9 +154,8 @@ export function ShowcaseHub() {
                     />
                   ))
                 ) : (
-                  // Skeleton loaders
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <ScenarioSkeleton key={i} index={i} />
+                  ['s0', 's1', 's2', 's3'].map((id, i) => (
+                    <ScenarioSkeleton key={id} index={i} />
                   ))
                 )}
               </div>
@@ -146,7 +174,7 @@ export function ShowcaseHub() {
                   Хочешь такой же бот для своего бизнеса?
                 </p>
                 <p className="text-white font-semibold mt-1 relative z-10">
-                  Напишите @daniillepekhin — обсудим кейс 🚀
+                  Напиши @daniillepekhin — обсудим твой кейс
                 </p>
               </div>
             </motion.div>
@@ -187,6 +215,31 @@ function LoadingScreen() {
           <div className="absolute inset-4 rounded-full bg-brand-500/20" />
         </div>
         <p className="text-white/40 text-sm animate-pulse">Загрузка...</p>
+      </motion.div>
+    </div>
+  );
+}
+
+function ErrorScreen({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="min-h-screen bg-surface-0 flex items-center justify-center px-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center"
+      >
+        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-rose-500/15 flex items-center justify-center">
+          <AlertCircle className="w-8 h-8 text-rose-400" />
+        </div>
+        <p className="text-white font-semibold">{message}</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-4 flex items-center gap-2 mx-auto glass px-4 py-2 rounded-xl text-sm text-white/70 hover:text-white transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          Попробовать снова
+        </button>
       </motion.div>
     </div>
   );
