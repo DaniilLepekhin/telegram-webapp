@@ -10,9 +10,6 @@ export function TelegramInit() {
     // Inform Telegram the app is ready
     tg.ready();
 
-    // Expand to full height
-    tg.expand();
-
     // Apply Telegram theme colors to CSS variables
     const applyTheme = () => {
       const theme = tg.themeParams;
@@ -55,16 +52,6 @@ export function TelegramInit() {
     tg.onEvent('themeChanged', applyTheme);
     tg.onEvent('safeAreaChanged', applySafeArea);
     tg.onEvent('contentSafeAreaChanged', applySafeArea);
-
-    // Lock orientation (Bot API 8.0+)
-    if (tg.isVersionAtLeast('8.0') && tg.lockOrientation) {
-      tg.lockOrientation();
-    }
-
-    // Request fullscreen (Bot API 8.0+)
-    if (tg.isVersionAtLeast('8.0') && tg.requestFullscreen) {
-      tg.requestFullscreen();
-    }
 
     // Disable vertical swipes to prevent accidental closes during interaction
     if (tg.isVersionAtLeast('7.7')) {

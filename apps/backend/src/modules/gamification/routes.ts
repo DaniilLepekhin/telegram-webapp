@@ -3,14 +3,16 @@ import { gamificationService, ACHIEVEMENTS } from './service.ts';
 import { requireAuth } from '../../middlewares/auth.ts';
 
 export const gamificationModule = new Elysia({ prefix: '/gamification' })
+  // Public — no auth needed
+  .get('/achievements', () => {
+    return { success: true, data: ACHIEVEMENTS };
+  })
+  // Auth-required routes
   .use(requireAuth)
   .get('/stats', async ({ user, set }: any) => {
     const stats = await gamificationService.getStats((user as { id: string }).id);
     if (!stats) { set.status = 404; return { success: false, error: { code: 'NOT_FOUND', message: 'Пользователь не найден' } }; }
     return { success: true, data: stats };
-  })
-  .get('/achievements', () => {
-    return { success: true, data: ACHIEVEMENTS };
   })
   .post(
     '/award-xp',

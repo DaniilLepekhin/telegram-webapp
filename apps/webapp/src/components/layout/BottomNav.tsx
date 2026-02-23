@@ -3,16 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Home, BarChart3, Link2, Trophy, User } from 'lucide-react';
+import { Home, BarChart2, Link2, Zap, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTelegram } from '@/hooks/useTelegram';
 
-const NAV_ITEMS = [
-  { href: '/',             icon: Home,     label: 'Кейсы'     },
-  { href: '/analytics',   icon: BarChart3, label: 'Аналитика' },
-  { href: '/tracking',    icon: Link2,     label: 'Ссылки'    },
-  { href: '/gamification',icon: Trophy,    label: 'Прокачка'  },
-  { href: '/profile',     icon: User,      label: 'Профиль'   },
+const TABS = [
+  { href: '/',             icon: Home,     label: 'Кейсы'    },
+  { href: '/analytics',   icon: BarChart2, label: 'Метрики'  },
+  { href: '/tracking',    icon: Link2,     label: 'Ссылки'   },
+  { href: '/gamification',icon: Zap,       label: 'Прокачка' },
+  { href: '/profile',     icon: User,      label: 'Профиль'  },
 ] as const;
 
 export function BottomNav() {
@@ -20,43 +20,44 @@ export function BottomNav() {
   const { haptic } = useTelegram();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
-      <div className="mx-2 mb-2">
-        <div className="glass-strong rounded-3xl px-2 py-2 flex items-center justify-around">
-          {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => haptic.selection()}
-                className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all relative min-w-[56px]"
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="nav-active"
-                    className="absolute inset-0 bg-brand-500/20 rounded-2xl"
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <Icon
-                  className={cn(
-                    'w-5 h-5 relative z-10 transition-colors',
-                    isActive ? 'text-brand-400' : 'text-white/30',
-                  )}
+    <nav className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="absolute inset-0 bg-surface-0/90 backdrop-blur-2xl" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-white/[0.06]" />
+
+      <div className="relative flex items-center justify-around px-1"
+        style={{ paddingBottom: 'calc(0.5rem + var(--tg-safe-area-bottom, 0px))', paddingTop: '0.5rem' }}>
+        {TABS.map(({ href, icon: Icon, label }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => haptic.selection()}
+              className="relative flex flex-col items-center gap-[3px] min-w-[52px] py-1"
+            >
+              {active && (
+                <motion.div
+                  layoutId="nav-bg"
+                  className="absolute -inset-1.5 rounded-2xl bg-brand-500/12"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                 />
-                <span
-                  className={cn(
-                    'text-[10px] font-medium relative z-10 transition-colors',
-                    isActive ? 'text-brand-400' : 'text-white/30',
-                  )}
-                >
-                  {label}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+              )}
+              <Icon
+                className={cn(
+                  'relative w-[22px] h-[22px] transition-all duration-200',
+                  active ? 'text-brand-400' : 'text-white/28',
+                )}
+                strokeWidth={active ? 2.2 : 1.6}
+              />
+              <span className={cn(
+                'relative text-[9px] font-semibold tracking-wide transition-colors duration-200',
+                active ? 'text-brand-400' : 'text-white/28',
+              )}>
+                {label}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
