@@ -12,6 +12,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@10.30.1 --activate
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/webapp/node_modules ./apps/webapp/node_modules
 COPY packages/shared ./packages/shared
 COPY apps/webapp ./apps/webapp
 WORKDIR /app/apps/webapp
