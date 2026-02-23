@@ -2,7 +2,7 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@10.30.1 --activate
-COPY package.json pnpm-workspace.yaml turbo.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/webapp/package.json ./apps/webapp/
 RUN pnpm install --frozen-lockfile --filter @showcase/webapp...
