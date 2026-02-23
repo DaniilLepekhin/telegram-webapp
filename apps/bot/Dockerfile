@@ -6,7 +6,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/bot/package.json ./apps/bot/
-RUN pnpm install --frozen-lockfile --filter @showcase/bot...
+RUN pnpm install --frozen-lockfile --filter @showcase/bot... --filter @showcase/backend...
 
 ### ── Stage 2: Build ────────────────────────────────────────────────────────
 FROM oven/bun:1.3-alpine AS builder
