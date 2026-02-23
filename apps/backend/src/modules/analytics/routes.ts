@@ -18,7 +18,49 @@ export function emitLiveEvent(event: LiveEvent) {
 }
 
 export const analyticsModule = new Elysia({ prefix: '/analytics' })
-  // ─── Record event ─────────────────────────────────────────────────────────
+  // ─── Live events SSE stream (public — no auth required) ───────────────────
+  .get('/live', ({ set }) => {
+    set.headers['Content-Type'] = 'text/event-stream';
+    set.headers['Cache-Control'] = 'no-cache';
+    set.headers['Connection'] = 'keep-alive';
+    set.headers['X-Accel-Buffering'] = 'no';
+
+    const stream = new ReadableStream({
+      start(controller) {
+        const encoder = new TextEncoder();
+
+        const send = (event: LiveEvent) => {
+          const data = `data: ${JSON.stringify(event)}\n\n`;
+          controller.enqueue(encoder.encode(data));
+        };
+
+        const heartbeat = setInterval(() => {
+          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        }, 15_000);
+
+        const demoInterval = setInterval(() => {
+          const demoEvent = generateDemoEvent();
+          send(demoEvent);
+          emitLiveEvent(demoEvent);
+        }, 3000 + Math.random() * 4000);
+
+        subscribers.add(send);
+
+        const cleanup = () => {
+          clearInterval(heartbeat);
+          clearInterval(demoInterval);
+          subscribers.delete(send);
+          try { controller.close(); } catch {}
+        };
+
+        setTimeout(cleanup, 5 * 60 * 1000);
+      },
+    });
+
+    return stream;
+  })
+
+  // ─── Auth-required routes ─────────────────────────────────────────────────
   .use(requireAuth)
   .post(
     '/events',
@@ -104,53 +146,6 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
         recentEvents: recentEvents.slice(0, 20),
       },
     };
-  })
-
-  // ─── Live events SSE stream ───────────────────────────────────────────────
-  .get('/live', ({ set }) => {
-    set.headers['Content-Type'] = 'text/event-stream';
-    set.headers['Cache-Control'] = 'no-cache';
-    set.headers['Connection'] = 'keep-alive';
-    set.headers['X-Accel-Buffering'] = 'no';
-
-    const stream = new ReadableStream({
-      start(controller) {
-        const encoder = new TextEncoder();
-
-        const send = (event: LiveEvent) => {
-          const data = `data: ${JSON.stringify(event)}\n\n`;
-          controller.enqueue(encoder.encode(data));
-        };
-
-        // Send heartbeat
-        const heartbeat = setInterval(() => {
-          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
-        }, 15_000);
-
-        // Simulate demo live events for showcase effect
-        const demoInterval = setInterval(() => {
-          const demoEvent = generateDemoEvent();
-          send(demoEvent);
-          emitLiveEvent(demoEvent); // also broadcast to other subscribers
-        }, 3000 + Math.random() * 4000);
-
-        // Subscribe to real events
-        subscribers.add(send);
-
-        // Cleanup on disconnect
-        const cleanup = () => {
-          clearInterval(heartbeat);
-          clearInterval(demoInterval);
-          subscribers.delete(send);
-          try { controller.close(); } catch {}
-        };
-
-        // Auto-cleanup after 5 min (Telegram webview sessions are short)
-        setTimeout(cleanup, 5 * 60 * 1000);
-      },
-    });
-
-    return stream;
   });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

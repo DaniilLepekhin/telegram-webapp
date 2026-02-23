@@ -10,7 +10,7 @@ import type { ScenarioId } from '@showcase/shared';
 const { scenarioRuns, analyticsEvents } = schema;
 
 export const showcaseModule = new Elysia({ prefix: '/showcase' })
-  // Public: list scenarios
+  // ─── Public routes ────────────────────────────────────────────────────────
   .get('/scenarios', () => {
     return { success: true, data: DEMO_SCENARIOS };
   })
@@ -23,7 +23,32 @@ export const showcaseModule = new Elysia({ prefix: '/showcase' })
     return { success: true, data: scenario };
   })
 
-  // Auth required
+  // Live global metrics (aggregated, public)
+  .get('/metrics', async () => {
+    const redis = getRedis();
+    const cached = await redis.get(cacheKey.liveMetrics());
+
+    if (cached) return { success: true, data: JSON.parse(cached) };
+
+    const metrics = {
+      totalUsers: await db.$count(schema.users),
+      totalLinks: await db.$count(schema.trackingLinks),
+      totalClicks: (await db.select({ sum: schema.trackingLinks.clickCount }).from(schema.trackingLinks))[0]?.sum ?? 0,
+      totalScenarioRuns: await db.$count(schema.scenarioRuns),
+      completedScenarios: await db.$count(schema.scenarioRuns, eq(schema.scenarioRuns.isCompleted, true)),
+      scenariosByType: DEMO_SCENARIOS.map((s) => ({
+        id: s.id,
+        title: s.title,
+        icon: s.icon,
+      })),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await redis.setex(cacheKey.liveMetrics(), 30, JSON.stringify(metrics));
+    return { success: true, data: metrics };
+  })
+
+  // ─── Auth required ────────────────────────────────────────────────────────
   .use(requireAuth)
   .post(
     '/scenarios/:id/run',
@@ -96,30 +121,4 @@ export const showcaseModule = new Elysia({ prefix: '/showcase' })
         timeMs: t.Number({ minimum: 0 }),
       }),
     },
-  )
-
-  // Live global metrics (aggregated, public)
-  .get('/metrics', async () => {
-    const redis = getRedis();
-    const cached = await redis.get(cacheKey.liveMetrics());
-
-    if (cached) return { success: true, data: JSON.parse(cached) };
-
-    // Build metrics (real counts from DB + simulated activity for demo effect)
-    const metrics = {
-      totalUsers: await db.$count(schema.users),
-      totalLinks: await db.$count(schema.trackingLinks),
-      totalClicks: (await db.select({ sum: schema.trackingLinks.clickCount }).from(schema.trackingLinks))[0]?.sum ?? 0,
-      totalScenarioRuns: await db.$count(schema.scenarioRuns),
-      completedScenarios: await db.$count(schema.scenarioRuns, eq(schema.scenarioRuns.isCompleted, true)),
-      scenariosByType: DEMO_SCENARIOS.map((s) => ({
-        id: s.id,
-        title: s.title,
-        icon: s.icon,
-      })),
-      updatedAt: new Date().toISOString(),
-    };
-
-    await redis.setex(cacheKey.liveMetrics(), 30, JSON.stringify(metrics));
-    return { success: true, data: metrics };
-  });
+  );
