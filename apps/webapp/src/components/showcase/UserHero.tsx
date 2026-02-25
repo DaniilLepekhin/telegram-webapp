@@ -20,8 +20,6 @@ export function UserHero({ user }: UserHeroProps) {
       const r = await api.getGamificationStats();
       return r.data as { xp: number; level: number; xpToNextLevel: number; streak: number };
     },
-    // isFreshAuth: only fires after setUser() succeeds in this session —
-    // prevents spurious 401s from stale sessionStorage token before re-auth completes
     enabled: isFreshAuth && !!accessToken,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
@@ -33,21 +31,14 @@ export function UserHero({ user }: UserHeroProps) {
   const streak = gamification?.streak ?? 0;
   const levelName = LEVEL_NAMES[level] ?? 'Новичок';
 
-  // Correct XP progress within the current level using LEVEL_THRESHOLDS.
-  // Formula: (currentXp - xpAtLevelStart) / (xpAtNextLevel - xpAtLevelStart)
   const currentLevelXp = LEVEL_THRESHOLDS[level] ?? 0;
   const nextLevelXp = LEVEL_THRESHOLDS[level + 1] ?? currentLevelXp + 100;
   const levelRange = nextLevelXp - currentLevelXp;
   const progress = levelRange > 0 ? Math.min(((xp - currentLevelXp) / levelRange) * 100, 100) : 100;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="px-4 pt-4 pb-2"
-    >
-        <div className="glass-card p-4 relative">
+    <div className="px-4 pt-4 pb-2">
+      <div className="glass-card p-4 relative">
         {/* Premium shimmer */}
         {user?.is_premium && (
           <div className="absolute top-0 right-0 left-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
@@ -110,12 +101,12 @@ export function UserHero({ user }: UserHeroProps) {
                 className="h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(progress, 100)}%` }}
-                transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
               />
             </div>
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

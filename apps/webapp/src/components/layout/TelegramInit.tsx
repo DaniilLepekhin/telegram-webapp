@@ -49,9 +49,15 @@ export function TelegramInit() {
     applyTheme();
     applySafeArea();
 
+    // Expand to full available height immediately
+    if (!tg.isExpanded) {
+      tg.expand();
+    }
+
     tg.onEvent('themeChanged', applyTheme);
     tg.onEvent('safeAreaChanged', applySafeArea);
     tg.onEvent('contentSafeAreaChanged', applySafeArea);
+    tg.onEvent('fullscreenChanged', applySafeArea);
 
     // Disable vertical swipes to prevent accidental closes during interaction
     if (tg.isVersionAtLeast('7.7')) {
@@ -62,6 +68,7 @@ export function TelegramInit() {
       tg.offEvent('themeChanged', applyTheme);
       tg.offEvent('safeAreaChanged', applySafeArea);
       tg.offEvent('contentSafeAreaChanged', applySafeArea);
+      tg.offEvent('fullscreenChanged', applySafeArea);
     };
   }, []);
 

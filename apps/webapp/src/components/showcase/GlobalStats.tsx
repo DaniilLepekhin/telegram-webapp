@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import CountUp from 'react-countup';
 import { useInView } from 'react-intersection-observer';
@@ -27,22 +26,13 @@ export function GlobalStats() {
   ];
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="px-4 mt-3"
-    >
+    <div ref={ref} className="px-4 mt-3">
       <div className="grid grid-cols-2 gap-2">
-        {stats.map((stat, i) => {
+        {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <motion.div
+            <div
               key={stat.label}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 + i * 0.07 }}
               className="glass-card px-4 py-3 flex items-center gap-3"
             >
               <div className={`w-9 h-9 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0`}>
@@ -50,14 +40,14 @@ export function GlobalStats() {
               </div>
               <div className="min-w-0">
                 <div className={`font-bold text-lg leading-none ${stat.color}`}>
-                  {inView ? <CountUp end={stat.value} duration={1.5} delay={i * 0.1} separator=" " /> : '—'}
+                  {inView ? <CountUp end={stat.value} duration={1.5} separator=" " /> : '—'}
                 </div>
                 <p className="text-[10px] text-white/40 mt-0.5 leading-tight truncate">{stat.label}</p>
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 }

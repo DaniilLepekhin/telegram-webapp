@@ -17,17 +17,13 @@ type View = 'hub' | 'scenario';
 
 export function ShowcaseHub() {
   const { user, haptic, isReady } = useTelegram();
-  // Auth (loginWithTelegram) is handled globally by AuthInit in Providers.
-  // ShowcaseHub only observes auth state and shows onboarding for new users.
   const { isFreshAuth, user: authUser } = useAuthStore();
   const [scenarios, setScenarios] = useState<DemoScenario[]>([]);
   const [selectedScenario, setSelectedScenario] = useState<DemoScenario | null>(null);
   const [view, setView] = useState<View>('hub');
   const [showOnboarding, setShowOnboarding] = useState(false);
-  // Track whether we've already checked for new-user onboarding this session
   const onboardingCheckedRef = useRef(false);
 
-  // Show onboarding for new users once auth resolves
   useEffect(() => {
     if (!isFreshAuth || onboardingCheckedRef.current) return;
     onboardingCheckedRef.current = true;
@@ -38,7 +34,6 @@ export function ShowcaseHub() {
     }
   }, [isFreshAuth, authUser]);
 
-  // Load scenarios (public, no auth required)
   useEffect(() => {
     api.getScenarios().then((res) => {
       if (res.success) setScenarios(res.data as DemoScenario[]);
@@ -58,7 +53,6 @@ export function ShowcaseHub() {
     setSelectedScenario(null);
   };
 
-  // Wait for Telegram SDK to be ready
   if (!isReady) {
     return <LoadingScreen />;
   }
@@ -78,36 +72,25 @@ export function ShowcaseHub() {
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-600/8 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-0 w-72 h-72 bg-fuchsia-600/6 rounded-full blur-[100px]" />
       </div>
 
       <AnimatePresence mode="wait">
         {view === 'hub' ? (
           <motion.div
             key="hub"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             className="relative z-10 pb-6"
           >
-            {/* Live metrics bar */}
             <LiveMetricsBar />
-
-            {/* User hero section */}
             <UserHero user={user} />
-
-            {/* Global platform stats */}
             <GlobalStats />
 
             {/* Scenarios grid */}
             <section className="px-4 mt-6">
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="flex items-center justify-between mb-4"
-              >
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-lg font-bold text-white">Demo Кейсы</h2>
                   <p className="text-sm text-white/40 mt-0.5">Нажми — запустится интерактивный сценарий</p>
@@ -115,7 +98,7 @@ export function ShowcaseHub() {
                 {scenarios.length > 0 && (
                   <span className="badge badge-primary">{scenarios.length} кейсов</span>
                 )}
-              </motion.div>
+              </div>
 
               <div className="grid grid-cols-1 gap-3">
                 {scenarios.length > 0 ? (
@@ -128,20 +111,15 @@ export function ShowcaseHub() {
                     />
                   ))
                 ) : (
-                  ['s0', 's1', 's2', 's3'].map((id, i) => (
-                    <ScenarioSkeleton key={id} index={i} />
+                  ['s0', 's1', 's2', 's3'].map((id) => (
+                    <div key={id} className="glass-card p-4 h-28 shimmer" />
                   ))
                 )}
               </div>
             </section>
 
             {/* Bottom CTA */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="px-4 mt-8"
-            >
+            <div className="px-4 mt-8">
               <div className="glass-card p-5 text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-600/10 to-transparent" />
                 <p className="text-sm text-white/50 relative z-10">
@@ -151,15 +129,15 @@ export function ShowcaseHub() {
                   Напиши @daniillepekhin — обсудим твой кейс
                 </p>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         ) : (
           <motion.div
             key="scenario"
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 40 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, x: 30 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             className="relative z-10"
           >
             {selectedScenario && (
@@ -178,30 +156,14 @@ export function ShowcaseHub() {
 function LoadingScreen() {
   return (
     <div className="min-h-screen bg-surface-0 flex items-center justify-center">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center"
-      >
+      <div className="text-center">
         <div className="w-16 h-16 mx-auto mb-4 relative">
           <div className="absolute inset-0 rounded-full border-2 border-brand-500/30 animate-ping" />
           <div className="absolute inset-2 rounded-full border-2 border-t-brand-500 border-brand-500/20 animate-spin" />
           <div className="absolute inset-4 rounded-full bg-brand-500/20" />
         </div>
         <p className="text-white/40 text-sm animate-pulse">Загрузка...</p>
-      </motion.div>
+      </div>
     </div>
-  );
-}
-
-
-function ScenarioSkeleton({ index }: { index: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06 }}
-      className="glass-card p-4 h-28 shimmer"
-    />
   );
 }

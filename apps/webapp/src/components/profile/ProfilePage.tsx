@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LogOut, Crown, Users, Zap, Copy, Check, Activity, Star, Shield } from 'lucide-react';
 import CountUp from 'react-countup';
@@ -60,7 +59,6 @@ export function ProfilePage() {
   const { ref, inView } = useInView({ triggerOnce: true });
   const qc = useQueryClient();
 
-  // isFreshAuth: blocks protected queries until setUser() fires — no stale-token 401s
   const enabled = isFreshAuth && !!accessToken;
 
   const { data: profile } = useQuery({
@@ -128,7 +126,7 @@ export function ProfilePage() {
 
         {/* Avatar + Info */}
         <div className="px-4 mb-4">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-5 relative overflow-hidden">
+          <div className="glass-card p-5 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-fuchsia-400/40 to-transparent" />
 
             <div className="flex items-center gap-4">
@@ -189,63 +187,60 @@ export function ProfilePage() {
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Subscription */}
         <div className="px-4 mb-4">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            {isPro ? (
-              <div className="glass-card p-4 border border-amber-500/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                    <Crown className="w-5 h-5 text-amber-400" />
-                  </div>
-                  <div className="flex-1">
+          {isPro ? (
+            <div className="glass-card p-4 border border-amber-500/20">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                  <Crown className="w-5 h-5 text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-white">Showcase Pro</p>
+                  <p className="text-xs text-white/40">
+                    {subStatus?.status === 'trial' ? 'Trial' : 'Активна'} до{' '}
+                    {subStatus?.expiresAt ? new Date(subStatus.expiresAt).toLocaleDateString('ru-RU') : '—'}
+                  </p>
+                </div>
+                <span className="badge badge-success">{subStatus?.status === 'trial' ? 'Trial' : 'Pro'}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="glass-card p-4 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-600/5 to-transparent" />
+              <div className="relative">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
                     <p className="font-bold text-white">Showcase Pro</p>
-                    <p className="text-xs text-white/40">
-                      {subStatus?.status === 'trial' ? 'Trial' : 'Активна'} до{' '}
-                      {subStatus?.expiresAt ? new Date(subStatus.expiresAt).toLocaleDateString('ru-RU') : '—'}
+                    <p className="text-xs text-white/50 mt-0.5">
+                      {proPlan?.features?.slice(0, 2).join(' · ') ?? 'Неограниченные ссылки, A/B тесты'}
                     </p>
                   </div>
-                  <span className="badge badge-success">{subStatus?.status === 'trial' ? 'Trial' : 'Pro'}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="glass-card p-4 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-600/5 to-transparent" />
-                <div className="relative">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-bold text-white">Showcase Pro</p>
-                      <p className="text-xs text-white/50 mt-0.5">
-                        {proPlan?.features?.slice(0, 2).join(' · ') ?? 'Неограниченные ссылки, A/B тесты'}
-                      </p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-white">₽{(proPlan?.price ?? 2990).toLocaleString('ru-RU')}</p>
-                      <p className="text-[10px] text-white/30">/мес</p>
-                    </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-white">₽{(proPlan?.price ?? 2990).toLocaleString('ru-RU')}</p>
+                    <p className="text-[10px] text-white/30">/мес</p>
                   </div>
-                  <motion.button
-                    type="button"
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => startTrialMutation.mutate()}
-                    disabled={startTrialMutation.isPending}
-                    className="w-full mt-3 btn-glow py-3 text-sm disabled:opacity-50"
-                  >
-                    {startTrialMutation.isPending ? 'Активация...' : `Попробовать ${proPlan?.trialDays ?? 7} дней бесплатно`}
-                  </motion.button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => startTrialMutation.mutate()}
+                  disabled={startTrialMutation.isPending}
+                  className="w-full mt-3 btn-glow py-3 text-sm disabled:opacity-50 active:scale-[0.97]"
+                >
+                  {startTrialMutation.isPending ? 'Активация...' : `Попробовать ${proPlan?.trialDays ?? 7} дней бесплатно`}
+                </button>
               </div>
-            )}
-          </motion.div>
+            </div>
+          )}
         </div>
 
         {/* Referral */}
         {referralData && (
           <div className="px-4 mb-4">
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-4">
+            <div className="glass-card p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
                   <Users className="w-4 h-4 text-emerald-400" />
@@ -269,13 +264,13 @@ export function ProfilePage() {
                   {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-white/50" />}
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
 
         {/* Account details */}
         <div className="px-4 mb-4">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-4">
+          <div className="glass-card p-4">
             <p className="text-xs text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Activity className="w-3.5 h-3.5" /> Детали аккаунта
             </p>
@@ -292,7 +287,7 @@ export function ProfilePage() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Logout */}
@@ -304,7 +299,7 @@ export function ProfilePage() {
               api.logout().catch(() => {});
               clearAuth();
             }}
-            className="w-full glass-card p-4 flex items-center gap-3 text-rose-400 hover:bg-rose-500/5 transition-colors"
+            className="w-full glass-card p-4 flex items-center gap-3 text-rose-400 hover:bg-rose-500/5 transition-colors active:scale-[0.98]"
           >
             <LogOut className="w-5 h-5" />
             <span className="text-sm font-medium">Выйти из аккаунта</span>

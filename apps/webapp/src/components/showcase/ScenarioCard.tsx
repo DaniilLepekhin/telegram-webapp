@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import type { DemoScenario } from '@showcase/shared';
 import { ChevronRight, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,19 +10,12 @@ interface ScenarioCardProps {
   onSelect: (scenario: DemoScenario) => void;
 }
 
-export function ScenarioCard({ scenario, index, onSelect }: ScenarioCardProps) {
+export function ScenarioCard({ scenario, onSelect }: ScenarioCardProps) {
   return (
-    <motion.button
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        delay: index * 0.07,
-        duration: 0.5,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      whileTap={{ scale: 0.98 }}
+    <button
+      type="button"
       onClick={() => onSelect(scenario)}
-      className="w-full text-left group"
+      className="w-full text-left group active:scale-[0.98] transition-transform duration-100"
     >
       <div className="glass-card-hover p-4 relative overflow-hidden">
         {/* Gradient accent line */}
@@ -76,6 +68,6 @@ export function ScenarioCard({ scenario, index, onSelect }: ScenarioCardProps) {
           </div>
         </div>
       </div>
-    </motion.button>
+    </button>
   );
 }

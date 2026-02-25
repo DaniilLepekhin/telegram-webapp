@@ -26,7 +26,6 @@ const RARITY_LABELS = {
 
 type Tab = 'stats' | 'achievements' | 'leaderboard';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 interface GamificationStats {
   xp: number;
   level: number;
@@ -70,16 +69,12 @@ export function GamificationPage() {
   const { ref: statsRef, inView } = useInView({ triggerOnce: true, threshold: 0.2 });
   const [activeTab, setActiveTab] = useState<Tab>('stats');
 
-  // isFreshAuth: only true after setUser() fires in this session — prevents 401 spam
-  // from stale sessionStorage token before ShowcaseHub.authenticate() completes
   const enabled = isFreshAuth && !!accessToken;
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['gamification'],
     queryFn: async () => { const r = await api.getGamificationStats(); return r.data as GamificationStats; },
     enabled,
-    // No refetchInterval — data is refreshed via invalidateQueries after mutations.
-    // Periodic refetch caused spurious 401s when token was mid-refresh.
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
@@ -90,7 +85,6 @@ export function GamificationPage() {
       const r = await api.getAllAchievements();
       return r.data as Achievement[];
     },
-    // Public endpoint — only needs isAuthReady (no auth token required)
     enabled: isAuthReady,
     staleTime: 10 * 60_000,
   });
@@ -98,7 +92,6 @@ export function GamificationPage() {
   const { data: leaderboard, isLoading: lbLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => { const r = await api.getLeaderboard(20); return r.data as LeaderboardEntry[]; },
-    // Requires auth + user must navigate to leaderboard tab
     enabled: enabled && activeTab === 'leaderboard',
     staleTime: 2 * 60_000,
   });
@@ -168,7 +161,7 @@ export function GamificationPage() {
                 type="button"
                 onClick={() => { haptic.selection(); setActiveTab(id); }}
                 className={cn(
-                  'flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5',
+                  'flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center justify-center gap-1.5',
                   activeTab === id
                     ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30'
                     : 'text-white/40 hover:text-white/60',
@@ -183,21 +176,18 @@ export function GamificationPage() {
 
         <AnimatePresence mode="wait">
 
-          {/* ─── STATS TAB ─── */}
+          {/* --- STATS TAB --- */}
           {activeTab === 'stats' && (
             <motion.div
               key="stats"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
             >
               {/* Level card */}
               <div className="px-4 mb-4" ref={statsRef}>
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-card p-5 relative overflow-hidden"
-                >
+                <div className="glass-card p-5 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-brand-600/10 to-transparent" />
                   <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-brand-400/50 to-transparent" />
 
@@ -241,7 +231,7 @@ export function GamificationPage() {
                         className="h-full rounded-full bg-gradient-to-r from-brand-500 via-violet-500 to-fuchsia-500"
                         initial={{ width: 0 }}
                         animate={{ width: `${progressPct}%` }}
-                        transition={{ duration: 1.2, delay: 0.3, ease: 'easeOut' }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
                       />
                     </div>
                   </div>
@@ -254,14 +244,14 @@ export function GamificationPage() {
                     </div>
                     <div>
                       <p className="text-xs text-white/30">Энергия</p>
-                      <p className="font-bold text-amber-400">{stats?.energyBalance ?? 0} ⚡</p>
+                      <p className="font-bold text-amber-400">{stats?.energyBalance ?? 0}</p>
                     </div>
                     <div>
                       <p className="text-xs text-white/30">Достижений</p>
                       <p className="font-bold text-white">{unlockedIds.size} / {allAchievements?.length ?? 10}</p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
 
               {/* Quick XP actions */}
@@ -269,17 +259,13 @@ export function GamificationPage() {
                 <div className="px-4 mb-4">
                   <p className="text-xs text-white/40 uppercase tracking-wider mb-2">Быстрые действия</p>
                   <div className="space-y-2">
-                    {quickActions.map((action, i) => (
-                      <motion.button
+                    {quickActions.map((action) => (
+                      <button
                         key={action.type}
                         type="button"
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.08 }}
-                        whileTap={{ scale: 0.98 }}
                         onClick={() => awardMutation.mutate({ amount: action.amount, reason: action.reason, actionType: action.type })}
                         disabled={awardMutation.isPending}
-                        className="w-full glass-card p-3.5 flex items-center justify-between group hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+                        className="w-full glass-card p-3.5 flex items-center justify-between group hover:bg-white/[0.06] transition-colors duration-150 disabled:opacity-50 active:scale-[0.98]"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center">
@@ -288,7 +274,7 @@ export function GamificationPage() {
                           <span className="text-sm text-white/80 font-medium">{action.label}</span>
                         </div>
                         <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -319,13 +305,14 @@ export function GamificationPage() {
             </motion.div>
           )}
 
-          {/* ─── ACHIEVEMENTS TAB ─── */}
+          {/* --- ACHIEVEMENTS TAB --- */}
           {activeTab === 'achievements' && (
             <motion.div
               key="achievements"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
               className="px-4"
             >
               <div className="flex items-center justify-between mb-3">
@@ -336,16 +323,13 @@ export function GamificationPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
-                {(allAchievements ?? []).map((ach, i) => {
+                {(allAchievements ?? []).map((ach) => {
                   const isUnlocked = unlockedIds.has(ach.id);
                   const unlockedData = (stats?.achievements ?? []).find((a) => a.id === ach.id);
 
                   return (
-                    <motion.div
+                    <div
                       key={ach.id}
-                      initial={{ opacity: 0, scale: 0.85 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.04 }}
                       className={cn(
                         'glass-card p-4 relative overflow-hidden',
                         !isUnlocked && 'opacity-40',
@@ -374,20 +358,21 @@ export function GamificationPage() {
                           {new Date(unlockedData.unlockedAt).toLocaleDateString('ru-RU')}
                         </p>
                       )}
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
             </motion.div>
           )}
 
-          {/* ─── LEADERBOARD TAB ─── */}
+          {/* --- LEADERBOARD TAB --- */}
           {activeTab === 'leaderboard' && (
             <motion.div
               key="leaderboard"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
               className="px-4"
             >
               <p className="text-xs text-white/40 uppercase tracking-wider mb-3">Топ по XP</p>
@@ -401,11 +386,8 @@ export function GamificationPage() {
               ) : (
                 <div className="space-y-2">
                   {(leaderboard ?? []).map((entry, i) => (
-                    <motion.div
+                    <div
                       key={entry.id}
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.04 }}
                       className={cn(
                         'glass-card p-3.5 flex items-center gap-3',
                         i === 0 && 'border border-amber-500/30 bg-amber-500/5',
@@ -434,7 +416,7 @@ export function GamificationPage() {
                         <p className="text-sm font-semibold text-white truncate">
                           {entry.firstName}{entry.username ? ` @${entry.username}` : ''}
                         </p>
-                        <p className="text-[10px] text-white/40">Ур. {entry.level} • {LEVEL_NAMES[entry.level] ?? ''}</p>
+                        <p className="text-[10px] text-white/40">Ур. {entry.level} {LEVEL_NAMES[entry.level] ?? ''}</p>
                       </div>
 
                       {/* XP */}
@@ -442,7 +424,7 @@ export function GamificationPage() {
                         <p className="text-sm font-bold text-amber-400">{entry.xp.toLocaleString('ru-RU')}</p>
                         <p className="text-[10px] text-white/30">XP</p>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               )}

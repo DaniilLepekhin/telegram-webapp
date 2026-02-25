@@ -75,7 +75,6 @@ export function AnalyticsDashboard() {
     { label: 'CVR',        value: `${summary?.conversionRate ?? 0}%`,   icon: Zap,               color: 'text-amber-400',  bg: 'bg-amber-500/10' },
   ];
 
-  // Build event type breakdown from recentEvents
   const eventBreakdown = recentEvents.reduce<Record<string, number>>((acc, e) => {
     acc[e.type] = (acc[e.type] ?? 0) + 1;
     return acc;
@@ -85,7 +84,6 @@ export function AnalyticsDashboard() {
     .sort((a, b) => b.count - a.count);
   const breakdownMax = breakdownList[0]?.count ?? 1;
 
-  // Funnel: scenario runs
   const scenarioRuns = summary?.totalScenarioRuns ?? 0;
   const scenarioCompleted = summary?.completedScenarios ?? 0;
 
@@ -102,25 +100,17 @@ export function AnalyticsDashboard() {
 
         {/* Header */}
         <div className="px-4 pt-3 pb-2">
-          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-xl font-bold text-white">Аналитика</h1>
-            <p className="text-sm text-white/40 mt-0.5">Твои метрики в реальном времени</p>
-          </motion.div>
+          <h1 className="text-xl font-bold text-white">Аналитика</h1>
+          <p className="text-sm text-white/40 mt-0.5">Твои метрики в реальном времени</p>
         </div>
 
         {/* Summary cards */}
         <div className="px-4 mb-4">
           <div className="grid grid-cols-2 gap-2.5">
-            {summaryCards.map((card, i) => {
+            {summaryCards.map((card) => {
               const Icon = card.icon;
               return (
-                <motion.div
-                  key={card.label}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  className="glass-card p-4"
-                >
+                <div key={card.label} className="glass-card p-4">
                   <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-2', card.bg)}>
                     <Icon className={cn('w-4 h-4', card.color)} />
                   </div>
@@ -128,7 +118,7 @@ export function AnalyticsDashboard() {
                     {isLoading ? <div className="h-7 w-16 bg-white/5 rounded animate-pulse" /> : card.value}
                   </div>
                   <p className="text-xs text-white/40 mt-0.5">{card.label}</p>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -136,12 +126,7 @@ export function AnalyticsDashboard() {
 
         {/* Scenario funnel */}
         {(scenarioRuns > 0 || !isLoading) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="px-4 mb-4"
-          >
+          <div className="px-4 mb-4">
             <div className="glass-card p-4">
               <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-brand-400" />
@@ -182,16 +167,11 @@ export function AnalyticsDashboard() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Events timeline chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="px-4 mb-4"
-        >
+        <div className="px-4 mb-4">
           <div className="glass-card p-4">
             <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-brand-400" />
@@ -230,16 +210,11 @@ export function AnalyticsDashboard() {
               </ResponsiveContainer>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* Event type breakdown */}
         {breakdownList.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="px-4 mb-4"
-          >
+          <div className="px-4 mb-4">
             <div className="glass-card p-4">
               <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-400" />
@@ -256,28 +231,21 @@ export function AnalyticsDashboard() {
                       <span className="text-xs font-semibold text-white">{count}</span>
                     </div>
                     <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-brand-500/70 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(count / breakdownMax) * 100}%` }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                      <div
+                        className="h-full bg-brand-500/70 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${(count / breakdownMax) * 100}%` }}
                       />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Top links chart */}
         {(charts?.linksByClicks?.length ?? 0) > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="px-4 mb-4"
-          >
+          <div className="px-4 mb-4">
             <div className="glass-card p-4">
               <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
                 <Link2 className="w-4 h-4 text-cyan-400" />
@@ -298,17 +266,12 @@ export function AnalyticsDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Recent events feed */}
         {recentEvents.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="px-4 mb-4"
-          >
+          <div className="px-4 mb-4">
             <div className="glass-card p-4">
               <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-emerald-400" />
@@ -328,7 +291,7 @@ export function AnalyticsDashboard() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Empty state */}
@@ -346,7 +309,7 @@ export function AnalyticsDashboard() {
   );
 }
 
-// ─── Funnel Row ────────────────────────────────────────────────────────────────
+// --- Funnel Row ---
 function FunnelRow({ icon, label, value, max, color }: {
   icon: React.ReactNode;
   label: string;
@@ -367,7 +330,7 @@ function FunnelRow({ icon, label, value, max, color }: {
           style={{ opacity: 0.75 }}
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.7, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
         />
       </div>
     </div>

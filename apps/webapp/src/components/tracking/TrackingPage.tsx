@@ -137,7 +137,7 @@ export function TrackingPage() {
         <AnimatePresence mode="wait">
           {/* ─── LIST ─── */}
           {view === 'list' && (
-            <motion.div key="list" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="px-4 space-y-3">
+            <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="px-4 space-y-3">
               {isLoading ? (
                 <>
                   <div className="glass-card p-4 h-24 shimmer" />
@@ -147,13 +147,10 @@ export function TrackingPage() {
               ) : links.length === 0 ? (
                 <EmptyLinksState onCreateClick={() => setView('create')} />
               ) : (
-                links.map((link, i) => (
-                  <motion.div
+                links.map((link) => (
+                  <div
                     key={link.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: deletingId === link.id ? 0 : 1, y: 0, scale: deletingId === link.id ? 0.95 : 1 }}
-                    transition={{ delay: i * 0.06, duration: 0.2 }}
-                    className="glass-card p-4"
+                    className={cn('glass-card p-4 transition-opacity duration-150', deletingId === link.id && 'opacity-0 scale-95')}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -218,7 +215,7 @@ export function TrackingPage() {
                         </ActionButton>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))
               )}
             </motion.div>
@@ -226,7 +223,7 @@ export function TrackingPage() {
 
           {/* ─── CREATE ─── */}
           {view === 'create' && (
-            <motion.div key="create" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="px-4">
+            <motion.div key="create" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="px-4">
               <CreateLinkForm
                 onSubmit={(data) => createMutation.mutate(data)}
                 onCancel={() => setView('list')}
@@ -237,7 +234,7 @@ export function TrackingPage() {
 
           {/* ─── ANALYTICS ─── */}
           {view === 'analytics' && (
-            <motion.div key="analytics" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="px-4">
+            <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="px-4">
               <LinkAnalyticsView data={analyticsData} isLoading={analyticsLoading} />
             </motion.div>
           )}
