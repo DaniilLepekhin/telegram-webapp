@@ -40,7 +40,7 @@ export function UserHero({ user }: UserHeroProps) {
       transition={{ duration: 0.5 }}
       className="px-4 pt-4 pb-2"
     >
-      <div className="glass-card p-4 relative overflow-hidden">
+        <div className="glass-card p-4 relative">
         {/* Premium shimmer */}
         {user?.is_premium && (
           <div className="absolute top-0 right-0 left-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />

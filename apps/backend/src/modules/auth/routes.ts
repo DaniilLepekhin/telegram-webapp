@@ -6,7 +6,10 @@ import { config, isProd } from '../../config/index.ts';
 import { logger } from '../../utils/logger.ts';
 import { rateLimit } from '../../middlewares/rateLimit.ts';
 
-export const authModule = new Elysia({ prefix: '/auth' })
+// ─── Rate-limited sub-app: only /telegram (5 req/min per IP) ─────────────────
+// IMPORTANT: rateLimit is scoped to this sub-instance so /refresh and /logout
+// are NOT affected — they must be free to call during normal token refresh flow.
+const telegramLoginRoute = new Elysia()
   .use(rateLimit({ max: 5, windowMs: 60_000, keyPrefix: 'auth-telegram' }))
   .post(
     '/telegram',
@@ -25,7 +28,6 @@ export const authModule = new Elysia({ prefix: '/auth' })
       const isNewUser = (Date.now() - new Date(user.createdAt as unknown as string).getTime()) < 30_000;
       if (isNewUser) {
         gamificationService.checkAndAwardAchievement(user.id, 'first_login').catch(() => {});
-        // Award starter XP
         gamificationService.awardXp(user.id, 50, 'Первый вход в приложение', 'first_login').catch(() => {});
       }
 
@@ -34,7 +36,6 @@ export const authModule = new Elysia({ prefix: '/auth' })
         ip: request.headers.get('x-forwarded-for') ?? undefined,
       });
 
-      // Sign JWT access token
       const signedAccess = await jwt.sign({
         sub: user.id,
         telegramId: user.telegramId,
@@ -42,7 +43,6 @@ export const authModule = new Elysia({ prefix: '/auth' })
       });
       tokens.accessToken = signedAccess;
 
-      // Set httpOnly cookies
       accessToken.set({ value: signedAccess, httpOnly: true, secure: isProd, sameSite: 'none', maxAge: 15 * 60, path: '/' });
       rfCookie.set({ value: tokens.refreshToken, httpOnly: true, secure: isProd, sameSite: 'none', maxAge: 30 * 24 * 60 * 60, path: '/' });
 
@@ -73,7 +73,13 @@ export const authModule = new Elysia({ prefix: '/auth' })
     {
       body: t.Object({ initData: t.String({ minLength: 10 }) }),
     },
-  )
+  );
+
+// ─── Main auth module ─────────────────────────────────────────────────────────
+export const authModule = new Elysia({ prefix: '/auth' })
+  // Mount rate-limited /telegram sub-route
+  .use(telegramLoginRoute)
+  // /refresh and /logout are intentionally NOT rate-limited
   .post('/refresh', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie }, jwt, set }: any) => {
     const token = rfCookie.value;
     if (!token) {

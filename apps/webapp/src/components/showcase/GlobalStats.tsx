@@ -31,7 +31,7 @@ export function GlobalStats() {
       transition={{ delay: 0.2 }}
       className="px-4 mt-3"
     >
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -40,15 +40,17 @@ export function GlobalStats() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1 + i * 0.07 }}
-              className="glass-card p-3 text-center"
+              className="glass-card px-4 py-3 flex items-center gap-3"
             >
-              <div className={`w-8 h-8 mx-auto rounded-xl ${stat.bg} flex items-center justify-center mb-1.5`}>
+              <div className={`w-9 h-9 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0`}>
                 <Icon className={`w-4 h-4 ${stat.color}`} />
               </div>
-              <div className={`font-bold text-base ${stat.color}`}>
-                {inView ? <CountUp end={stat.value} duration={1.5} delay={i * 0.1} separator=" " /> : '—'}
+              <div className="min-w-0">
+                <div className={`font-bold text-lg leading-none ${stat.color}`}>
+                  {inView ? <CountUp end={stat.value} duration={1.5} delay={i * 0.1} separator=" " /> : '—'}
+                </div>
+                <p className="text-[10px] text-white/40 mt-0.5 leading-tight truncate">{stat.label}</p>
               </div>
-              <p className="text-[9px] text-white/30 mt-0.5 leading-tight">{stat.label}</p>
             </motion.div>
           );
         })}

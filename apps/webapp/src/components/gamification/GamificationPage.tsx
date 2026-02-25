@@ -76,7 +76,10 @@ export function GamificationPage() {
     queryKey: ['gamification'],
     queryFn: async () => { const r = await api.getGamificationStats(); return r.data as GamificationStats; },
     enabled,
-    refetchInterval: 30_000,
+    // No refetchInterval — data is refreshed via invalidateQueries after mutations.
+    // Periodic refetch caused spurious 401s when token was mid-refresh.
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allAchievements } = useQuery({
@@ -86,19 +89,25 @@ export function GamificationPage() {
       const j = await r.json();
       return j.data as Achievement[];
     },
+    // Public endpoint — only needs isAuthReady (no auth token required)
     enabled: isAuthReady,
+    staleTime: 10 * 60_000,
   });
 
   const { data: leaderboard, isLoading: lbLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => { const r = await api.getLeaderboard(20); return r.data as LeaderboardEntry[]; },
-    enabled: isAuthReady && activeTab === 'leaderboard',
+    // Requires auth + user must navigate to leaderboard tab
+    enabled: enabled && activeTab === 'leaderboard',
+    staleTime: 2 * 60_000,
   });
 
   const { data: activity } = useQuery({
     queryKey: ['activity'],
     queryFn: async () => { const r = await api.getActivity(); return r.data as XpEvent[]; },
     enabled,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const awardMutation = useMutation({
