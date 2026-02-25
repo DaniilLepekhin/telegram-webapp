@@ -1,3 +1,7 @@
+# ⚠️  LEGACY — этот файл относится к старой plain-JS архитектуре (backend/ + frontend/ в корне).
+# Для продакшена используй: docker-compose.prod.yml
+# Для разработки используй:  docker-compose.dev.yml
+
 services:
   frontend:
     build:

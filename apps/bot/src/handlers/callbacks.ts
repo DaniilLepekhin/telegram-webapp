@@ -1,7 +1,9 @@
 import type { Bot, Context } from 'grammy';
+import { InlineKeyboard } from 'grammy';
 import { kb } from '../utils/keyboard.ts';
 import { msg } from '../utils/messages.ts';
 import { userService } from '../services/userService.ts';
+import { cfg } from '../config.ts';
 
 export function registerCallbacks(bot: Bot<Context>) {
   // ─── Cases menu ───────────────────────────────────────────────────────────
@@ -26,8 +28,8 @@ export function registerCallbacks(bot: Bot<Context>) {
     await ctx.answerCallbackQuery();
     await ctx.editMessageText(msg.howItWorks(), {
       parse_mode: 'HTML',
-      reply_markup: new (await import('grammy')).InlineKeyboard()
-        .webApp('🚀 Попробовать', (await import('../config.ts')).cfg.WEBAPP_URL)
+      reply_markup: new InlineKeyboard()
+        .webApp('🚀 Попробовать', cfg.WEBAPP_URL)
         .row()
         .text('« Назад', 'back_main'),
     });
@@ -72,17 +74,24 @@ export function registerCallbacks(bot: Bot<Context>) {
   bot.callbackQuery('referral_stats', async (ctx) => {
     await ctx.answerCallbackQuery();
     if (!ctx.from) return;
-    const user = await userService.upsert(ctx.from);
-    const stats = await userService.getReferralStats(user.id);
-    await ctx.reply(
-      `📊 <b>Твои рефералы</b>\n\n👤 Приглашено: <b>${stats.count}</b>\n⚡ Заработано XP: <b>${stats.totalXp}</b>`,
-      { parse_mode: 'HTML' },
-    );
+    try {
+      const user = await userService.upsert(ctx.from);
+      const stats = await userService.getReferralStats(user.id);
+      await ctx.editMessageText(
+        `📊 <b>Твои рефералы</b>\n\n👤 Приглашено: <b>${stats.count}</b>\n⚡ Заработано XP: <b>${stats.totalXp}</b>`,
+        { parse_mode: 'HTML', reply_markup: new InlineKeyboard().text('« Назад', 'back_main') },
+      );
+    } catch {
+      await ctx.answerCallbackQuery('Не удалось загрузить статистику. Попробуй позже.');
+    }
   });
 
   // ─── Pro features ─────────────────────────────────────────────────────────
   bot.callbackQuery('pro_features', async (ctx) => {
     await ctx.answerCallbackQuery();
-    await ctx.reply(msg.proFeatures(), { parse_mode: 'HTML' });
+    await ctx.editMessageText(msg.proFeatures(), {
+      parse_mode: 'HTML',
+      reply_markup: new InlineKeyboard().url('💬 Написать @daniillepekhin', 'https://t.me/daniillepekhin').row().text('« Назад', 'back_main'),
+    });
   });
 }

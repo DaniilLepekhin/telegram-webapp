@@ -5,7 +5,7 @@ import { Zap, Flame, Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
-import { LEVEL_NAMES } from '@showcase/shared';
+import { LEVEL_NAMES, LEVEL_THRESHOLDS } from '@showcase/shared';
 
 interface UserHeroProps {
   user: { first_name: string; username?: string; photo_url?: string; is_premium?: boolean } | null;
@@ -32,7 +32,13 @@ export function UserHero({ user }: UserHeroProps) {
   const xpToNext = gamification?.xpToNextLevel ?? 100;
   const streak = gamification?.streak ?? 0;
   const levelName = LEVEL_NAMES[level] ?? 'Новичок';
-  const progress = xpToNext > 0 ? ((xp % (xp + xpToNext)) / (xp + xpToNext)) * 100 : 100;
+
+  // Correct XP progress within the current level using LEVEL_THRESHOLDS.
+  // Formula: (currentXp - xpAtLevelStart) / (xpAtNextLevel - xpAtLevelStart)
+  const currentLevelXp = LEVEL_THRESHOLDS[level] ?? 0;
+  const nextLevelXp = LEVEL_THRESHOLDS[level + 1] ?? currentLevelXp + 100;
+  const levelRange = nextLevelXp - currentLevelXp;
+  const progress = levelRange > 0 ? Math.min(((xp - currentLevelXp) / levelRange) * 100, 100) : 100;
 
   return (
     <motion.div

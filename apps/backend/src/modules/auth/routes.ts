@@ -13,6 +13,7 @@ const telegramLoginRoute = new Elysia()
   .use(rateLimit({ max: 5, windowMs: 60_000, keyPrefix: 'auth-telegram' }))
   .post(
     '/telegram',
+    // biome-ignore lint/suspicious/noExplicitAny: Elysia JWT plugin injects `jwt` dynamically; no public type export
     async ({ body, cookie: { accessToken, refreshToken: rfCookie }, set, request, jwt }: any) => {
       const { initData } = body;
 
@@ -22,11 +23,15 @@ const telegramLoginRoute = new Elysia()
         return { success: false, error: { code: 'INVALID_INIT_DATA', message: 'Невалидные данные Telegram' } };
       }
 
-      const user = await authService.findOrCreateUser(data.user);
+      // findOrCreateUser always runs an upsert and returns a flag indicating whether
+      // this was a brand-new INSERT (vs. an UPDATE of an existing row).
+      const { user, isNew } = await authService.findOrCreateUser(data.user);
 
-      // Auto-grant first_login achievement for new users (created within last 30 seconds)
-      const isNewUser = (Date.now() - new Date(user.createdAt as unknown as string).getTime()) < 30_000;
-      if (isNewUser) {
+      // Grant first_login achievement only for genuinely new accounts.
+      // We rely on the DB upsert return value (isNew) rather than a fragile wall-clock
+      // window — the "30-second" heuristic broke when Postgres was slow or the server
+      // clock drifted relative to the DB clock.
+      if (isNew) {
         gamificationService.checkAndAwardAchievement(user.id, 'first_login').catch(() => {});
         gamificationService.awardXp(user.id, 50, 'Первый вход в приложение', 'first_login').catch(() => {});
       }
@@ -43,8 +48,9 @@ const telegramLoginRoute = new Elysia()
       });
       tokens.accessToken = signedAccess;
 
-      accessToken.set({ value: signedAccess, httpOnly: true, secure: isProd, sameSite: 'none', maxAge: 15 * 60, path: '/' });
-      rfCookie.set({ value: tokens.refreshToken, httpOnly: true, secure: isProd, sameSite: 'none', maxAge: 30 * 24 * 60 * 60, path: '/' });
+      const sameSite = isProd ? 'none' : 'lax';
+      accessToken.set({ value: signedAccess, httpOnly: true, secure: isProd, sameSite, maxAge: 15 * 60, path: '/' });
+      rfCookie.set({ value: tokens.refreshToken, httpOnly: true, secure: isProd, sameSite, maxAge: 30 * 24 * 60 * 60, path: '/' });
 
       logger.info({ userId: user.id }, 'User authenticated');
 
@@ -80,6 +86,7 @@ export const authModule = new Elysia({ prefix: '/auth' })
   // Mount rate-limited /telegram sub-route
   .use(telegramLoginRoute)
   // /refresh and /logout are intentionally NOT rate-limited
+  // biome-ignore lint/suspicious/noExplicitAny: Elysia JWT plugin injects `jwt` dynamically
   .post('/refresh', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie }, jwt, set }: any) => {
     const token = rfCookie.value;
     if (!token) {
@@ -96,10 +103,11 @@ export const authModule = new Elysia({ prefix: '/auth' })
     }
 
     const newAccess = await jwt.sign({ sub: payload.userId, telegramId: payload.telegramId, role: payload.role });
-    atCookie.set({ value: newAccess, httpOnly: true, secure: isProd, sameSite: 'none', maxAge: 15 * 60, path: '/' });
+    atCookie.set({ value: newAccess, httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax', maxAge: 15 * 60, path: '/' });
 
     return { success: true, data: { accessToken: newAccess, expiresIn: 15 * 60 } };
   })
+  // biome-ignore lint/suspicious/noExplicitAny: Elysia cookie plugin injects cookie objects dynamically
   .post('/logout', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie } }: any) => {
     const token = rfCookie.value;
     if (token) await authService.revokeSession(token as string);

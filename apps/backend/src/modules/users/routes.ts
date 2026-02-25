@@ -1,18 +1,21 @@
-import Elysia, { t } from 'elysia';
-import { eq, desc, sql } from 'drizzle-orm';
+import Elysia from 'elysia';
+import { eq, desc } from 'drizzle-orm';
 import { db, schema } from '../../db/index.ts';
 import { requireAuth } from '../../middlewares/auth.ts';
-import { getRedis, cacheKey } from '../../utils/redis.ts';
 import { getLevelFromXp, getXpToNextLevel, LEVEL_NAMES } from '@showcase/shared';
+import { config } from '../../config/index.ts';
 
-const { users, referrals, xpHistory, userAchievements, achievements } = schema;
+const { users, referrals, xpHistory } = schema;
+
+type AuthCtx = { user: { id: string } | null; set: { status: number } };
 
 export const usersModule = new Elysia({ prefix: '/users' })
   .use(requireAuth)
 
   // ─── My profile ───────────────────────────────────────────────────────────
-  .get('/me', async ({ user, set }: any) => {
-    const userId = (user as { id: string }).id;
+  .get('/me', async ({ user, set }: AuthCtx) => {
+    if (!user) { set.status = 401; return { success: false, error: { code: 'UNAUTHORIZED' } }; }
+    const userId = user.id;
     const [u] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!u) { set.status = 404; return { success: false, error: { code: 'NOT_FOUND', message: 'Пользователь не найден' } }; }
 
@@ -44,8 +47,8 @@ export const usersModule = new Elysia({ prefix: '/users' })
   })
 
   // ─── Leaderboard ──────────────────────────────────────────────────────────
-  .get('/leaderboard', async ({ query }) => {
-    const limit = Math.min(parseInt(query.limit ?? '20'), 50);
+  .get('/leaderboard', async ({ query }: { query: { limit?: string } }) => {
+    const limit = Math.min(Number.parseInt(query.limit ?? '20', 10), 50);
     const top = await db
       .select({
         id: users.id,
@@ -72,8 +75,9 @@ export const usersModule = new Elysia({ prefix: '/users' })
   })
 
   // ─── My referral info ─────────────────────────────────────────────────────
-  .get('/referrals', async ({ user }: any) => {
-    const userId = (user as { id: string }).id;
+  .get('/referrals', async ({ user, set }: AuthCtx) => {
+    if (!user) { set.status = 401; return { success: false, error: { code: 'UNAUTHORIZED' } }; }
+    const userId = user.id;
     const [u] = await db.select({ referralCode: users.referralCode }).from(users).where(eq(users.id, userId)).limit(1);
 
     const refs = await db
@@ -88,8 +92,7 @@ export const usersModule = new Elysia({ prefix: '/users' })
       .where(eq(referrals.referrerId, userId))
       .orderBy(desc(referrals.createdAt));
 
-    const botUsername = process.env.BOT_USERNAME ?? 'your_bot';
-    const referralLink = `https://t.me/${botUsername}?start=ref_${u?.referralCode}`;
+    const referralLink = `https://t.me/${config.BOT_USERNAME}?start=ref_${u?.referralCode}`;
 
     return {
       success: true,
@@ -104,8 +107,9 @@ export const usersModule = new Elysia({ prefix: '/users' })
   })
 
   // ─── Activity feed ────────────────────────────────────────────────────────
-  .get('/activity', async ({ user }: any) => {
-    const userId = (user as { id: string }).id;
+  .get('/activity', async ({ user, set }: AuthCtx) => {
+    if (!user) { set.status = 401; return { success: false, error: { code: 'UNAUTHORIZED' } }; }
+    const userId = user.id;
     const events = await db
       .select()
       .from(xpHistory)

@@ -1,10 +1,13 @@
-import { useAuthStore, registerApiSetToken, clearAuth } from '@/store/auth';
+import { clearAuth, registerApiSetToken, useAuthStore } from '@/store/auth';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3100';
 
 /** Error with HTTP status code for fine-grained retry logic */
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
     super(message);
     this.name = 'ApiError';
   }
@@ -13,6 +16,12 @@ export class ApiError extends Error {
 class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
+  /**
+   * Deduplicate concurrent token refresh requests.
+   * If a refresh is already in-flight, subsequent 401 retries await the same
+   * promise instead of firing a second /auth/refresh call.
+   */
+  private refreshPromise: Promise<boolean> | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -25,6 +34,7 @@ class ApiClient {
   private async request<T>(
     path: string,
     options: RequestInit = {},
+    isRetry = false,
   ): Promise<T> {
     if (!this.token) {
       const persistedToken = useAuthStore.getState().accessToken;
@@ -47,48 +57,77 @@ class ApiClient {
     });
 
     if (!res.ok) {
-      // Try refresh on 401
-      if (res.status === 401 && path !== '/api/v1/auth/refresh') {
+      // Try refresh on 401, but only once to prevent infinite recursion.
+      // All concurrent 401s share a single refresh attempt via refreshPromise.
+      if (res.status === 401 && path !== '/api/v1/auth/refresh' && !isRetry) {
         const refreshed = await this.refreshToken();
         if (refreshed) {
-          return this.request(path, options);
+          // Pass isRetry=true so a second 401 bubbles up instead of looping
+          return this.request(path, options, true);
         }
       }
       const err = await res.json().catch(() => ({}));
-      throw new ApiError(res.status, err?.error?.message ?? `HTTP ${res.status}`);
+      throw new ApiError(
+        res.status,
+        err?.error?.message ?? `HTTP ${res.status}`,
+      );
     }
 
     return res.json();
   }
 
-  private async refreshToken(): Promise<boolean> {
-    try {
-      const res = await fetch(`${this.baseUrl}/api/v1/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        // Refresh failed — clear auth to prevent infinite broken-state loops
+  private refreshToken(): Promise<boolean> {
+    // If a refresh is already in-flight, reuse it — prevents duplicate /auth/refresh
+    // calls when multiple requests get 401 simultaneously (e.g. on page load with
+    // an expired token).
+    if (this.refreshPromise) return this.refreshPromise;
+
+    this.refreshPromise = (async (): Promise<boolean> => {
+      try {
+        const res = await fetch(`${this.baseUrl}/api/v1/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          // Refresh failed — clear auth to prevent infinite broken-state loops
+          this.token = null;
+          clearAuth();
+          return false;
+        }
+        const data = await res.json();
+        // Validate response shape before accessing nested property
+        const newToken: unknown = data?.data?.accessToken;
+        if (typeof newToken !== 'string' || !newToken) {
+          this.token = null;
+          clearAuth();
+          return false;
+        }
+        this.token = newToken;
+        // Keep Zustand store in sync so subsequent calls from React Query use the fresh token
+        useAuthStore.getState().setAccessToken(newToken);
+        return true;
+      } catch {
         this.token = null;
         clearAuth();
         return false;
+      } finally {
+        // Always clear the in-flight promise so future 401s trigger a new refresh
+        this.refreshPromise = null;
       }
-      const data = await res.json();
-      this.token = data.data.accessToken;
-      return true;
-    } catch {
-      this.token = null;
-      clearAuth();
-      return false;
-    }
+    })();
+
+    return this.refreshPromise;
   }
 
   // Auth
   async loginWithTelegram(initData: string) {
-    return this.request<{ success: boolean; data: { user: unknown; accessToken: string } }>(
-      '/api/v1/auth/telegram',
-      { method: 'POST', body: JSON.stringify({ initData }) },
-    );
+    return this.request<{
+      success: boolean;
+      data: { user: unknown; accessToken: string };
+    }>('/api/v1/auth/telegram', {
+      method: 'POST',
+      body: JSON.stringify({ initData }),
+    });
   }
 
   async logout() {
@@ -97,7 +136,9 @@ class ApiClient {
 
   // Showcase
   async getScenarios() {
-    return this.request<{ success: boolean; data: unknown[] }>('/api/v1/showcase/scenarios');
+    return this.request<{ success: boolean; data: unknown[] }>(
+      '/api/v1/showcase/scenarios',
+    );
   }
 
   async runScenario(id: string) {
@@ -115,12 +156,16 @@ class ApiClient {
   }
 
   async getGlobalMetrics() {
-    return this.request<{ success: boolean; data: unknown }>('/api/v1/showcase/metrics');
+    return this.request<{ success: boolean; data: unknown }>(
+      '/api/v1/showcase/metrics',
+    );
   }
 
   // Gamification
   async getGamificationStats() {
-    return this.request<{ success: boolean; data: unknown }>('/api/v1/gamification/stats');
+    return this.request<{ success: boolean; data: unknown }>(
+      '/api/v1/gamification/stats',
+    );
   }
 
   async awardXp(amount: number, reason: string, actionType: string) {
@@ -134,30 +179,48 @@ class ApiClient {
     return this.request('/api/v1/gamification/streak', { method: 'POST' });
   }
 
+  async getAllAchievements() {
+    return this.request<{ success: boolean; data: unknown[] }>(
+      '/api/v1/gamification/achievements',
+    );
+  }
+
   // Users
   async getMe() {
-    return this.request<{ success: boolean; data: unknown }>('/api/v1/users/me');
+    return this.request<{ success: boolean; data: unknown }>(
+      '/api/v1/users/me',
+    );
   }
 
   async getLeaderboard(limit = 20) {
-    return this.request<{ success: boolean; data: unknown[] }>(`/api/v1/users/leaderboard?limit=${limit}`);
+    return this.request<{ success: boolean; data: unknown[] }>(
+      `/api/v1/users/leaderboard?limit=${limit}`,
+    );
   }
 
   async getReferrals() {
-    return this.request<{ success: boolean; data: unknown }>('/api/v1/users/referrals');
+    return this.request<{ success: boolean; data: unknown }>(
+      '/api/v1/users/referrals',
+    );
   }
 
   async getActivity() {
-    return this.request<{ success: boolean; data: unknown[] }>('/api/v1/users/activity');
+    return this.request<{ success: boolean; data: unknown[] }>(
+      '/api/v1/users/activity',
+    );
   }
 
   // Subscriptions
   async getPlans() {
-    return this.request<{ success: boolean; data: unknown[] }>('/api/v1/subscriptions/plans');
+    return this.request<{ success: boolean; data: unknown[] }>(
+      '/api/v1/subscriptions/plans',
+    );
   }
 
   async getSubscriptionStatus() {
-    return this.request<{ success: boolean; data: unknown }>('/api/v1/subscriptions/status');
+    return this.request<{ success: boolean; data: unknown }>(
+      '/api/v1/subscriptions/status',
+    );
   }
 
   async startSubscription(plan: string, trial = true) {
@@ -181,7 +244,9 @@ class ApiClient {
   }
 
   async getDashboard() {
-    return this.request<{ success: boolean; data: unknown }>('/api/v1/analytics/dashboard');
+    return this.request<{ success: boolean; data: unknown }>(
+      '/api/v1/analytics/dashboard',
+    );
   }
 
   // Tracking
@@ -193,11 +258,15 @@ class ApiClient {
   }
 
   async getMyLinks() {
-    return this.request<{ success: boolean; data: unknown[] }>('/api/v1/tracking/links');
+    return this.request<{ success: boolean; data: unknown[] }>(
+      '/api/v1/tracking/links',
+    );
   }
 
   async getLinkAnalytics(id: string) {
-    return this.request<{ success: boolean; data: unknown }>(`/api/v1/tracking/links/${id}/analytics`);
+    return this.request<{ success: boolean; data: unknown }>(
+      `/api/v1/tracking/links/${id}/analytics`,
+    );
   }
 
   async deleteLink(id: string) {

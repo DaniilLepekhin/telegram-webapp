@@ -12,7 +12,10 @@ export function GlobalStats() {
 
   const { data } = useQuery({
     queryKey: ['global-metrics'],
-    queryFn: async () => { const r = await api.getGlobalMetrics(); return r.data as any; },
+    queryFn: async () => {
+      const r = await api.getGlobalMetrics();
+      return r.data as { totalUsers: number; totalLinks: number; totalClicks: number; totalScenarioRuns: number } | undefined;
+    },
     refetchInterval: 30_000,
   });
 

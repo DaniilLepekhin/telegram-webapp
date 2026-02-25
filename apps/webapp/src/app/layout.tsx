@@ -35,9 +35,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script src="https://telegram.org/js/telegram-web-app.js?59" async />
       </head>
       <body className="bg-surface-0 text-white antialiased overflow-x-hidden">
-        <TelegramInit />
         <Providers>
           <ErrorBoundary>
+            {/* TelegramInit is inside ErrorBoundary so SDK errors don't produce a blank screen */}
+            <TelegramInit />
             <main className="pb-24">
               {children}
             </main>

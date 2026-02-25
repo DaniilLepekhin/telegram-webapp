@@ -1,53 +1,81 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { LiveEvent } from '@showcase/shared';
+import { useAuthStore } from '@/store/auth';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3100';
 
 export function LiveMetricsBar() {
-  const [events, setEvents] = useState<LiveEvent[]>([]);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const [queue, setQueue] = useState<LiveEvent[]>([]);
   const [current, setCurrent] = useState<LiveEvent | null>(null);
   const retryRef = useRef<NodeJS.Timeout | null>(null);
   const esRef = useRef<EventSource | null>(null);
+  // Prevents post-unmount reconnects from scheduling another retry
+  const unmountedRef = useRef(false);
 
-  useEffect(() => {
-    const connect = () => {
-      const es = new EventSource(`${API_BASE}/api/v1/analytics/live`);
-      esRef.current = es;
+  const connect = useCallback((token: string) => {
+    if (unmountedRef.current) return;
 
-      es.onmessage = (e) => {
-        try {
-          const event = JSON.parse(e.data) as LiveEvent;
-          setEvents((prev) => [event, ...prev].slice(0, 20));
-        } catch {}
-      };
+    // Pass the JWT as a query param because EventSource cannot set headers.
+    const es = new EventSource(`${API_BASE}/api/v1/analytics/live?token=${encodeURIComponent(token)}`);
+    esRef.current = es;
 
-      es.onerror = () => {
-        es.close();
-        // Retry in 5s
-        retryRef.current = setTimeout(connect, 5000);
-      };
+    es.onmessage = (e) => {
+      try {
+        const event = JSON.parse(e.data) as LiveEvent;
+        setQueue((prev) => [event, ...prev].slice(0, 20));
+      } catch {}
     };
 
-    connect();
-
-    return () => {
-      esRef.current?.close();
-      if (retryRef.current) clearTimeout(retryRef.current);
+    es.onerror = () => {
+      es.close();
+      esRef.current = null;
+      if (!unmountedRef.current) {
+        // Retry in 5s — only if component is still mounted and token is available
+        retryRef.current = setTimeout(() => connect(token), 5000);
+      }
     };
   }, []);
 
-  // Cycle through events display
+  // Only connect once we have an access token — prevents a 401 retry loop
+  // hammering the SSE endpoint every 5s before the user is authenticated.
   useEffect(() => {
-    if (events.length === 0) return;
-    setCurrent(events[0]);
-    const timer = setTimeout(() => setCurrent(null), 3000);
-    return () => clearTimeout(timer);
-  }, [events]);
+    if (!accessToken) return;
+    unmountedRef.current = false;
+    connect(accessToken);
 
-  if (!current) return <div className="h-10" />;
+    return () => {
+      unmountedRef.current = true;
+      esRef.current?.close();
+      esRef.current = null;
+      if (retryRef.current) {
+        clearTimeout(retryRef.current);
+        retryRef.current = null;
+      }
+    };
+  }, [connect, accessToken]);
+
+  // Cycle through the queue: show each event for 3s, then advance to the next.
+  useEffect(() => {
+    if (queue.length === 0) return;
+
+    // Show the most recent event
+    setCurrent(queue[0]);
+
+    const timer = setTimeout(() => {
+      // Remove the displayed event from the queue so the next one shows
+      setQueue((prev) => prev.slice(1));
+      setCurrent(null);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [queue]);
+
+  // Render nothing (no layout shift) when there's no event to show
+  if (!current) return null;
 
   return (
     <div className="px-4 pt-3 pb-1">

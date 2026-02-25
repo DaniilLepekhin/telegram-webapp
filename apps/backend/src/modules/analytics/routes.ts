@@ -1,11 +1,12 @@
 import Elysia, { t } from 'elysia';
-import { desc, eq, gte, sql, and } from 'drizzle-orm';
+import { desc, eq, gte, and } from 'drizzle-orm';
+import { jwtVerify } from 'jose';
 import { db, schema } from '../../db/index.ts';
 import { requireAuth, authMiddleware } from '../../middlewares/auth.ts';
-import { getRedis } from '../../utils/redis.ts';
+import { config } from '../../config/index.ts';
 import type { LiveEvent, EventType } from '@showcase/shared';
 
-const { analyticsEvents, users, trackingLinks, trackingClicks, scenarioRuns } = schema;
+const { analyticsEvents, trackingLinks, scenarioRuns } = schema;
 
 // In-memory live event bus (simple pub/sub for SSE)
 type Subscriber = (event: LiveEvent) => void;
@@ -18,8 +19,27 @@ export function emitLiveEvent(event: LiveEvent) {
 }
 
 export const analyticsModule = new Elysia({ prefix: '/analytics' })
-  // ─── Live events SSE stream (public — no auth required) ───────────────────
-  .get('/live', ({ set }) => {
+  // ─── Live events SSE stream — requires valid JWT (Bearer token in query or header) ──
+  .get('/live', async ({ set, request }) => {
+    // Accept token from Authorization header OR ?token= query param (for EventSource which can't set headers)
+    const url = new URL(request.url);
+    const token =
+      request.headers.get('authorization')?.match(/^Bearer\s+(.+)$/)?.[1] ??
+      url.searchParams.get('token') ??
+      '';
+
+    if (!token) {
+      set.status = 401;
+      return { success: false, error: { code: 'UNAUTHORIZED', message: 'Требуется авторизация' } };
+    }
+
+    try {
+      await jwtVerify(token, new TextEncoder().encode(config.JWT_SECRET));
+    } catch {
+      set.status = 401;
+      return { success: false, error: { code: 'INVALID_TOKEN', message: 'Невалидный токен' } };
+    }
+
     set.headers['Content-Type'] = 'text/event-stream';
     set.headers['Cache-Control'] = 'no-cache';
     set.headers.Connection = 'keep-alive';
@@ -68,8 +88,8 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
         demoTimer = setInterval(() => {
           if (closed) return;
           const demoEvent = generateDemoEvent();
+          // Send only to this subscriber (demo events are per-client, not broadcast)
           if (subscriber) subscriber(demoEvent);
-          emitLiveEvent(demoEvent);
         }, 3000 + Math.random() * 4000);
 
         // Auto-close after 5 min
@@ -91,9 +111,8 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
   .use(authMiddleware)
   .post(
     '/events',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async ({ body, user }: any) => {
-      const userId = (user as { id: string } | null)?.id ?? null;
+    async ({ body, user }: { body: { type: string; payload?: Record<string, unknown>; sessionId?: string }; user: { id: string } | null }) => {
+      const userId = user?.id ?? null;
       if (!userId) return { success: true }; // anonymous — silently ignore
       await db.insert(analyticsEvents).values({
         userId,
@@ -125,10 +144,9 @@ export const analyticsModule = new Elysia({ prefix: '/analytics' })
 
   // ─── Dashboard stats (auth required) ────────────────────────────────────
   .use(requireAuth)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  .get('/dashboard', async ({ user }: any) => {
-    const userId = (user as { id: string }).id;
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  .get('/dashboard', async ({ user }: { user: { id: string } | null }) => {
+    const userId = user?.id;
+    if (!userId) return { success: false, error: { code: 'UNAUTHORIZED' } };
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
     const [

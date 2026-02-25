@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import { Toaster } from 'sonner';
 import { ApiError } from '@/lib/api';
+import { AuthInit } from './AuthInit';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // NOTE: api token is now synced synchronously in onRehydrateStorage (store/auth.ts)
@@ -37,6 +38,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* AuthInit runs on every route — ensures isFreshAuth is set before any protected query fires */}
+      <AuthInit />
       {children}
       <Toaster
         position="top-center"

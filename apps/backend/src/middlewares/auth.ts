@@ -3,6 +3,7 @@ import { jwtVerify } from 'jose';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '../db/index.ts';
 import { getRedis, cacheKey } from '../utils/redis.ts';
+import { config } from '../config/index.ts';
 import type { JWTPayload, UserRole } from '@showcase/shared';
 
 const { users } = schema;
@@ -24,10 +25,11 @@ async function verifyJwt(token: string, secret: string): Promise<JWTPayload | nu
  */
 export const authMiddleware = new Elysia({ name: 'auth-middleware' })
   .derive({ as: 'scoped' }, async ({ headers, cookie: { accessToken } }: any) => {
-    const token = headers.authorization?.replace('Bearer ', '') ?? accessToken?.value;
+    // Match only a leading "Bearer " prefix to prevent stripping it from mid-string values.
+    const token = headers.authorization?.match(/^Bearer\s+(.+)$/)?.[1] ?? accessToken?.value;
     if (!token) return { user: null, isAuthenticated: false };
 
-    const secret = process.env.JWT_SECRET ?? '';
+    const secret = config.JWT_SECRET;
     const payload = await verifyJwt(token as string, secret);
     if (!payload) return { user: null, isAuthenticated: false };
 

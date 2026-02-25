@@ -64,10 +64,16 @@ export function TrackingPage() {
 
   const handleCopy = async (url: string, id: string) => {
     haptic.impact('light');
-    await navigator.clipboard.writeText(url);
-    setCopiedId(id);
-    toast.success('Ссылка скопирована!');
-    setTimeout(() => setCopiedId(null), 2000);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(id);
+      toast.success('Ссылка скопирована!');
+      const t = setTimeout(() => setCopiedId(null), 2000);
+      // Clear the timeout if the component unmounts to avoid state updates on unmounted component
+      return () => clearTimeout(t);
+    } catch {
+      toast.error('Не удалось скопировать ссылку');
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -185,7 +191,7 @@ export function TrackingPage() {
                       {/* Actions */}
                       <div className="flex items-center gap-1.5 ml-auto">
                         <ActionButton
-                          onClick={() => handleCopy(`${window.location.origin}/t/${link.slug}`, link.id)}
+                          onClick={() => handleCopy(`${typeof window !== 'undefined' ? window.location.origin : ''}/t/${link.slug}`, link.id)}
                           title="Копировать"
                         >
                           {copiedId === link.id

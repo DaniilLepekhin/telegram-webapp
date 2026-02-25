@@ -32,7 +32,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
   const [currentStep, setCurrentStep] = useState(-1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [elapsed, setElapsed] = useState(0);
-  const [xpEarned, setXpEarned] = useState(175);
+  const [xpEarned, setXpEarned] = useState(150);
   const startTimeRef = useRef<number>(0);
   const runIdRef = useRef<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -65,17 +65,20 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
 
   const handleStart = useCallback(async () => {
     haptic.notification('success');
-    startTimeRef.current = Date.now();
-    setState('running');
-    setCurrentStep(0);
 
-    // Start run on backend (fire-and-forget if not authenticated)
+    // Start run on backend BEFORE starting the timer so the timer only
+    // measures the actual demo animation, not the network round-trip.
     if (isAuthenticated) {
       try {
         const res = await api.runScenario(scenario.id) as { data?: { runId?: string } };
         if (res?.data?.runId) runIdRef.current = res.data.runId;
       } catch { /* non-critical */ }
     }
+
+    // Record start time after the async call so timer reflects animation time only.
+    startTimeRef.current = Date.now();
+    setState('running');
+    setCurrentStep(0);
 
     // Build the step timing schedule upfront — avoids closure over mutable state
     let cumulativeDelay = 500;
@@ -110,8 +113,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
           .then((res: unknown) => {
             const r = res as { data?: { newXp?: number; xp?: number } } | null;
             if (r?.data?.newXp !== undefined && r?.data?.xp !== undefined) {
-              setXpEarned(r.data.newXp - r.data.xp + 150);
-            }
+                // newXp is XP after award, xp is XP before — the delta is what was earned
+                setXpEarned(r.data.newXp - r.data.xp);
+              }
           })
           .catch(() => {});
       }
@@ -128,7 +132,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
     setCurrentStep(-1);
     setCompletedSteps(new Set());
     setElapsed(0);
-    setXpEarned(175);
+    setXpEarned(150);
   }, []);
 
   return (

@@ -4,6 +4,15 @@ import { msg } from '../utils/messages.ts';
 import { userService } from '../services/userService.ts';
 import { scheduler } from '../utils/redis.ts';
 
+// Cache bot username so we don't hit the Telegram API on every /ref and /pro call
+let _botUsername: string | null = null;
+async function getBotUsername(ctx: Context): Promise<string> {
+  if (_botUsername) return _botUsername;
+  const info = await ctx.api.getMe();
+  _botUsername = info.username;
+  return _botUsername;
+}
+
 export function registerCommands(bot: Bot<Context>) {
   // ─── /start ──────────────────────────────────────────────────────────────────
   bot.command('start', async (ctx) => {
@@ -17,10 +26,28 @@ export function registerCommands(bot: Bot<Context>) {
       reply_markup: kb.welcome(),
     });
 
-    // Schedule nurture sequence (5 min, 1 hour, 1 day)
-    await scheduler.schedule('nurture_5m', { userId: user.id, chatId: ctx.chat!.id }, 5 * 60_000);
-    await scheduler.schedule('nurture_1h', { userId: user.id, chatId: ctx.chat!.id }, 60 * 60_000);
-    await scheduler.schedule('nurture_1d', { userId: user.id, chatId: ctx.chat!.id }, 24 * 60 * 60_000);
+    // Schedule nurture sequence — skip if already queued for this user (handles /start spam).
+    // markScheduled is called alongside schedule() so hasScheduled returns true on the next /start.
+    const userId = user.id;
+    const chatId = ctx.chat?.id;
+    if (!chatId) return;
+    const [has5m, has1h, has1d] = await Promise.all([
+      scheduler.hasScheduled('nurture_5m', userId),
+      scheduler.hasScheduled('nurture_1h', userId),
+      scheduler.hasScheduled('nurture_1d', userId),
+    ]);
+    if (!has5m) {
+      await scheduler.schedule('nurture_5m', { userId, chatId }, 5 * 60_000);
+      await scheduler.markScheduled('nurture_5m', userId);
+    }
+    if (!has1h) {
+      await scheduler.schedule('nurture_1h', { userId, chatId }, 60 * 60_000);
+      await scheduler.markScheduled('nurture_1h', userId);
+    }
+    if (!has1d) {
+      await scheduler.schedule('nurture_1d', { userId, chatId }, 24 * 60 * 60_000);
+      await scheduler.markScheduled('nurture_1d', userId, 25 * 60 * 60); // TTL slightly longer than delay
+    }
   });
 
   // ─── /demo ───────────────────────────────────────────────────────────────────
@@ -36,11 +63,18 @@ export function registerCommands(bot: Bot<Context>) {
     if (!ctx.from) return;
 
     const user = await userService.upsert(ctx.from);
-    const botInfo = await ctx.api.getMe();
-    const link = userService.getReferralLink(user.referralCode!, botInfo.username);
+    const botUsername = await getBotUsername(ctx);
+
+    // referralCode may be null for users created before the referral system was added.
+    if (!user.referralCode) {
+      await ctx.reply('❌ Реферальный код не найден. Попробуй перезапустить бота командой /start.', { parse_mode: 'HTML' });
+      return;
+    }
+
+    const link = userService.getReferralLink(user.referralCode, botUsername);
     const stats = await userService.getReferralStats(user.id);
 
-    await ctx.reply(msg.referralInfo(user.referralCode!, link, stats.count), {
+    await ctx.reply(msg.referralInfo(user.referralCode, link, stats.count), {
       parse_mode: 'HTML',
       reply_markup: kb.referral(link),
     });
@@ -63,9 +97,10 @@ export function registerCommands(bot: Bot<Context>) {
 
   // ─── /pro ────────────────────────────────────────────────────────────────────
   bot.command('pro', async (ctx) => {
+    const botUsername = await getBotUsername(ctx);
     await ctx.reply(msg.proFeatures(), {
       parse_mode: 'HTML',
-      reply_markup: kb.subscription('https://t.me/' + (await ctx.api.getMe()).username),
+      reply_markup: kb.subscription(`https://t.me/${botUsername}`),
     });
   });
 

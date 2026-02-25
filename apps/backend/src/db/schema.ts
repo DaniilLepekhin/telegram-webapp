@@ -1,14 +1,14 @@
 import {
   pgTable, pgEnum, text, integer, bigint, boolean,
   timestamp, jsonb, uuid, varchar, index, uniqueIndex,
-  real, primaryKey
+  primaryKey
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 export const userRoleEnum = pgEnum('user_role', ['guest', 'user', 'premium', 'admin']);
 export const subscriptionPlanEnum = pgEnum('subscription_plan', ['free', 'pro', 'enterprise']);
-export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'trial', 'past_due', 'cancelled', 'expired']);
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['pending', 'active', 'trial', 'past_due', 'cancelled', 'expired']);
 export const deviceTypeEnum = pgEnum('device_type', ['mobile', 'tablet', 'desktop', 'unknown']);
 export const eventTypeEnum = pgEnum('event_type', [
   'page_view', 'button_click', 'scenario_start', 'scenario_complete',
@@ -37,17 +37,17 @@ export const users = pgTable('users', {
   longestStreak: integer('longest_streak').default(0).notNull(),
   energyBalance: integer('energy_balance').default(0).notNull(),
   lastActivityAt: timestamp('last_activity_at').defaultNow(),
-  // Referral
+  // Referral — FK ensures referredById must point to a valid user
   referralCode: varchar('referral_code', { length: 20 }).unique(),
-  referredById: uuid('referred_by_id'),
-  // Meta
+  referredById: uuid('referred_by_id').references(() => users.id, { onDelete: 'set null' }),
+  // Meta — use sql`'{}'::jsonb` as default instead of a shared mutable object literal
   metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (t) => [
-  index('users_telegram_id_idx').on(t.telegramId),
+  // telegramId already has a unique index from .unique() above — skip redundant index
   index('users_username_idx').on(t.username),
-  index('users_referral_code_idx').on(t.referralCode),
+  // referralCode already has a unique index from .unique() above — skip redundant index
 ]);
 
 // ─── Sessions ─────────────────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ export const trackingLinks = pgTable('tracking_links', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (t) => [
-  uniqueIndex('tracking_links_slug_idx').on(t.slug),
+  // slug already has a unique index from .unique() above — skip redundant uniqueIndex
   index('tracking_links_user_id_idx').on(t.userId),
 ]);
 
@@ -285,4 +285,38 @@ export const trackingClicksRelations = relations(trackingClicks, ({ one }) => ({
 export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
   user: one(users, { fields: [userAchievements.userId], references: [users.id] }),
   achievement: one(achievements, { fields: [userAchievements.achievementId], references: [achievements.id] }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, { fields: [subscriptions.userId], references: [users.id] }),
+}));
+
+export const xpHistoryRelations = relations(xpHistory, ({ one }) => ({
+  user: one(users, { fields: [xpHistory.userId], references: [users.id] }),
+}));
+
+export const scenarioRunsRelations = relations(scenarioRuns, ({ one }) => ({
+  user: one(users, { fields: [scenarioRuns.userId], references: [users.id] }),
+}));
+
+export const referralsRelations = relations(referrals, ({ one }) => ({
+  referrer: one(users, { relationName: 'referrer', fields: [referrals.referrerId], references: [users.id] }),
+  referred: one(users, { relationName: 'referred', fields: [referrals.referredId], references: [users.id] }),
+}));
+
+export const userQuestsRelations = relations(userQuests, ({ one }) => ({
+  user: one(users, { fields: [userQuests.userId], references: [users.id] }),
+  quest: one(quests, { fields: [userQuests.questId], references: [quests.id] }),
+}));
+
+export const achievementsRelations = relations(achievements, ({ many }) => ({
+  userAchievements: many(userAchievements),
+}));
+
+export const questsRelations = relations(quests, ({ many }) => ({
+  userQuests: many(userQuests),
 }));

@@ -1,6 +1,17 @@
 import type { Api } from 'grammy';
 import { kb } from '../utils/keyboard.ts';
 
+/** Returns a human-readable month name in the genitive case (e.g. "февраля") for the next calendar month. */
+function nextMonthLabel(): string {
+  const months = [
+    'февраля', 'марта', 'апреля', 'мая', 'июня',
+    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря', 'января',
+  ];
+  const next = new Date();
+  next.setMonth(next.getMonth() + 1);
+  return months[next.getMonth()];
+}
+
 // Drip nurture sequences
 const NURTURE_SEQUENCES = {
   nurture_5m: {
@@ -31,7 +42,7 @@ const NURTURE_SEQUENCES = {
 
   nurture_1d: {
     text: (name: string) =>
-      `🚀 <b>${name}, последний вопрос.</b>\n\nЕсли бы твой бот приносил на 30% больше заявок при тех же затратах — ты бы захотел узнать как?\n\nЯ сделал это для сервисного бизнеса: 340 лидов в день без менеджеров, ROI 380%.\n\nСкоро закрываю свободные слоты на декабрь. Напиши — обсудим твой кейс:`,
+      `🚀 <b>${name}, последний вопрос.</b>\n\nЕсли бы твой бот приносил на 30% больше заявок при тех же затратах — ты бы захотел узнать как?\n\nЯ сделал это для сервисного бизнеса: 340 лидов в день без менеджеров, ROI 380%.\n\nСкоро закрываю свободные слоты на ${nextMonthLabel()}. Напиши — обсудим твой кейс:`,
     keyboard: async () => {
       const { InlineKeyboard } = await import('grammy');
       return new InlineKeyboard()

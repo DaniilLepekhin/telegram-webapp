@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTelegram } from '@/hooks/useTelegram';
 import { useAuthStore } from '@/store/auth';
@@ -11,75 +11,32 @@ import { LiveMetricsBar } from '../analytics/LiveMetricsBar';
 import { UserHero } from './UserHero';
 import { GlobalStats } from './GlobalStats';
 import type { DemoScenario, User } from '@showcase/shared';
-import { AlertCircle, RefreshCw } from 'lucide-react';
 import { OnboardingScreen } from '../onboarding/OnboardingScreen';
 
 type View = 'hub' | 'scenario';
 
-// Module-level guards — survive component remounts (StrictMode, fast-refresh, etc.)
-// useRef resets to false on every new mount, causing duplicate auth/streak calls
-const _guard = { authAttempted: false, streakSent: false };
-
 export function ShowcaseHub() {
-  const { user, initData, haptic, isReady } = useTelegram();
-  const { setUser, setStreakUpdated } = useAuthStore();
+  const { user, haptic, isReady } = useTelegram();
+  // Auth (loginWithTelegram) is handled globally by AuthInit in Providers.
+  // ShowcaseHub only observes auth state and shows onboarding for new users.
+  const { isFreshAuth, user: authUser } = useAuthStore();
   const [scenarios, setScenarios] = useState<DemoScenario[]>([]);
   const [selectedScenario, setSelectedScenario] = useState<DemoScenario | null>(null);
   const [view, setView] = useState<View>('hub');
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [authNonce, setAuthNonce] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  // Track whether we've already checked for new-user onboarding this session
+  const onboardingCheckedRef = useRef(false);
 
-  // Authenticate once Telegram SDK is ready and initData is valid
+  // Show onboarding for new users once auth resolves
   useEffect(() => {
-    void authNonce;
-    if (!isReady || _guard.authAttempted) return;
-
-    const safeInitData = initData.trim();
-    if (safeInitData.length < 10) {
-      setIsAuthLoading(false);
-      setAuthError('Открой Mini App через кнопку в Telegram-боте.');
-      return;
+    if (!isFreshAuth || onboardingCheckedRef.current) return;
+    onboardingCheckedRef.current = true;
+    const userData = authUser as (User & { createdAt?: string }) | null;
+    if (userData?.createdAt) {
+      const ageMs = Date.now() - new Date(userData.createdAt).getTime();
+      if (ageMs < 2 * 60 * 1000) setShowOnboarding(true);
     }
-
-    setAuthError(null);
-    _guard.authAttempted = true;
-
-    const authenticate = async () => {
-      try {
-        const res = await api.loginWithTelegram(safeInitData);
-        if (res.success && res.data) {
-          const { user: userData, accessToken } = res.data as { user: User & { createdAt?: string }; accessToken: string };
-          // setUser updates api.token synchronously via _apiSetToken before returning
-          setUser(userData, accessToken);
-
-          // Show onboarding for new users (registered within last 2 minutes)
-          if (userData.createdAt) {
-            const ageMs = Date.now() - new Date(userData.createdAt).getTime();
-            if (ageMs < 2 * 60 * 1000) setShowOnboarding(true);
-          }
-
-          // Send streak update once per session — token is guaranteed fresh here
-          if (!_guard.streakSent) {
-            _guard.streakSent = true;
-            setStreakUpdated();
-            api.updateStreak().catch(() => {});
-          }
-          api.trackEvent('page_view', { page: 'showcase_hub' }).catch(() => {});
-        }
-      } catch (err) {
-        console.error('Auth failed:', err);
-        // Reset guard so user can retry via authNonce
-        _guard.authAttempted = false;
-        setAuthError('Не удалось войти. Открой приложение через Telegram.');
-      } finally {
-        setIsAuthLoading(false);
-      }
-    };
-
-    authenticate();
-  }, [isReady, initData, setUser, setStreakUpdated, authNonce]);
+  }, [isFreshAuth, authUser]);
 
   // Load scenarios (public, no auth required)
   useEffect(() => {
@@ -101,22 +58,9 @@ export function ShowcaseHub() {
     setSelectedScenario(null);
   };
 
-  if (!isReady || isAuthLoading) {
+  // Wait for Telegram SDK to be ready
+  if (!isReady) {
     return <LoadingScreen />;
-  }
-
-  if (authError) {
-    return (
-      <ErrorScreen
-        message={authError}
-        onRetry={() => {
-          _guard.authAttempted = false;
-          setAuthError(null);
-          setIsAuthLoading(true);
-          setAuthNonce((n) => n + 1);
-        }}
-      />
-    );
   }
 
   if (showOnboarding) {
@@ -250,30 +194,6 @@ function LoadingScreen() {
   );
 }
 
-function ErrorScreen({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="min-h-screen bg-surface-0 flex items-center justify-center px-6">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center"
-      >
-        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-rose-500/15 flex items-center justify-center">
-          <AlertCircle className="w-8 h-8 text-rose-400" />
-        </div>
-        <p className="text-white font-semibold">{message}</p>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-4 flex items-center gap-2 mx-auto glass px-4 py-2 rounded-xl text-sm text-white/70 hover:text-white transition-colors"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          Попробовать снова
-        </button>
-      </motion.div>
-    </div>
-  );
-}
 
 function ScenarioSkeleton({ index }: { index: number }) {
   return (

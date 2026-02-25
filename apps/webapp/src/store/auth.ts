@@ -25,6 +25,8 @@ interface AuthState {
   /** Streak already updated this session — don't call again */
   streakUpdated: boolean;
   setUser: (user: User, token: string) => void;
+  /** Update only the access token (used by api.ts after a silent token refresh) */
+  setAccessToken: (token: string) => void;
   clearAuth: () => void;
   setLoading: (loading: boolean) => void;
   setAuthReady: () => void;
@@ -51,6 +53,10 @@ export const useAuthStore = create<AuthState>()(
         _apiSetToken?.(token);
         set({ user, accessToken: token, isAuthenticated: true, isLoading: false, isAuthReady: true, isFreshAuth: true });
       },
+      setAccessToken: (token) => {
+        _apiSetToken?.(token);
+        set({ accessToken: token });
+      },
       clearAuth: () => {
         _apiSetToken?.(null);
         set({ user: null, accessToken: null, isAuthenticated: false, isLoading: false, streakUpdated: false, isAuthReady: true, isFreshAuth: false });
@@ -65,7 +71,9 @@ export const useAuthStore = create<AuthState>()(
       // isFreshAuth, streakUpdated, isAuthReady intentionally NOT persisted.
       // isFreshAuth=false on every page load — prevents protected queries from
       // firing with a stale/expired token before re-auth completes.
-      partialize: (s) => ({ user: s.user, accessToken: s.accessToken, isAuthenticated: s.isAuthenticated }),
+      // user PII (name, username, photoUrl) is NOT persisted to sessionStorage
+      // to reduce XSS exposure — it is re-populated on every auth via setUser().
+      partialize: (s) => ({ accessToken: s.accessToken, isAuthenticated: s.isAuthenticated }),
       onRehydrateStorage: () => (state) => {
         // Runs synchronously during store hydration — set api token BEFORE any React renders.
         // We still set the token so it's available if the token is still fresh enough,

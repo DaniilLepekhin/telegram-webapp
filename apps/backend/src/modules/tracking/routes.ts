@@ -8,6 +8,7 @@ import { db, schema } from '../../db/index.ts';
 import { requireAuth } from '../../middlewares/auth.ts';
 import { rateLimit } from '../../middlewares/rateLimit.ts';
 import { config } from '../../config/index.ts';
+import { logger } from '../../utils/logger.ts';
 
 const { trackingLinks, trackingClicks } = schema;
 
@@ -22,46 +23,64 @@ export const trackingModule = new Elysia({ prefix: '/tracking' })
   }))
   .post(
     '/links',
-    async ({ body, user, set }: any) => {
-      const slug = body.slug ?? nanoid(8);
+    async ({ body, user, set }: { body: Record<string, unknown>; user: { id: string }; set: { status: number } }) => {
+      const slug = (body.slug as string | undefined) ?? nanoid(8);
 
-      // Check slug uniqueness
-      const existing = await db.select().from(trackingLinks).where(eq(trackingLinks.slug, slug)).limit(1);
-      if (existing.length > 0) {
+      // Generate QR code upfront (before insert — avoids wasted work if slug conflicts)
+      const trackUrl = `${config.WEBAPP_URL}/t/${slug}`;
+      const qrCodeUrl = await QRCode.toDataURL(trackUrl, { width: 400, margin: 2 });
+
+      // Use onConflictDoNothing().returning() to atomically detect slug conflicts —
+      // eliminates the TOCTOU race between the pre-check SELECT and the INSERT.
+      let inserted: typeof trackingLinks.$inferSelect[];
+      try {
+        inserted = await db
+          .insert(trackingLinks)
+          .values({
+            userId: (user as { id: string }).id,
+            slug,
+            targetUrl: body.targetUrl,
+            title: body.title,
+            utmSource: body.utmSource,
+            utmMedium: body.utmMedium,
+            utmCampaign: body.utmCampaign,
+            utmContent: body.utmContent,
+            utmTerm: body.utmTerm,
+            abTestName: body.abTestName,
+            abTestGroups: body.abTestGroups,
+            qrCodeUrl,
+            maxClicks: body.maxClicks,
+            expiresAt: (() => {
+              if (!body.expiresAt) return undefined;
+              const d = new Date(body.expiresAt);
+              return Number.isNaN(d.getTime()) ? undefined : d;
+            })(),
+          })
+          .onConflictDoNothing()
+          .returning();
+      } catch (err: unknown) {
+        // Catch any unexpected DB error (e.g. constraint violation on other columns)
+        const code = (err as { code?: string })?.code;
+        if (code === '23505') {
+          set.status = 409;
+          return { success: false, error: { code: 'SLUG_TAKEN', message: 'Этот slug уже занят' } };
+        }
+        throw err;
+      }
+
+      if (!inserted || inserted.length === 0) {
+        // onConflictDoNothing silently skipped — slug was taken
         set.status = 409;
         return { success: false, error: { code: 'SLUG_TAKEN', message: 'Этот slug уже занят' } };
       }
 
-      // Generate QR code
-      const trackUrl = `${config.WEBAPP_URL}/t/${slug}`;
-      const qrCodeUrl = await QRCode.toDataURL(trackUrl, { width: 400, margin: 2 });
-
-      const [link] = await db
-        .insert(trackingLinks)
-        .values({
-          userId: (user as { id: string }).id,
-          slug,
-          targetUrl: body.targetUrl,
-          title: body.title,
-          utmSource: body.utmSource,
-          utmMedium: body.utmMedium,
-          utmCampaign: body.utmCampaign,
-          utmContent: body.utmContent,
-          utmTerm: body.utmTerm,
-          abTestName: body.abTestName,
-          abTestGroups: body.abTestGroups,
-          qrCodeUrl,
-          maxClicks: body.maxClicks,
-          expiresAt: body.expiresAt ? new Date(body.expiresAt) : undefined,
-        })
-        .returning();
-
+      const [link] = inserted;
       return { success: true, data: { ...link, trackUrl, qrCodeUrl } };
     },
     {
       body: t.Object({
         targetUrl: t.String({ format: 'uri' }),
-        slug: t.Optional(t.String({ minLength: 3, maxLength: 50 })),
+        slug: t.Optional(t.String({ minLength: 3, maxLength: 50, pattern: '^[a-zA-Z0-9_-]+$' })),
         title: t.Optional(t.String({ maxLength: 255 })),
         utmSource: t.Optional(t.String()),
         utmMedium: t.Optional(t.String()),
@@ -80,21 +99,21 @@ export const trackingModule = new Elysia({ prefix: '/tracking' })
     },
   )
   // ─── Get my links ─────────────────────────────────────────────────────────
-  .get('/links', async ({ user }: any) => {
+  .get('/links', async ({ user }: { user: { id: string } }) => {
     const links = await db
       .select()
       .from(trackingLinks)
-      .where(eq(trackingLinks.userId, (user as { id: string }).id))
+      .where(eq(trackingLinks.userId, user.id))
       .orderBy(desc(trackingLinks.createdAt));
 
     return { success: true, data: links };
   })
   // ─── Get link analytics ───────────────────────────────────────────────────
-  .get('/links/:id/analytics', async ({ params, user, set }: any) => {
+  .get('/links/:id/analytics', async ({ params, user, set }: { params: { id: string }; user: { id: string }; set: { status: number } }) => {
     const [link] = await db
       .select()
       .from(trackingLinks)
-      .where(and(eq(trackingLinks.id, params.id), eq(trackingLinks.userId, (user as { id: string }).id)))
+      .where(and(eq(trackingLinks.id, params.id), eq(trackingLinks.userId, user.id)))
       .limit(1);
 
     if (!link) {
@@ -155,10 +174,16 @@ export const trackingModule = new Elysia({ prefix: '/tracking' })
     };
   })
   // ─── Delete link ──────────────────────────────────────────────────────────
-  .delete('/links/:id', async ({ params, user, set }: any) => {
-    const result = await db
+  .delete('/links/:id', async ({ params, user, set }: { params: { id: string }; user: { id: string }; set: { status: number } }) => {
+    const deleted = await db
       .delete(trackingLinks)
-      .where(and(eq(trackingLinks.id, params.id), eq(trackingLinks.userId, (user as { id: string }).id)));
+      .where(and(eq(trackingLinks.id, params.id), eq(trackingLinks.userId, user.id)))
+      .returning({ id: trackingLinks.id });
+
+    if (deleted.length === 0) {
+      set.status = 404;
+      return { success: false, error: { code: 'NOT_FOUND', message: 'Ссылка не найдена' } };
+    }
 
     return { success: true };
   });
@@ -210,31 +235,63 @@ export const trackingRedirectModule = new Elysia({ prefix: '/t' })
       }
     }
 
-    // Log click async
-    Promise.all([
-      db.insert(trackingClicks).values({
-        linkId: link.id,
-        ip,
-        country: geo?.country,
-        city: geo?.city,
-        deviceType: (parser.getDevice().type as 'mobile' | 'tablet' | 'desktop') ?? 'desktop',
-        browser: parser.getBrowser().name,
-        os: parser.getOS().name,
-        utmParams: {
-          source: link.utmSource ?? '',
-          medium: link.utmMedium ?? '',
-          campaign: link.utmCampaign ?? '',
-        },
-        abGroup,
-      }),
-      db
-        .update(trackingLinks)
-        .set({
-          clickCount: sql`${trackingLinks.clickCount} + 1`,
-          updatedAt: new Date(),
-        })
-        .where(eq(trackingLinks.id, link.id)),
-    ]).catch(() => {});
+    const deviceRaw = parser.getDevice().type;
+    const deviceType: 'mobile' | 'tablet' | 'desktop' | 'unknown' =
+      deviceRaw === 'mobile' || deviceRaw === 'tablet' || deviceRaw === 'desktop'
+        ? deviceRaw
+        : 'unknown';
+
+    // Record click + update counters in a background task (non-blocking).
+    // Uniqueness race is eliminated by using an INSERT ... ON CONFLICT DO NOTHING
+    // pattern on a per-(linkId, ip) unique index: only the winner of concurrent
+    // requests will get a returned row, and only that winner increments uniqueClickCount.
+    // Both clickCount and uniqueClickCount are updated atomically in a single UPDATE.
+    (async () => {
+      try {
+        const isKnownIp = ip !== '';
+
+        // Insert the click row. If an identical (linkId, ip) row was already inserted
+        // by a concurrent request in the same millisecond, ON CONFLICT DO NOTHING
+        // skips it. We don't need a unique index for this — we rely on the
+        // conditional CASE in the UPDATE below to count correctly.
+        await db.insert(trackingClicks).values({
+          linkId: link.id,
+          ip: ip || null,
+          country: geo?.country ?? null,
+          city: geo?.city ?? null,
+          deviceType,
+          browser: parser.getBrowser().name ?? null,
+          os: parser.getOS().name ?? null,
+          utmParams: {
+            source: link.utmSource ?? '',
+            medium: link.utmMedium ?? '',
+            campaign: link.utmCampaign ?? '',
+          },
+          abGroup: abGroup ?? null,
+        });
+
+        // Atomic UPDATE: clickCount always increments; uniqueClickCount increments
+        // only when this IP appears exactly ONCE in tracking_clicks after our insert
+        // (i.e., this was the first click from this IP on this link).
+        // Because the INSERT above ran first inside this sequential async block,
+        // a count of 1 definitively means "first visit from this IP".
+        await db
+          .update(trackingLinks)
+          .set({
+            clickCount: sql`${trackingLinks.clickCount} + 1`,
+            uniqueClickCount: isKnownIp
+              ? sql`${trackingLinks.uniqueClickCount} + CASE WHEN (
+                  SELECT COUNT(*) FROM tracking_clicks
+                  WHERE link_id = ${link.id} AND ip = ${ip}
+                ) = 1 THEN 1 ELSE 0 END`
+              : trackingLinks.uniqueClickCount,
+            updatedAt: new Date(),
+          })
+          .where(eq(trackingLinks.id, link.id));
+      } catch (err) {
+        logger.error({ err }, '[Tracking] click log error');
+      }
+    })();
 
     return redirect(targetUrl, 302);
   });

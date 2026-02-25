@@ -4,21 +4,29 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
-interface State { hasError: boolean; error?: Error }
+interface Props { children: React.ReactNode }
+interface State { hasError: boolean; error?: Error; resetKey: number }
 
-export class ErrorBoundary extends React.Component<{ children: React.ReactNode }, State> {
-  constructor(props: { children: React.ReactNode }) {
+export class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, resetKey: 0 };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
   override componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, info.componentStack);
   }
+
+  handleReset = () => {
+    // Incrementing resetKey forces React to unmount and remount the subtree,
+    // which clears any component-level error state that would otherwise cause
+    // an immediate re-throw and an infinite reset loop.
+    this.setState((prev) => ({ hasError: false, error: undefined, resetKey: prev.resetKey + 1 }));
+  };
 
   override render() {
     if (this.state.hasError) {
@@ -38,7 +46,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
             </p>
             <button
               type="button"
-              onClick={() => this.setState({ hasError: false, error: undefined })}
+              onClick={this.handleReset}
               className="flex items-center gap-2 mx-auto glass px-5 py-2.5 rounded-xl text-sm text-white/70 hover:text-white transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
@@ -49,6 +57,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
       );
     }
 
-    return this.props.children;
+    // resetKey forces a full remount of children after reset
+    return <React.Fragment key={this.state.resetKey}>{this.props.children}</React.Fragment>;
   }
 }

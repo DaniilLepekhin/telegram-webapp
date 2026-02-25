@@ -87,9 +87,8 @@ export function GamificationPage() {
   const { data: allAchievements } = useQuery({
     queryKey: ['all-achievements'],
     queryFn: async () => {
-      const r = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/gamification/achievements`);
-      const j = await r.json();
-      return j.data as Achievement[];
+      const r = await api.getAllAchievements();
+      return r.data as Achievement[];
     },
     // Public endpoint — only needs isAuthReady (no auth token required)
     enabled: isAuthReady,

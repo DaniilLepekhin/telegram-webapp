@@ -32,7 +32,15 @@ export const cacheKey = {
   liveMetrics: () => 'live:metrics',
 } as const;
 
-// Distributed lock
+// Distributed lock with atomic Lua-script release (prevents TOCTOU race)
+const RELEASE_LOCK_SCRIPT = `
+  if redis.call("get", KEYS[1]) == ARGV[1] then
+    return redis.call("del", KEYS[1])
+  else
+    return 0
+  end
+`;
+
 export async function withLock<T>(
   redis: Redis,
   key: string,
@@ -47,8 +55,7 @@ export async function withLock<T>(
   try {
     return await fn();
   } finally {
-    // Atomic release
-    const current = await redis.get(lockKey);
-    if (current === token) await redis.del(lockKey);
+    // Atomic compare-and-delete via Lua — prevents releasing another holder's lock
+    await redis.eval(RELEASE_LOCK_SCRIPT, 1, lockKey, token);
   }
 }

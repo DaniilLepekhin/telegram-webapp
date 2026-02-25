@@ -99,11 +99,15 @@ export function ProfilePage() {
 
   const handleCopyReferral = async () => {
     if (!referralData?.referralLink) return;
-    await navigator.clipboard.writeText(referralData.referralLink);
-    setCopied(true);
-    haptic.impact('light');
-    toast.success('Реферальная ссылка скопирована!');
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(referralData.referralLink);
+      setCopied(true);
+      haptic.impact('light');
+      toast.success('Реферальная ссылка скопирована!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Не удалось скопировать ссылку');
+    }
   };
 
   const level = profile?.level ?? getLevelFromXp(profile?.xp ?? 0);

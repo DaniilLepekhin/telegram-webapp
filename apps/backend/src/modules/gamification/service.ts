@@ -1,10 +1,15 @@
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { db, schema } from '../../db/index.ts';
 import { getRedis, cacheKey } from '../../utils/redis.ts';
 import { getLevelFromXp, getXpToNextLevel, LEVEL_NAMES } from '@showcase/shared';
 import { logger } from '../../utils/logger.ts';
 
-const { users, xpHistory, achievements, userAchievements, quests, userQuests } = schema;
+/** Return the calendar date string (YYYY-MM-DD) in the server's local timezone. */
+function toDateString(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+const { users, xpHistory, userAchievements } = schema;
 
 // Achievement definitions
 export const ACHIEVEMENTS = [
@@ -26,36 +31,51 @@ export const gamificationService = {
     newLevel: number;
     leveledUp: boolean;
     newAchievements: typeof ACHIEVEMENTS[number][];
+    xp: number; // XP before this award (useful for delta display on the frontend)
   }> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user) throw new Error('User not found');
+    // Read current XP to compute level delta — use a transaction to prevent
+    // lost-update races when multiple XP awards arrive concurrently.
+    const result = await db.transaction(async (tx) => {
+      const [user] = await tx.select().from(users).where(eq(users.id, userId)).limit(1);
+      if (!user) throw new Error('User not found');
 
-    const oldLevel = getLevelFromXp(user.xp);
-    const newXp = user.xp + amount;
-    const newLevel = getLevelFromXp(newXp);
-    const leveledUp = newLevel > oldLevel;
+      const oldXp = user.xp;
+      const oldLevel = getLevelFromXp(oldXp);
+      const newXp = oldXp + amount;
+      const newLevel = getLevelFromXp(newXp);
+      const leveledUp = newLevel > oldLevel;
 
-    // Update user XP and level
-    await db.update(users).set({ xp: newXp, level: newLevel, updatedAt: new Date() }).where(eq(users.id, userId));
+      // Atomic XP update — avoids lost-update even outside this transaction for other paths
+      await tx
+        .update(users)
+        .set({ xp: sql`${users.xp} + ${amount}`, level: newLevel, updatedAt: new Date() })
+        .where(eq(users.id, userId));
 
-    // Log XP event
-    await db.insert(xpHistory).values({ userId, amount, reason, actionType });
+      // Log XP event
+      await tx.insert(xpHistory).values({ userId, amount, reason, actionType });
 
-    // Check achievements
+      return { oldXp, oldLevel, newXp, newLevel, leveledUp };
+    });
+
+    // Achievement checks run outside the transaction (they're idempotent via onConflictDoNothing)
     const newAchievements: typeof ACHIEVEMENTS[number][] = [];
-    if (leveledUp) {
-      const levelAch = ACHIEVEMENTS.find((a) => a.condition.type === 'level' && a.condition.value === newLevel);
-      if (levelAch) {
-        const awarded = await this.checkAndAwardAchievement(userId, levelAch.id);
-        if (awarded) newAchievements.push(levelAch);
+    if (result.leveledUp) {
+      const levelAchs = ACHIEVEMENTS.filter(
+        (a) => a.condition.type === 'level' &&
+          a.condition.value > result.oldLevel &&
+          a.condition.value <= result.newLevel,
+      );
+      for (const ach of levelAchs) {
+        const awarded = await this.checkAndAwardAchievement(userId, ach.id);
+        if (awarded) newAchievements.push(ach);
       }
     }
 
-    // Check XP milestone
-    const xpAch = ACHIEVEMENTS.find((a) => a.condition.type === 'xp' && a.condition.value <= newXp);
-    if (xpAch) {
-      const awarded = await this.checkAndAwardAchievement(userId, xpAch.id);
-      if (awarded) newAchievements.push(xpAch);
+    // Check ALL XP milestones (handles multi-level jumps, e.g. 0→6000 awards all thresholds)
+    const xpAchs = ACHIEVEMENTS.filter((a) => a.condition.type === 'xp' && a.condition.value <= result.newXp);
+    for (const ach of xpAchs) {
+      const awarded = await this.checkAndAwardAchievement(userId, ach.id);
+      if (awarded) newAchievements.push(ach);
     }
 
     // Invalidate cache
@@ -63,28 +83,27 @@ export const gamificationService = {
     await redis.del(cacheKey.gamification(userId));
     await redis.del(cacheKey.user(userId));
 
-    logger.debug({ userId, amount, reason, newXp, newLevel, leveledUp }, 'XP awarded');
+    logger.debug({ userId, amount, reason, newXp: result.newXp, newLevel: result.newLevel, leveledUp: result.leveledUp }, 'XP awarded');
 
-    return { newXp, newLevel, leveledUp, newAchievements };
+    return { xp: result.oldXp, newXp: result.newXp, newLevel: result.newLevel, leveledUp: result.leveledUp, newAchievements };
   },
 
   async checkAndAwardAchievement(userId: string, achievementId: string): Promise<boolean> {
-    // Check if already unlocked
-    const existing = await db
-      .select()
-      .from(userAchievements)
-      .where(and(eq(userAchievements.userId, userId), eq(userAchievements.achievementId, achievementId)))
-      .limit(1);
-
-    if (existing.length > 0) return false;
-
-    // Award achievement
     const achDef = ACHIEVEMENTS.find((a) => a.id === achievementId);
     if (!achDef) return false;
 
-    await db.insert(userAchievements).values({ userId, achievementId });
+    // Use onConflictDoNothing().returning() to atomically insert-or-skip — eliminates TOCTOU
+    // between the "check if exists" read and the "insert" write.
+    const inserted = await db
+      .insert(userAchievements)
+      .values({ userId, achievementId })
+      .onConflictDoNothing()
+      .returning({ id: userAchievements.id });
 
-    // Award XP for achievement (recursive XP without achievement check to avoid loops)
+    // If nothing was inserted, the achievement was already unlocked
+    if (inserted.length === 0) return false;
+
+    // Award XP for achievement (uses atomic SQL increment — not recursive awardXp, to avoid loops)
     if (achDef.xpReward > 0) {
       await db
         .update(users)
@@ -109,18 +128,29 @@ export const gamificationService = {
 
     const lastActivity = user.lastActivityAt;
     const now = new Date();
-    const daysDiff = lastActivity
-      ? Math.floor((now.getTime() - lastActivity.getTime()) / (24 * 60 * 60 * 1000))
-      : 999;
+
+    // Use calendar-date comparison to correctly handle the midnight boundary.
+    // Wall-clock ms diff incorrectly treats "23:59 yesterday → 00:01 today" as daysDiff=0.
+    const todayStr = toDateString(now);
+    const lastStr = lastActivity ? toDateString(lastActivity) : null;
+
+    // daysDiff based on UTC calendar days to avoid DST issues
+    const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const lastUtc = lastActivity
+      ? Date.UTC(lastActivity.getUTCFullYear(), lastActivity.getUTCMonth(), lastActivity.getUTCDate())
+      : null;
+    const daysDiff = lastUtc !== null ? Math.round((todayUtc - lastUtc) / (24 * 60 * 60 * 1000)) : 999;
 
     let newStreak = user.streak;
     let bonusXp = 0;
 
-    if (daysDiff === 0) {
-      // Already active today, no change
+    if (todayStr === lastStr) {
+      // Already active today — no change
       return { streak: newStreak, bonusXp: 0 };
-    } else if (daysDiff === 1) {
-      // Consecutive day
+    }
+
+    if (daysDiff === 1) {
+      // Consecutive calendar day
       newStreak = user.streak + 1;
       bonusXp = Math.min(newStreak * 5, 100); // Cap at 100 XP bonus
     } else {
@@ -180,10 +210,13 @@ export const gamificationService = {
       streak: user.streak,
       longestStreak: user.longestStreak,
       energyBalance: user.energyBalance,
-      achievements: userAchs.map((ua) => {
-        const def = ACHIEVEMENTS.find((a) => a.id === ua.achievementId);
-        return { ...def, unlockedAt: ua.unlockedAt };
-      }),
+      achievements: userAchs
+        .map((ua) => {
+          const def = ACHIEVEMENTS.find((a) => a.id === ua.achievementId);
+          if (!def) return null; // skip stale/removed achievement definitions
+          return { ...def, unlockedAt: ua.unlockedAt };
+        })
+        .filter((a): a is NonNullable<typeof a> => a !== null),
       totalAchievements: ACHIEVEMENTS.length,
       recentXpEvents: recentXp,
     };

@@ -7,8 +7,13 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "correctness": { "noUnusedImports": "warn", "noUnusedVariables": "warn" },
-      "style": { "noNonNullAssertion": "warn" }
+      "correctness": { "noUnusedImports": "error", "noUnusedVariables": "error" },
+      "style": {
+        "noNonNullAssertion": "error",
+        "useTemplate": "off",
+        "noUnusedTemplateLiteral": "off"
+      },
+      "suspicious": { "noExplicitAny": "warn" }
     }
   },
   "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "always" } }

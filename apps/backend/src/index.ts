@@ -1,4 +1,5 @@
 import Elysia from 'elysia';
+import { sql } from 'drizzle-orm';
 import { cors } from '@elysiajs/cors';
 import { swagger } from '@elysiajs/swagger';
 import { jwt } from '@elysiajs/jwt';
@@ -15,6 +16,8 @@ import { showcaseModule } from './modules/showcase/routes.ts';
 import { analyticsModule } from './modules/analytics/routes.ts';
 import { subscriptionsModule } from './modules/subscriptions/routes.ts';
 import { usersModule } from './modules/users/routes.ts';
+import { questsModule } from './modules/quests/routes.ts';
+import { referralsModule } from './modules/referrals/routes.ts';
 
 // Middleware
 import { auditMiddleware } from './middlewares/audit.ts';
@@ -59,7 +62,7 @@ const app = new Elysia()
   .get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))
   .get('/health/ready', async ({ set }) => {
     try {
-      await db.execute(sql`SELECT 1` as any);
+      await db.execute(sql`SELECT 1`);
       const redis = getRedis();
       await redis.ping();
       return { status: 'ready', db: 'ok', redis: 'ok' };
@@ -83,6 +86,8 @@ const app = new Elysia()
       .use(analyticsModule)
       .use(subscriptionsModule)
       .use(usersModule)
+      .use(questsModule)
+      .use(referralsModule)
   )
 
   // ─── Global error handler ─────────────────────────────────────────────────
@@ -102,13 +107,14 @@ const app = new Elysia()
     return { success: false, error: { code: 'INTERNAL_ERROR', message: 'Внутренняя ошибка сервера' } };
   })
 
-  .listen({ port: parseInt(config.PORT), hostname: config.HOST });
+  // config.PORT is already a number (coerced in config/index.ts)
+  .listen({ port: config.PORT, hostname: config.HOST });
 
 // ─── Startup logs ─────────────────────────────────────────────────────────
 logger.info(`
 ╔═══════════════════════════════════════════╗
 ║     🚀 Showcase Platform Backend          ║
-║     Port: ${config.PORT.padEnd(5)}                        ║
+║     Port: ${String(config.PORT).padEnd(5)}                        ║
 ║     Mode: ${config.NODE_ENV.padEnd(12)}               ║
 ╚═══════════════════════════════════════════╝
 `);
@@ -128,6 +134,3 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
 export type App = typeof app;
-
-// Fix missing import
-import { sql } from 'drizzle-orm';

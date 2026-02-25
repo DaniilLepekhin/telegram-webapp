@@ -1,5 +1,5 @@
 import Elysia, { t } from 'elysia';
-import { eq } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { DEMO_SCENARIOS } from './scenarios.ts';
 import { db, schema } from '../../db/index.ts';
 import { gamificationService } from '../gamification/service.ts';
@@ -30,12 +30,26 @@ export const showcaseModule = new Elysia({ prefix: '/showcase' })
 
     if (cached) return { success: true, data: JSON.parse(cached) };
 
+    const [
+      [{ count: totalUsers }],
+      [{ count: totalLinks }],
+      [{ totalClicks }],
+      [{ count: totalScenarioRuns }],
+      [{ count: completedScenarios }],
+    ] = await Promise.all([
+      db.select({ count: sql<number>`cast(count(*) as int)` }).from(schema.users),
+      db.select({ count: sql<number>`cast(count(*) as int)` }).from(schema.trackingLinks),
+      db.select({ totalClicks: sql<number>`cast(coalesce(sum(${schema.trackingLinks.clickCount}), 0) as int)` }).from(schema.trackingLinks),
+      db.select({ count: sql<number>`cast(count(*) as int)` }).from(schema.scenarioRuns),
+      db.select({ count: sql<number>`cast(count(*) as int)` }).from(schema.scenarioRuns).where(eq(schema.scenarioRuns.isCompleted, true)),
+    ]);
+
     const metrics = {
-      totalUsers: await db.$count(schema.users),
-      totalLinks: await db.$count(schema.trackingLinks),
-      totalClicks: (await db.select({ sum: schema.trackingLinks.clickCount }).from(schema.trackingLinks))[0]?.sum ?? 0,
-      totalScenarioRuns: await db.$count(schema.scenarioRuns),
-      completedScenarios: await db.$count(schema.scenarioRuns, eq(schema.scenarioRuns.isCompleted, true)),
+      totalUsers,
+      totalLinks,
+      totalClicks,
+      totalScenarioRuns,
+      completedScenarios,
       scenariosByType: DEMO_SCENARIOS.map((s) => ({
         id: s.id,
         title: s.title,
@@ -52,14 +66,30 @@ export const showcaseModule = new Elysia({ prefix: '/showcase' })
   .use(requireAuth)
   .post(
     '/scenarios/:id/run',
-    async ({ params, user, set }: any) => {
+    async ({ params, user, set }: { params: { id: string }; user: { id: string }; set: { status: number } }) => {
       const scenario = DEMO_SCENARIOS.find((s) => s.id === params.id as ScenarioId);
       if (!scenario) {
         set.status = 404;
         return { success: false, error: { code: 'NOT_FOUND', message: 'Сценарий не найден' } };
       }
 
-      const userId = (user as { id: string }).id;
+      const userId = user.id;
+
+      // Dedup: if this user already has an incomplete run for this scenario,
+      // return the existing one instead of creating a new one and awarding +25 XP again.
+      const [existingRun] = await db
+        .select()
+        .from(scenarioRuns)
+        .where(and(
+          eq(scenarioRuns.userId, userId),
+          eq(scenarioRuns.scenarioId, params.id as ScenarioId),
+          eq(scenarioRuns.isCompleted, false),
+        ))
+        .limit(1);
+
+      if (existingRun) {
+        return { success: true, data: { runId: existingRun.id, scenario } };
+      }
 
       const [run] = await db.insert(scenarioRuns).values({
         userId,
@@ -82,18 +112,31 @@ export const showcaseModule = new Elysia({ prefix: '/showcase' })
   )
   .post(
     '/scenarios/:id/complete',
-    async ({ params, body, user, set }: any) => {
-      const userId = (user as { id: string }).id;
+    async ({ params, body, user, set }: { params: { id: string }; body: { runId: string; timeMs: number }; user: { id: string }; set: { status: number } }) => {
+      const userId = user.id;
+
+      const scenario = DEMO_SCENARIOS.find((s) => s.id === params.id);
+      if (!scenario) {
+        set.status = 404;
+        return { success: false, error: { code: 'NOT_FOUND', message: 'Сценарий не найден' } };
+      }
 
       const [run] = await db
         .update(scenarioRuns)
         .set({
           isCompleted: true,
-          completedSteps: DEMO_SCENARIOS.find((s) => s.id === params.id)?.steps.length ?? 0,
+          completedSteps: scenario.steps.length,
           timeToComplete: body.timeMs,
           completedAt: new Date(),
         })
-        .where(eq(scenarioRuns.id, body.runId))
+        // ownership check + idempotency guard: only update runs that belong to this
+        // user AND are not already completed — prevents unlimited XP farming by
+        // calling /complete multiple times on the same runId.
+        .where(and(
+          eq(scenarioRuns.id, body.runId),
+          eq(scenarioRuns.userId, userId),
+          eq(scenarioRuns.isCompleted, false),
+        ))
         .returning();
 
       if (!run) {
@@ -102,7 +145,6 @@ export const showcaseModule = new Elysia({ prefix: '/showcase' })
       }
 
       // Award XP for completing
-      const scenario = DEMO_SCENARIOS.find((s) => s.id === params.id);
       const result = await gamificationService.awardXp(
         userId, 150, `Сценарий завершён: ${scenario?.title}`, 'scenario_complete'
       );

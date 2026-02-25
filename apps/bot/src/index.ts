@@ -1,4 +1,5 @@
 import { Bot, webhookCallback } from 'grammy';
+import { timingSafeEqual } from 'node:crypto';
 import { cfg, isDev } from './config.ts';
 import { registerCommands } from './handlers/commands.ts';
 import { registerCallbacks } from './handlers/callbacks.ts';
@@ -29,10 +30,17 @@ bot.catch((err) => {
 });
 
 // ─── Scheduler polling (every 5s) ─────────────────────────────────────────────
-setInterval(async () => {
+// biome-ignore lint/style/useConst: reassigned in shutdown handler
+let schedulerRunning = true;
+const schedulerInterval = setInterval(async () => {
+  if (!schedulerRunning) return;
   await scheduler.poll(async (task) => {
     const payload = task.payload as { userId: string; chatId: number; userName?: string };
-    await funnelService.processScheduledTask(bot.api, task as any, payload.userName ?? 'друг');
+    await funnelService.processScheduledTask(
+      bot.api,
+      { type: task.type, payload: { userId: payload.userId, chatId: payload.chatId } },
+      payload.userName ?? 'друг',
+    );
   });
 }, 5_000);
 
@@ -50,14 +58,20 @@ if (isDev) {
   const handler = webhookCallback(bot, 'bun');
 
   Bun.serve({
-    port: parseInt(cfg.BOT_WEBHOOK_PORT),
+    port: cfg.BOT_WEBHOOK_PORT, // already a number after config coercion
     fetch: async (req) => {
       const url = new URL(req.url);
 
       if (url.pathname === '/webhook' && req.method === 'POST') {
-        // Verify webhook secret
-        const secret = req.headers.get('x-telegram-bot-api-secret-token');
-        if (secret !== cfg.TELEGRAM_WEBHOOK_SECRET) {
+        // Verify webhook secret (constant-time comparison to prevent timing attacks)
+        const secret = req.headers.get('x-telegram-bot-api-secret-token') ?? '';
+        const expected = cfg.TELEGRAM_WEBHOOK_SECRET;
+        let authorized = false;
+        try {
+          authorized = expected.length > 0 &&
+            timingSafeEqual(Buffer.from(secret), Buffer.from(expected));
+        } catch { authorized = false; }
+        if (!authorized) {
           return new Response('Unauthorized', { status: 401 });
         }
         return handler(req);
@@ -75,8 +89,13 @@ if (isDev) {
 }
 
 // ─── Graceful shutdown ────────────────────────────────────────────────────────
-process.on('SIGTERM', async () => {
-  console.log('Bot shutting down...');
+const shutdown = async (signal: string) => {
+  console.log(`Bot shutting down (${signal})...`);
+  schedulerRunning = false;
+  clearInterval(schedulerInterval);
   await bot.stop();
   process.exit(0);
-});
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 
 interface TelegramUser {
   id: number;
@@ -69,9 +69,42 @@ export function useTelegram(): UseTelegramReturn {
   const [isActive, setIsActive] = useState(true);
   const [safeAreaInset, setSafeAreaInset] = useState(ZERO_INSET);
   const [contentSafeAreaInset, setContentSafeAreaInset] = useState(ZERO_INSET);
+  // tg held in state so that a re-render is triggered when the async SDK script loads
+  const [tg, setTg] = useState<TelegramWebApp | undefined>(
+    typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined,
+  );
   const hapticLastCall = useRef<number>(0);
 
-  const tg = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined;
+  // Wait for the Telegram SDK script to finish loading if it hasn't yet.
+  // The script tag in layout.tsx uses `async`, so on fast connections the SDK
+  // may already be present; on slow connections we receive the `load` event.
+  useEffect(() => {
+    if (tg) return; // Already loaded — nothing to do
+
+    const script = document.querySelector<HTMLScriptElement>(
+      'script[src*="telegram-web-app.js"]',
+    );
+    if (!script) {
+      // No script tag found (e.g., pure dev env without Telegram). Mark ready
+      // so the app doesn't hang forever.
+      setIsReady(true);
+      return;
+    }
+
+    const onLoad = () => {
+      const loaded = window.Telegram?.WebApp;
+      if (loaded) {
+        setTg(loaded);
+      } else {
+        // Script loaded but SDK not present (unexpected). Unblock the app.
+        setIsReady(true);
+      }
+    };
+
+    script.addEventListener('load', onLoad);
+    return () => script.removeEventListener('load', onLoad);
+  }, [tg]);
+
   const user = (tg?.initDataUnsafe?.user as TelegramUser | undefined) ??
     (process.env.NODE_ENV === 'development' ? DEV_USER : null);
   const initData = tg?.initData ?? (process.env.NODE_ENV === 'development' ? 'dev_init_data' : '');
@@ -79,7 +112,8 @@ export function useTelegram(): UseTelegramReturn {
 
   useEffect(() => {
     if (!tg) {
-      setIsReady(true);
+      // tg is still undefined — keep waiting (the script-load effect above will
+      // set tg once the SDK is available, which re-runs this effect).
       return;
     }
 
@@ -136,15 +170,29 @@ export function useTelegram(): UseTelegramReturn {
     requestAnimationFrame(() => tg?.HapticFeedback?.selectionChanged());
   }, [tg]);
 
+  // Track current handlers to remove before adding new ones (prevents accumulation)
+  const mainButtonHandlerRef = useRef<(() => void) | null>(null);
+  const backButtonHandlerRef = useRef<(() => void) | null>(null);
+
   const mainButtonShow = useCallback((text: string, onClick: () => void) => {
     if (!tg) return;
+    // Remove previous handler before registering a new one
+    if (mainButtonHandlerRef.current) {
+      tg.MainButton.offClick(mainButtonHandlerRef.current);
+    }
+    mainButtonHandlerRef.current = onClick;
     tg.MainButton.setText(text);
-    tg.MainButton.show();
     tg.MainButton.onClick(onClick);
+    tg.MainButton.show();
   }, [tg]);
 
   const mainButtonHide = useCallback(() => {
-    tg?.MainButton.hide();
+    if (!tg) return;
+    if (mainButtonHandlerRef.current) {
+      tg.MainButton.offClick(mainButtonHandlerRef.current);
+      mainButtonHandlerRef.current = null;
+    }
+    tg.MainButton.hide();
   }, [tg]);
 
   const mainButtonSetLoading = useCallback((loading: boolean) => {
@@ -155,12 +203,21 @@ export function useTelegram(): UseTelegramReturn {
 
   const backButtonShow = useCallback((onClick: () => void) => {
     if (!tg) return;
-    tg.BackButton.show();
+    if (backButtonHandlerRef.current) {
+      tg.BackButton.offClick(backButtonHandlerRef.current);
+    }
+    backButtonHandlerRef.current = onClick;
     tg.BackButton.onClick(onClick);
+    tg.BackButton.show();
   }, [tg]);
 
   const backButtonHide = useCallback(() => {
-    tg?.BackButton.hide();
+    if (!tg) return;
+    if (backButtonHandlerRef.current) {
+      tg.BackButton.offClick(backButtonHandlerRef.current);
+      backButtonHandlerRef.current = null;
+    }
+    tg.BackButton.hide();
   }, [tg]);
 
   const shareToStory = useCallback((mediaUrl: string, params?: { text?: string }) => {
@@ -183,6 +240,40 @@ export function useTelegram(): UseTelegramReturn {
     if (tg?.isVersionAtLeast('9.1')) tg.hideKeyboard();
   }, [tg]);
 
+  // Stabilize object references with useMemo so consumers that destructure
+  // { haptic }, { backButton }, { mainButton } don't re-render on every call
+  // to useTelegram (the plain object literals would be new references each render).
+  const haptic = useMemo(
+    () => ({ impact: hapticImpact, notification: hapticNotification, selection: hapticSelection }),
+    [hapticImpact, hapticNotification, hapticSelection],
+  );
+
+  const mainButton = useMemo(
+    () => ({ show: mainButtonShow, hide: mainButtonHide, setLoading: mainButtonSetLoading }),
+    [mainButtonShow, mainButtonHide, mainButtonSetLoading],
+  );
+
+  const backButton = useMemo(
+    () => ({ show: backButtonShow, hide: backButtonHide }),
+    [backButtonShow, backButtonHide],
+  );
+
+  const close = useCallback(() => tg?.close(), [tg]);
+  const openLink = useCallback(
+    (url: string, options?: { try_instant_view?: boolean }) =>
+      tg?.openLink(url, options) ?? void window.open(url, '_blank'),
+    [tg],
+  );
+  const openTelegramLink = useCallback((url: string) => tg?.openTelegramLink(url), [tg]);
+  const showPopup = useCallback(
+    (params: Parameters<UseTelegramReturn['showPopup']>[0]) => tg?.showPopup(params),
+    [tg],
+  );
+  const showAlert = useCallback(
+    (msg: string, cb?: () => void) => tg?.showAlert(msg, cb),
+    [tg],
+  );
+
   return {
     tg,
     user,
@@ -195,14 +286,14 @@ export function useTelegram(): UseTelegramReturn {
     safeAreaInset,
     contentSafeAreaInset,
     version,
-    haptic: { impact: hapticImpact, notification: hapticNotification, selection: hapticSelection },
-    mainButton: { show: mainButtonShow, hide: mainButtonHide, setLoading: mainButtonSetLoading },
-    backButton: { show: backButtonShow, hide: backButtonHide },
-    close: () => tg?.close(),
-    openLink: (url, options) => tg?.openLink(url, options) ?? void window.open(url, '_blank'),
-    openTelegramLink: (url) => tg?.openTelegramLink(url),
-    showPopup: (params) => tg?.showPopup(params),
-    showAlert: (msg, cb) => tg?.showAlert(msg, cb),
+    haptic,
+    mainButton,
+    backButton,
+    close,
+    openLink,
+    openTelegramLink,
+    showPopup,
+    showAlert,
     shareToStory,
     requestFullscreen,
     exitFullscreen,
