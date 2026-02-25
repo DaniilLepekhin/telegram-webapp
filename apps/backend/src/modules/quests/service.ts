@@ -1,7 +1,7 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db, schema } from '../../db/index.ts';
-import { gamificationService } from '../gamification/service.ts';
 import { logger } from '../../utils/logger.ts';
+import { gamificationService } from '../gamification/service.ts';
 
 const { userQuests, users: usersTable } = schema;
 
@@ -100,7 +100,10 @@ export const questsService = {
     questId: string,
     stepId: string,
     value: number,
-  ): Promise<{ completed: boolean; quest: typeof QUEST_DEFINITIONS[number] | undefined }> {
+  ): Promise<{
+    completed: boolean;
+    quest: (typeof QUEST_DEFINITIONS)[number] | undefined;
+  }> {
     const questDef = QUEST_DEFINITIONS.find((q) => q.id === questId);
     if (!questDef) return { completed: false, quest: undefined };
 
@@ -116,16 +119,26 @@ export const questsService = {
       // Now lock the (now-guaranteed-existing) row so no concurrent request can
       // read isCompleted=false and race to award the reward.
       // We select only the columns we actually use to avoid the wrong-column cast issue.
-      const [existing] = await tx.execute(
-        sql`SELECT is_completed, completed_at, progress FROM user_quests WHERE user_id = ${userId} AND quest_id = ${questId} LIMIT 1 FOR UPDATE`,
-      ).then((r) => r.rows as Array<{ is_completed: boolean; completed_at: string | null; progress: Record<string, number> }>);
+      const [existing] = await tx
+        .execute(
+          sql`SELECT is_completed, completed_at, progress FROM user_quests WHERE user_id = ${userId} AND quest_id = ${questId} LIMIT 1 FOR UPDATE`,
+        )
+        .then(
+          (r) =>
+            r as unknown as Array<{
+              is_completed: boolean;
+              completed_at: string | null;
+              progress: Record<string, number>;
+            }>,
+        );
 
       // If already completed and not repeatable — skip inside transaction
       if (existing?.is_completed && !questDef.isRepeatable) {
         return { newlyCompleted: false };
       }
 
-      const currentProgress: Record<string, number> = (existing?.progress as Record<string, number>) ?? {};
+      const currentProgress: Record<string, number> =
+        (existing?.progress as Record<string, number>) ?? {};
       currentProgress[stepId] = Math.max(currentProgress[stepId] ?? 0, value);
 
       // Check if all steps are satisfied
@@ -138,12 +151,20 @@ export const questsService = {
         .set({
           progress: currentProgress,
           isCompleted: allDone,
-          completedAt: allDone && !existing?.is_completed ? new Date() : (existing?.completed_at ? new Date(existing.completed_at) : null),
+          completedAt:
+            allDone && !existing?.is_completed
+              ? new Date()
+              : existing?.completed_at
+                ? new Date(existing.completed_at)
+                : null,
         })
-        .where(and(eq(userQuests.userId, userId), eq(userQuests.questId, questId)));
+        .where(
+          and(eq(userQuests.userId, userId), eq(userQuests.questId, questId)),
+        );
 
       // Determine if we should issue the reward
-      const shouldReward = allDone && (!existing?.is_completed || questDef.isRepeatable);
+      const shouldReward =
+        allDone && (!existing?.is_completed || questDef.isRepeatable);
       return { newlyCompleted: shouldReward };
     });
 
@@ -173,16 +194,21 @@ export const questsService = {
   },
 
   /** Reset repeatable quests for a user based on their resetPeriod (called by a daily cron or on-demand). */
-  async resetPeriodicQuests(userId: string, period: 'daily' | 'weekly'): Promise<void> {
-    const periodicQuestIds = QUEST_DEFINITIONS
-      .filter((q) => q.isRepeatable && q.resetPeriod === period)
-      .map((q) => q.id);
+  async resetPeriodicQuests(
+    userId: string,
+    period: 'daily' | 'weekly',
+  ): Promise<void> {
+    const periodicQuestIds = QUEST_DEFINITIONS.filter(
+      (q) => q.isRepeatable && q.resetPeriod === period,
+    ).map((q) => q.id);
 
     for (const questId of periodicQuestIds) {
       await db
         .update(userQuests)
         .set({ isCompleted: false, progress: {}, completedAt: null })
-        .where(and(eq(userQuests.userId, userId), eq(userQuests.questId, questId)));
+        .where(
+          and(eq(userQuests.userId, userId), eq(userQuests.questId, questId)),
+        );
     }
   },
 };

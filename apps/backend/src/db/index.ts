@@ -1,8 +1,8 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from './schema.ts';
 import { config, isProd } from '../config/index.ts';
 import { logger } from '../utils/logger.ts';
+import * as schema from './schema.ts';
 
 // SSL: enforce TLS certificate validation in production
 const sslOptions = isProd ? ({ rejectUnauthorized: true } as const) : false;

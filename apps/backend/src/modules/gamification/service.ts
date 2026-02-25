@@ -1,8 +1,12 @@
-import { eq, desc, sql } from 'drizzle-orm';
+import {
+  LEVEL_NAMES,
+  getLevelFromXp,
+  getXpToNextLevel,
+} from '@showcase/shared';
+import { desc, eq, sql } from 'drizzle-orm';
 import { db, schema } from '../../db/index.ts';
-import { getRedis, cacheKey } from '../../utils/redis.ts';
-import { getLevelFromXp, getXpToNextLevel, LEVEL_NAMES } from '@showcase/shared';
 import { logger } from '../../utils/logger.ts';
+import { cacheKey, getRedis } from '../../utils/redis.ts';
 
 /** Return the calendar date string (YYYY-MM-DD) in the server's local timezone. */
 function toDateString(d: Date): string {
@@ -13,30 +17,119 @@ const { users, xpHistory, userAchievements } = schema;
 
 // Achievement definitions
 export const ACHIEVEMENTS = [
-  { id: 'first_login', name: 'Первый шаг', description: 'Войди в приложение впервые', icon: '🚀', rarity: 'common', xpReward: 50, condition: { type: 'login_count', value: 1 } },
-  { id: 'link_creator', name: 'Трекер', description: 'Создай первую трекинг-ссылку', icon: '🔗', rarity: 'common', xpReward: 100, condition: { type: 'links_created', value: 1 } },
-  { id: 'viral_link', name: 'Вирусный', description: 'Получи 100+ кликов на одну ссылку', icon: '🔥', rarity: 'rare', xpReward: 250, condition: { type: 'link_clicks', value: 100 } },
-  { id: 'scenario_explorer', name: 'Исследователь', description: 'Запусти все demo-сценарии', icon: '🗺️', rarity: 'rare', xpReward: 300, condition: { type: 'scenarios_completed', value: 6 } },
-  { id: 'streak_7', name: 'Неделя активности', description: '7 дней подряд в приложении', icon: '📅', rarity: 'rare', xpReward: 200, condition: { type: 'streak', value: 7 } },
-  { id: 'streak_30', name: 'Месяц активности', description: '30 дней подряд в приложении', icon: '🏆', rarity: 'epic', xpReward: 750, condition: { type: 'streak', value: 30 } },
-  { id: 'level_5', name: 'Практик', description: 'Достигни 5-го уровня', icon: '⭐', rarity: 'rare', xpReward: 200, condition: { type: 'level', value: 5 } },
-  { id: 'level_10', name: 'Мастер', description: 'Достигни 10-го уровня', icon: '💎', rarity: 'epic', xpReward: 500, condition: { type: 'level', value: 10 } },
-  { id: 'referral_first', name: 'Амбассадор', description: 'Пригласи первого друга', icon: '👥', rarity: 'common', xpReward: 150, condition: { type: 'referrals', value: 1 } },
-  { id: 'power_user', name: 'Power User', description: 'Набери 5000 XP', icon: '⚡', rarity: 'legendary', xpReward: 1000, condition: { type: 'xp', value: 5000 } },
+  {
+    id: 'first_login',
+    name: 'Первый шаг',
+    description: 'Войди в приложение впервые',
+    icon: '🚀',
+    rarity: 'common',
+    xpReward: 50,
+    condition: { type: 'login_count', value: 1 },
+  },
+  {
+    id: 'link_creator',
+    name: 'Трекер',
+    description: 'Создай первую трекинг-ссылку',
+    icon: '🔗',
+    rarity: 'common',
+    xpReward: 100,
+    condition: { type: 'links_created', value: 1 },
+  },
+  {
+    id: 'viral_link',
+    name: 'Вирусный',
+    description: 'Получи 100+ кликов на одну ссылку',
+    icon: '🔥',
+    rarity: 'rare',
+    xpReward: 250,
+    condition: { type: 'link_clicks', value: 100 },
+  },
+  {
+    id: 'scenario_explorer',
+    name: 'Исследователь',
+    description: 'Запусти все demo-сценарии',
+    icon: '🗺️',
+    rarity: 'rare',
+    xpReward: 300,
+    condition: { type: 'scenarios_completed', value: 6 },
+  },
+  {
+    id: 'streak_7',
+    name: 'Неделя активности',
+    description: '7 дней подряд в приложении',
+    icon: '📅',
+    rarity: 'rare',
+    xpReward: 200,
+    condition: { type: 'streak', value: 7 },
+  },
+  {
+    id: 'streak_30',
+    name: 'Месяц активности',
+    description: '30 дней подряд в приложении',
+    icon: '🏆',
+    rarity: 'epic',
+    xpReward: 750,
+    condition: { type: 'streak', value: 30 },
+  },
+  {
+    id: 'level_5',
+    name: 'Практик',
+    description: 'Достигни 5-го уровня',
+    icon: '⭐',
+    rarity: 'rare',
+    xpReward: 200,
+    condition: { type: 'level', value: 5 },
+  },
+  {
+    id: 'level_10',
+    name: 'Мастер',
+    description: 'Достигни 10-го уровня',
+    icon: '💎',
+    rarity: 'epic',
+    xpReward: 500,
+    condition: { type: 'level', value: 10 },
+  },
+  {
+    id: 'referral_first',
+    name: 'Амбассадор',
+    description: 'Пригласи первого друга',
+    icon: '👥',
+    rarity: 'common',
+    xpReward: 150,
+    condition: { type: 'referrals', value: 1 },
+  },
+  {
+    id: 'power_user',
+    name: 'Power User',
+    description: 'Набери 5000 XP',
+    icon: '⚡',
+    rarity: 'legendary',
+    xpReward: 1000,
+    condition: { type: 'xp', value: 5000 },
+  },
 ] as const;
 
 export const gamificationService = {
-  async awardXp(userId: string, amount: number, reason: string, actionType: string): Promise<{
+  async awardXp(
+    userId: string,
+    amount: number,
+    reason: string,
+    actionType: string,
+  ): Promise<{
     newXp: number;
     newLevel: number;
     leveledUp: boolean;
-    newAchievements: typeof ACHIEVEMENTS[number][];
+    newAchievements: (typeof ACHIEVEMENTS)[number][];
     xp: number; // XP before this award (useful for delta display on the frontend)
   }> {
     // Read current XP to compute level delta — use a transaction to prevent
     // lost-update races when multiple XP awards arrive concurrently.
     const result = await db.transaction(async (tx) => {
-      const [user] = await tx.select().from(users).where(eq(users.id, userId)).limit(1);
+      const [user] = await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user) throw new Error('User not found');
 
       const oldXp = user.xp;
@@ -48,7 +141,11 @@ export const gamificationService = {
       // Atomic XP update — avoids lost-update even outside this transaction for other paths
       await tx
         .update(users)
-        .set({ xp: sql`${users.xp} + ${amount}`, level: newLevel, updatedAt: new Date() })
+        .set({
+          xp: sql`${users.xp} + ${amount}`,
+          level: newLevel,
+          updatedAt: new Date(),
+        })
         .where(eq(users.id, userId));
 
       // Log XP event
@@ -58,10 +155,11 @@ export const gamificationService = {
     });
 
     // Achievement checks run outside the transaction (they're idempotent via onConflictDoNothing)
-    const newAchievements: typeof ACHIEVEMENTS[number][] = [];
+    const newAchievements: (typeof ACHIEVEMENTS)[number][] = [];
     if (result.leveledUp) {
       const levelAchs = ACHIEVEMENTS.filter(
-        (a) => a.condition.type === 'level' &&
+        (a) =>
+          a.condition.type === 'level' &&
           a.condition.value > result.oldLevel &&
           a.condition.value <= result.newLevel,
       );
@@ -72,7 +170,9 @@ export const gamificationService = {
     }
 
     // Check ALL XP milestones (handles multi-level jumps, e.g. 0→6000 awards all thresholds)
-    const xpAchs = ACHIEVEMENTS.filter((a) => a.condition.type === 'xp' && a.condition.value <= result.newXp);
+    const xpAchs = ACHIEVEMENTS.filter(
+      (a) => a.condition.type === 'xp' && a.condition.value <= result.newXp,
+    );
     for (const ach of xpAchs) {
       const awarded = await this.checkAndAwardAchievement(userId, ach.id);
       if (awarded) newAchievements.push(ach);
@@ -83,12 +183,31 @@ export const gamificationService = {
     await redis.del(cacheKey.gamification(userId));
     await redis.del(cacheKey.user(userId));
 
-    logger.debug({ userId, amount, reason, newXp: result.newXp, newLevel: result.newLevel, leveledUp: result.leveledUp }, 'XP awarded');
+    logger.debug(
+      {
+        userId,
+        amount,
+        reason,
+        newXp: result.newXp,
+        newLevel: result.newLevel,
+        leveledUp: result.leveledUp,
+      },
+      'XP awarded',
+    );
 
-    return { xp: result.oldXp, newXp: result.newXp, newLevel: result.newLevel, leveledUp: result.leveledUp, newAchievements };
+    return {
+      xp: result.oldXp,
+      newXp: result.newXp,
+      newLevel: result.newLevel,
+      leveledUp: result.leveledUp,
+      newAchievements,
+    };
   },
 
-  async checkAndAwardAchievement(userId: string, achievementId: string): Promise<boolean> {
+  async checkAndAwardAchievement(
+    userId: string,
+    achievementId: string,
+  ): Promise<boolean> {
     const achDef = ACHIEVEMENTS.find((a) => a.id === achievementId);
     if (!achDef) return false;
 
@@ -98,7 +217,7 @@ export const gamificationService = {
       .insert(userAchievements)
       .values({ userId, achievementId })
       .onConflictDoNothing()
-      .returning({ id: userAchievements.id });
+      .returning({ achievementId: userAchievements.achievementId });
 
     // If nothing was inserted, the achievement was already unlocked
     if (inserted.length === 0) return false;
@@ -107,7 +226,10 @@ export const gamificationService = {
     if (achDef.xpReward > 0) {
       await db
         .update(users)
-        .set({ xp: sql`${users.xp} + ${achDef.xpReward}`, updatedAt: new Date() })
+        .set({
+          xp: sql`${users.xp} + ${achDef.xpReward}`,
+          updatedAt: new Date(),
+        })
         .where(eq(users.id, userId));
 
       await db.insert(xpHistory).values({
@@ -122,8 +244,14 @@ export const gamificationService = {
     return true;
   },
 
-  async updateStreak(userId: string): Promise<{ streak: number; bonusXp: number }> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  async updateStreak(
+    userId: string,
+  ): Promise<{ streak: number; bonusXp: number }> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
     if (!user) return { streak: 0, bonusXp: 0 };
 
     const lastActivity = user.lastActivityAt;
@@ -135,11 +263,22 @@ export const gamificationService = {
     const lastStr = lastActivity ? toDateString(lastActivity) : null;
 
     // daysDiff based on UTC calendar days to avoid DST issues
-    const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const todayUtc = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+    );
     const lastUtc = lastActivity
-      ? Date.UTC(lastActivity.getUTCFullYear(), lastActivity.getUTCMonth(), lastActivity.getUTCDate())
+      ? Date.UTC(
+          lastActivity.getUTCFullYear(),
+          lastActivity.getUTCMonth(),
+          lastActivity.getUTCDate(),
+        )
       : null;
-    const daysDiff = lastUtc !== null ? Math.round((todayUtc - lastUtc) / (24 * 60 * 60 * 1000)) : 999;
+    const daysDiff =
+      lastUtc !== null
+        ? Math.round((todayUtc - lastUtc) / (24 * 60 * 60 * 1000))
+        : 999;
 
     let newStreak = user.streak;
     let bonusXp = 0;
@@ -160,19 +299,30 @@ export const gamificationService = {
 
     const longestStreak = Math.max(user.longestStreak, newStreak);
 
-    await db.update(users).set({
-      streak: newStreak,
-      longestStreak,
-      lastActivityAt: now,
-      updatedAt: now,
-    }).where(eq(users.id, userId));
+    await db
+      .update(users)
+      .set({
+        streak: newStreak,
+        longestStreak,
+        lastActivityAt: now,
+        updatedAt: now,
+      })
+      .where(eq(users.id, userId));
 
     // Check streak achievements
-    const streakAchs = ACHIEVEMENTS.filter((a) => a.condition.type === 'streak' && a.condition.value <= newStreak);
-    for (const ach of streakAchs) await this.checkAndAwardAchievement(userId, ach.id);
+    const streakAchs = ACHIEVEMENTS.filter(
+      (a) => a.condition.type === 'streak' && a.condition.value <= newStreak,
+    );
+    for (const ach of streakAchs)
+      await this.checkAndAwardAchievement(userId, ach.id);
 
     if (bonusXp > 0) {
-      await this.awardXp(userId, bonusXp, `Streak бонус x${newStreak}`, 'streak');
+      await this.awardXp(
+        userId,
+        bonusXp,
+        `Streak бонус x${newStreak}`,
+        'streak',
+      );
     }
 
     return { streak: newStreak, bonusXp };
@@ -183,7 +333,11 @@ export const gamificationService = {
     const cached = await redis.get(cacheKey.gamification(userId));
     if (cached) return JSON.parse(cached);
 
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
     if (!user) return null;
 
     const level = getLevelFromXp(user.xp);
@@ -191,7 +345,10 @@ export const gamificationService = {
     const levelName = LEVEL_NAMES[level] ?? 'Неизвестно';
 
     const userAchs = await db
-      .select({ achievementId: userAchievements.achievementId, unlockedAt: userAchievements.unlockedAt })
+      .select({
+        achievementId: userAchievements.achievementId,
+        unlockedAt: userAchievements.unlockedAt,
+      })
       .from(userAchievements)
       .where(eq(userAchievements.userId, userId));
 

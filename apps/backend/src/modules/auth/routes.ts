@@ -1,10 +1,10 @@
 import Elysia, { t } from 'elysia';
-import { validateTelegramInitData } from './telegram.ts';
-import { authService } from './service.ts';
-import { gamificationService } from '../gamification/service.ts';
 import { config, isProd } from '../../config/index.ts';
-import { logger } from '../../utils/logger.ts';
 import { rateLimit } from '../../middlewares/rateLimit.ts';
+import { logger } from '../../utils/logger.ts';
+import { gamificationService } from '../gamification/service.ts';
+import { authService } from './service.ts';
+import { validateTelegramInitData } from './telegram.ts';
 
 // ─── Rate-limited sub-app: only /telegram (5 req/min per IP) ─────────────────
 // IMPORTANT: rateLimit is scoped to this sub-instance so /refresh and /logout
@@ -14,13 +14,28 @@ const telegramLoginRoute = new Elysia()
   .post(
     '/telegram',
     // biome-ignore lint/suspicious/noExplicitAny: Elysia JWT plugin injects `jwt` dynamically; no public type export
-    async ({ body, cookie: { accessToken, refreshToken: rfCookie }, set, request, jwt }: any) => {
+    async ({
+      body,
+      cookie: { accessToken, refreshToken: rfCookie },
+      set,
+      request,
+      jwt,
+    }: any) => {
       const { initData } = body;
 
-      const { valid, data } = validateTelegramInitData(initData, config.TELEGRAM_BOT_TOKEN);
+      const { valid, data } = validateTelegramInitData(
+        initData,
+        config.TELEGRAM_BOT_TOKEN,
+      );
       if (!valid || !data?.user) {
         set.status = 401;
-        return { success: false, error: { code: 'INVALID_INIT_DATA', message: 'Невалидные данные Telegram' } };
+        return {
+          success: false,
+          error: {
+            code: 'INVALID_INIT_DATA',
+            message: 'Невалидные данные Telegram',
+          },
+        };
       }
 
       // findOrCreateUser always runs an upsert and returns a flag indicating whether
@@ -32,14 +47,23 @@ const telegramLoginRoute = new Elysia()
       // window — the "30-second" heuristic broke when Postgres was slow or the server
       // clock drifted relative to the DB clock.
       if (isNew) {
-        gamificationService.checkAndAwardAchievement(user.id, 'first_login').catch(() => {});
-        gamificationService.awardXp(user.id, 50, 'Первый вход в приложение', 'first_login').catch(() => {});
+        gamificationService
+          .checkAndAwardAchievement(user.id, 'first_login')
+          .catch(() => {});
+        gamificationService
+          .awardXp(user.id, 50, 'Первый вход в приложение', 'first_login')
+          .catch(() => {});
       }
 
-      const tokens = await authService.createTokens(user.id, user.telegramId, user.role, {
-        ua: request.headers.get('user-agent') ?? undefined,
-        ip: request.headers.get('x-forwarded-for') ?? undefined,
-      });
+      const tokens = await authService.createTokens(
+        user.id,
+        user.telegramId,
+        user.role,
+        {
+          ua: request.headers.get('user-agent') ?? undefined,
+          ip: request.headers.get('x-forwarded-for') ?? undefined,
+        },
+      );
 
       const signedAccess = await jwt.sign({
         sub: user.id,
@@ -49,8 +73,22 @@ const telegramLoginRoute = new Elysia()
       tokens.accessToken = signedAccess;
 
       const sameSite = isProd ? 'none' : 'lax';
-      accessToken.set({ value: signedAccess, httpOnly: true, secure: isProd, sameSite, maxAge: 15 * 60, path: '/' });
-      rfCookie.set({ value: tokens.refreshToken, httpOnly: true, secure: isProd, sameSite, maxAge: 30 * 24 * 60 * 60, path: '/' });
+      accessToken.set({
+        value: signedAccess,
+        httpOnly: true,
+        secure: isProd,
+        sameSite,
+        maxAge: 15 * 60,
+        path: '/',
+      });
+      rfCookie.set({
+        value: tokens.refreshToken,
+        httpOnly: true,
+        secure: isProd,
+        sameSite,
+        maxAge: 30 * 24 * 60 * 60,
+        path: '/',
+      });
 
       logger.info({ userId: user.id }, 'User authenticated');
 
@@ -87,31 +125,63 @@ export const authModule = new Elysia({ prefix: '/auth' })
   .use(telegramLoginRoute)
   // /refresh and /logout are intentionally NOT rate-limited
   // biome-ignore lint/suspicious/noExplicitAny: Elysia JWT plugin injects `jwt` dynamically
-  .post('/refresh', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie }, jwt, set }: any) => {
-    const token = rfCookie.value;
-    if (!token) {
-      set.status = 401;
-      return { success: false, error: { code: 'NO_REFRESH_TOKEN', message: 'Токен не найден' } };
-    }
+  .post(
+    '/refresh',
+    async ({
+      cookie: { refreshToken: rfCookie, accessToken: atCookie },
+      jwt,
+      set,
+    }: any) => {
+      const token = rfCookie.value;
+      if (!token) {
+        set.status = 401;
+        return {
+          success: false,
+          error: { code: 'NO_REFRESH_TOKEN', message: 'Токен не найден' },
+        };
+      }
 
-    const payload = await authService.refreshSession(token as string);
-    if (!payload) {
-      set.status = 401;
+      const payload = await authService.refreshSession(token as string);
+      if (!payload) {
+        set.status = 401;
+        rfCookie.remove();
+        atCookie.remove();
+        return {
+          success: false,
+          error: { code: 'INVALID_REFRESH_TOKEN', message: 'Невалидный токен' },
+        };
+      }
+
+      const newAccess = await jwt.sign({
+        sub: payload.userId,
+        telegramId: payload.telegramId,
+        role: payload.role,
+      });
+      atCookie.set({
+        value: newAccess,
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        maxAge: 15 * 60,
+        path: '/',
+      });
+
+      return {
+        success: true,
+        data: { accessToken: newAccess, expiresIn: 15 * 60 },
+      };
+    },
+  )
+  // biome-ignore lint/suspicious/noExplicitAny: Elysia cookie plugin injects cookie objects dynamically
+  .post(
+    '/logout',
+    async ({
+      cookie: { refreshToken: rfCookie, accessToken: atCookie },
+    }: any) => {
+      const token = rfCookie.value;
+      if (token) await authService.revokeSession(token as string);
       rfCookie.remove();
       atCookie.remove();
-      return { success: false, error: { code: 'INVALID_REFRESH_TOKEN', message: 'Невалидный токен' } };
-    }
-
-    const newAccess = await jwt.sign({ sub: payload.userId, telegramId: payload.telegramId, role: payload.role });
-    atCookie.set({ value: newAccess, httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax', maxAge: 15 * 60, path: '/' });
-
-    return { success: true, data: { accessToken: newAccess, expiresIn: 15 * 60 } };
-  })
-  // biome-ignore lint/suspicious/noExplicitAny: Elysia cookie plugin injects cookie objects dynamically
-  .post('/logout', async ({ cookie: { refreshToken: rfCookie, accessToken: atCookie } }: any) => {
-    const token = rfCookie.value;
-    if (token) await authService.revokeSession(token as string);
-    rfCookie.remove();
-    atCookie.remove();
-    return { success: true };
-  });
+      return { success: true };
+    },
+  );

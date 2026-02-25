@@ -1,10 +1,10 @@
+import { createHash } from 'node:crypto';
+import type { AuthTokens, TelegramUser, User } from '@showcase/shared';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { createHash } from 'node:crypto';
 import { db, schema } from '../../db/index.ts';
-import { getRedis, cacheKey } from '../../utils/redis.ts';
 import { logger } from '../../utils/logger.ts';
-import type { TelegramUser, User, AuthTokens } from '@showcase/shared';
+import { cacheKey, getRedis } from '../../utils/redis.ts';
 
 /**
  * Hash a refresh token with SHA-256 before persisting to DB/Redis.
@@ -19,7 +19,9 @@ function hashRefreshToken(token: string): string {
 const { users, sessions } = schema;
 
 export const authService = {
-  async findOrCreateUser(tgUser: TelegramUser): Promise<{ user: User; isNew: boolean }> {
+  async findOrCreateUser(
+    tgUser: TelegramUser,
+  ): Promise<{ user: User; isNew: boolean }> {
     const redis = getRedis();
     const ckey = cacheKey.userByTgId(tgUser.id);
 
@@ -61,8 +63,14 @@ export const authService = {
     // On conflict-do-update, updatedAt is explicitly set to new Date(), so it will
     // differ from createdAt (by at least a millisecond in practice).
     // This is more portable than the xmax system column trick (which Drizzle may not expose).
-    const createdMs = row.createdAt instanceof Date ? row.createdAt.getTime() : new Date(row.createdAt as string).getTime();
-    const updatedMs = row.updatedAt instanceof Date ? row.updatedAt.getTime() : new Date(row.updatedAt as string).getTime();
+    const createdMs =
+      row.createdAt instanceof Date
+        ? row.createdAt.getTime()
+        : new Date(row.createdAt as string).getTime();
+    const updatedMs =
+      row.updatedAt instanceof Date
+        ? row.updatedAt.getTime()
+        : new Date(row.updatedAt as string).getTime();
     const isNew = Math.abs(createdMs - updatedMs) < 1000; // within 1 second → INSERT
 
     // Refresh cache with the latest data from the DB row.
@@ -71,7 +79,10 @@ export const authService = {
       redis.setex(ckey, 300, JSON.stringify(row)),
       redis.del(cacheKey.user(row.id)),
     ]);
-    logger.debug({ userId: row.id, telegramId: tgUser.id, isNew }, 'User upserted');
+    logger.debug(
+      { userId: row.id, telegramId: tgUser.id, isNew },
+      'User upserted',
+    );
 
     return { user: row as unknown as User, isNew };
   },
@@ -110,7 +121,9 @@ export const authService = {
     };
   },
 
-  async refreshSession(refreshToken: string): Promise<{ userId: string; telegramId: number; role: string } | null> {
+  async refreshSession(
+    refreshToken: string,
+  ): Promise<{ userId: string; telegramId: number; role: string } | null> {
     const tokenHash = hashRefreshToken(refreshToken);
     const redis = getRedis();
     const cached = await redis.get(cacheKey.session(tokenHash));
@@ -125,7 +138,11 @@ export const authService = {
 
     if (!session || session.expiresAt < new Date()) return null;
 
-    const [user] = await db.select().from(users).where(eq(users.id, session.userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session.userId))
+      .limit(1);
     if (!user) return null;
 
     return { userId: user.id, telegramId: user.telegramId, role: user.role };

@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { config } from '../../config/index.ts';
 import type { TelegramInitData, TelegramUser } from '@showcase/shared';
+import { config } from '../../config/index.ts';
 
 /**
  * Validates Telegram WebApp initData using HMAC-SHA256
@@ -17,12 +17,18 @@ export function validateTelegramInitData(
 
     // Build data-check-string
     params.delete('hash');
-    const entries = [...params.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const entries = [...params.entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
     const dataCheckString = entries.map(([k, v]) => `${k}=${v}`).join('\n');
 
     // HMAC-SHA256 with secret key = HMAC-SHA256("WebAppData", botToken)
-    const secretKey = createHmac('sha256', 'WebAppData').update(botToken).digest();
-    const expectedHash = createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+    const secretKey = createHmac('sha256', 'WebAppData')
+      .update(botToken)
+      .digest();
+    const expectedHash = createHmac('sha256', secretKey)
+      .update(dataCheckString)
+      .digest('hex');
 
     // Use timingSafeEqual to prevent timing-based hash enumeration attacks
     let hashesMatch = false;
@@ -40,11 +46,14 @@ export function validateTelegramInitData(
     // Check timestamp — use config.isProd instead of process.env.NODE_ENV for consistency
     const authDate = Number.parseInt(params.get('auth_date') ?? '0', 10);
     const maxAge = config.isProd ? 5 * 60 : 24 * 60 * 60;
-    if (Date.now() / 1000 - authDate > maxAge) return { valid: false, data: null };
+    if (Date.now() / 1000 - authDate > maxAge)
+      return { valid: false, data: null };
 
     // Parse user
     const userRaw = params.get('user');
-    const user: TelegramUser | undefined = userRaw ? JSON.parse(userRaw) : undefined;
+    const user: TelegramUser | undefined = userRaw
+      ? JSON.parse(userRaw)
+      : undefined;
 
     return {
       valid: true,

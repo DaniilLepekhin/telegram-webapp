@@ -1,10 +1,10 @@
+import { desc, eq, sql } from 'drizzle-orm';
 import Elysia from 'elysia';
-import { eq, desc, sql } from 'drizzle-orm';
+import { config } from '../../config/index.ts';
 import { db, schema } from '../../db/index.ts';
 import { requireAuth } from '../../middlewares/auth.ts';
-import { gamificationService } from '../gamification/service.ts';
 import { logger } from '../../utils/logger.ts';
-import { config } from '../../config/index.ts';
+import { gamificationService } from '../gamification/service.ts';
 
 const { users, referrals } = schema;
 
@@ -37,7 +37,10 @@ export async function processReferralChain(
   while (currentId && level <= MAX_LEVELS) {
     // Cycle guard: stop if we've already processed this ancestor
     if (visited.has(currentId)) {
-      logger.warn({ newUserId, currentId, level }, 'Referral cycle detected — aborting chain');
+      logger.warn(
+        { newUserId, currentId, level },
+        'Referral cycle detected — aborting chain',
+      );
       break;
     }
     visited.add(currentId);
@@ -50,14 +53,18 @@ export async function processReferralChain(
     // awarding rewards when the record already existed (double-reward bug).
     let inserted: { id: string }[] = [];
     try {
-      inserted = await db.insert(referrals).values({
-        referrerId: currentId,
-        referredId: newUserId,
-        level,
-        xpRewarded: reward.xp,
-        energyRewarded: reward.energy,
-        isRewarded: true,
-      }).onConflictDoNothing().returning({ id: referrals.id });
+      inserted = await db
+        .insert(referrals)
+        .values({
+          referrerId: currentId,
+          referredId: newUserId,
+          level,
+          xpRewarded: reward.xp,
+          energyRewarded: reward.energy,
+          isRewarded: true,
+        })
+        .onConflictDoNothing()
+        .returning({ id: referrals.id });
     } catch {
       // referrals_referred_id_unique constraint: user can only be referred once overall
       break;
@@ -65,7 +72,10 @@ export async function processReferralChain(
 
     // Only award rewards if a new record was actually inserted
     if (inserted.length === 0) {
-      logger.debug({ newUserId, referrerId: currentId, level }, 'Referral already processed — skipping reward');
+      logger.debug(
+        { newUserId, referrerId: currentId, level },
+        'Referral already processed — skipping reward',
+      );
       break;
     }
 
@@ -90,7 +100,10 @@ export async function processReferralChain(
         .where(eq(users.id, currentId));
     }
 
-    logger.info({ newUserId, referrerId: currentId, level }, 'Referral reward issued');
+    logger.info(
+      { newUserId, referrerId: currentId, level },
+      'Referral reward issued',
+    );
 
     // Walk up one level: find who referred currentId
     const [ancestor] = await db
@@ -109,8 +122,15 @@ export const referralsModule = new Elysia({ prefix: '/referrals' })
   .use(requireAuth)
 
   // My referral dashboard
-  .get('/me', async ({ user, set }: { user: { id: string } | null; set: { status: number } }) => {
-    if (!user) { set.status = 401; return { success: false, error: { code: 'UNAUTHORIZED' } }; }
+  .get('/me', (async (ctx: any) => {
+    const { user, set } = ctx as {
+      user: { id: string } | null;
+      set: { status: number };
+    };
+    if (!user) {
+      set.status = 401;
+      return { success: false, error: { code: 'UNAUTHORIZED' } };
+    }
     const userId = user.id;
 
     const [u] = await db
@@ -150,12 +170,15 @@ export const referralsModule = new Elysia({ prefix: '/referrals' })
         totalReferrals: refs.filter((r) => r.level === 1).length,
         totalChainReferrals: refs.length,
         totalXpEarned: refs.reduce((s, r) => s + (r.xpRewarded ?? 0), 0),
-        totalEnergyEarned: refs.reduce((s, r) => s + (r.energyRewarded ?? 0), 0),
+        totalEnergyEarned: refs.reduce(
+          (s, r) => s + (r.energyRewarded ?? 0),
+          0,
+        ),
         byLevel,
         recentReferrals: refs.slice(0, 10),
       },
     };
-  })
+  }) as any)
 
   // Top referrers leaderboard — single JOIN query (no N+1)
   .get('/leaderboard', async () => {
@@ -170,7 +193,12 @@ export const referralsModule = new Elysia({ prefix: '/referrals' })
       })
       .from(referrals)
       .leftJoin(users, eq(referrals.referrerId, users.id))
-      .groupBy(referrals.referrerId, users.firstName, users.username, users.photoUrl)
+      .groupBy(
+        referrals.referrerId,
+        users.firstName,
+        users.username,
+        users.photoUrl,
+      )
       .orderBy(desc(sql`count(*)`))
       .limit(20);
 
@@ -180,7 +208,11 @@ export const referralsModule = new Elysia({ prefix: '/referrals' })
         referrerId: r.referrerId,
         count: r.count,
         totalXp: r.totalXp,
-        user: { firstName: r.firstName, username: r.username, photoUrl: r.photoUrl },
+        user: {
+          firstName: r.firstName,
+          username: r.username,
+          photoUrl: r.photoUrl,
+        },
       })),
     };
   });

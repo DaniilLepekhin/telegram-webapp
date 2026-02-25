@@ -1,23 +1,26 @@
-import Elysia from 'elysia';
-import { sql } from 'drizzle-orm';
 import { cors } from '@elysiajs/cors';
-import { swagger } from '@elysiajs/swagger';
 import { jwt } from '@elysiajs/jwt';
+import { swagger } from '@elysiajs/swagger';
+import { sql } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { config, corsOrigins, isDev } from './config/index.ts';
+import { db } from './db/index.ts';
 import { logger } from './utils/logger.ts';
 import { getRedis } from './utils/redis.ts';
-import { db } from './db/index.ts';
 
+import { analyticsModule } from './modules/analytics/routes.ts';
 // Modules
 import { authModule } from './modules/auth/routes.ts';
-import { trackingModule, trackingRedirectModule } from './modules/tracking/routes.ts';
 import { gamificationModule } from './modules/gamification/routes.ts';
-import { showcaseModule } from './modules/showcase/routes.ts';
-import { analyticsModule } from './modules/analytics/routes.ts';
-import { subscriptionsModule } from './modules/subscriptions/routes.ts';
-import { usersModule } from './modules/users/routes.ts';
 import { questsModule } from './modules/quests/routes.ts';
 import { referralsModule } from './modules/referrals/routes.ts';
+import { showcaseModule } from './modules/showcase/routes.ts';
+import { subscriptionsModule } from './modules/subscriptions/routes.ts';
+import {
+  trackingModule,
+  trackingRedirectModule,
+} from './modules/tracking/routes.ts';
+import { usersModule } from './modules/users/routes.ts';
 
 // Middleware
 import { auditMiddleware } from './middlewares/audit.ts';
@@ -25,29 +28,41 @@ import { rateLimit } from './middlewares/rateLimit.ts';
 
 const app = new Elysia()
   // ─── Global plugins ──────────────────────────────────────────────────────
-  .use(cors({
-    origin: corsOrigins,
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  }))
-  .use(jwt({
-    name: 'jwt',
-    secret: config.JWT_SECRET,
-    exp: config.JWT_ACCESS_TTL,
-  }))
-  .use(isDev ? swagger({
-    documentation: {
-      info: { title: 'Showcase Platform API', version: '2.0.0', description: 'Telegram WebApp Showcase' },
-      tags: [
-        { name: 'Auth', description: 'Авторизация' },
-        { name: 'Tracking', description: 'Трекинг-ссылки' },
-        { name: 'Gamification', description: 'Геймификация' },
-        { name: 'Showcase', description: 'Demo сценарии' },
-        { name: 'Analytics', description: 'Аналитика' },
-      ],
-    },
-  }) : new Elysia())
+  .use(
+    cors({
+      origin: corsOrigins,
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    }),
+  )
+  .use(
+    jwt({
+      name: 'jwt',
+      secret: config.JWT_SECRET,
+      exp: config.JWT_ACCESS_TTL,
+    }),
+  )
+  .use(
+    isDev
+      ? swagger({
+          documentation: {
+            info: {
+              title: 'Showcase Platform API',
+              version: '2.0.0',
+              description: 'Telegram WebApp Showcase',
+            },
+            tags: [
+              { name: 'Auth', description: 'Авторизация' },
+              { name: 'Tracking', description: 'Трекинг-ссылки' },
+              { name: 'Gamification', description: 'Геймификация' },
+              { name: 'Showcase', description: 'Demo сценарии' },
+              { name: 'Analytics', description: 'Аналитика' },
+            ],
+          },
+        })
+      : new Elysia(),
+  )
   .use(auditMiddleware)
 
   // ─── Security headers ─────────────────────────────────────────────────────
@@ -87,7 +102,7 @@ const app = new Elysia()
       .use(subscriptionsModule)
       .use(usersModule)
       .use(questsModule)
-      .use(referralsModule)
+      .use(referralsModule),
   )
 
   // ─── Global error handler ─────────────────────────────────────────────────
@@ -96,15 +111,28 @@ const app = new Elysia()
 
     if (code === 'VALIDATION') {
       set.status = 400;
-      return { success: false, error: { code: 'VALIDATION_ERROR', message: 'Неверные данные запроса', details: error.message } };
+      return {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Неверные данные запроса',
+          details: error.message,
+        },
+      };
     }
     if (code === 'NOT_FOUND') {
       set.status = 404;
-      return { success: false, error: { code: 'NOT_FOUND', message: 'Маршрут не найден' } };
+      return {
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Маршрут не найден' },
+      };
     }
 
     set.status = 500;
-    return { success: false, error: { code: 'INTERNAL_ERROR', message: 'Внутренняя ошибка сервера' } };
+    return {
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: 'Внутренняя ошибка сервера' },
+    };
   })
 
   // config.PORT is already a number (coerced in config/index.ts)

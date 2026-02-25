@@ -2,9 +2,15 @@ import * as v from 'valibot';
 
 const EnvSchema = v.object({
   // Server
-  NODE_ENV: v.optional(v.picklist(['development', 'production', 'test']), 'development'),
+  NODE_ENV: v.optional(
+    v.picklist(['development', 'production', 'test']),
+    'development',
+  ),
   // PORT validated as a numeric string then coerced to number
-  PORT: v.optional(v.pipe(v.string(), v.regex(/^\d+$/, 'PORT must be a positive integer')), '3100'),
+  PORT: v.optional(
+    v.pipe(v.string(), v.regex(/^\d+$/, 'PORT must be a positive integer')),
+    '3100',
+  ),
   HOST: v.optional(v.string(), '0.0.0.0'),
 
   // Database
@@ -43,7 +49,9 @@ function parseEnv() {
   if (!result.success) {
     console.error('❌ Invalid environment variables:');
     for (const issue of result.issues) {
-      console.error(`  ${issue.path?.map((p) => p.key).join('.')} — ${issue.message}`);
+      console.error(
+        `  ${issue.path?.map((p) => p.key).join('.')} — ${issue.message}`,
+      );
     }
     process.exit(1);
   }
@@ -52,7 +60,10 @@ function parseEnv() {
 
   // In production the webhook secret must be set to a non-trivial value so that
   // the Telegram→backend webhook endpoint cannot be called by third parties.
-  if (env.NODE_ENV === 'production' && env.TELEGRAM_WEBHOOK_SECRET.length < 32) {
+  if (
+    env.NODE_ENV === 'production' &&
+    env.TELEGRAM_WEBHOOK_SECRET.length < 32
+  ) {
     console.error(
       '❌ TELEGRAM_WEBHOOK_SECRET must be at least 32 characters in production.',
     );

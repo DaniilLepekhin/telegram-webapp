@@ -1,7 +1,7 @@
 import Elysia, { t } from 'elysia';
-import { gamificationService, ACHIEVEMENTS } from './service.ts';
 import { requireAuth } from '../../middlewares/auth.ts';
 import { rateLimit } from '../../middlewares/rateLimit.ts';
+import { ACHIEVEMENTS, gamificationService } from './service.ts';
 
 type AuthCtx = { user: { id: string } | null; set: { status: number } };
 type AwardBody = { amount: number; reason: string; actionType: string };
@@ -10,16 +10,22 @@ type AwardBody = { amount: number; reason: string; actionType: string };
 // IMPORTANT: scoped to sub-instance so /stats and /streak are NOT affected.
 const awardXpRoute = new Elysia()
   .use(requireAuth)
-  .use(rateLimit({
-    max: 10,
-    windowMs: 60_000,
-    keyPrefix: 'award-xp',
-    keyBy: ({ user }) => user?.id ?? 'anon',
-  }))
+  .use(
+    rateLimit({
+      max: 10,
+      windowMs: 60_000,
+      keyPrefix: 'award-xp',
+      keyBy: ({ user }) => user?.id ?? 'anon',
+    }),
+  )
   .post(
     '/award-xp',
-    async ({ body, user, set }: AuthCtx & { body: AwardBody }) => {
-      if (!user) { set.status = 401; return { success: false, error: { code: 'UNAUTHORIZED' } }; }
+    (async (ctx: any) => {
+      const { body, user, set } = ctx as AuthCtx & { body: AwardBody };
+      if (!user) {
+        set.status = 401;
+        return { success: false, error: { code: 'UNAUTHORIZED' } };
+      }
       const result = await gamificationService.awardXp(
         user.id,
         body.amount,
@@ -27,7 +33,7 @@ const awardXpRoute = new Elysia()
         body.actionType,
       );
       return { success: true, data: result };
-    },
+    }) as any,
     {
       body: t.Object({
         amount: t.Number({ minimum: 1, maximum: 1000 }),
@@ -44,19 +50,30 @@ export const gamificationModule = new Elysia({ prefix: '/gamification' })
   })
   // Auth-required routes (no rate limit on stats/streak — they must be freely callable)
   .use(requireAuth)
-  .get('/stats', async ({ user, set }: AuthCtx) => {
-    if (!user) { set.status = 401; return { success: false, error: { code: 'UNAUTHORIZED' } }; }
+  .get('/stats', (async (ctx: any) => {
+    const { user, set } = ctx as AuthCtx;
+    if (!user) {
+      set.status = 401;
+      return { success: false, error: { code: 'UNAUTHORIZED' } };
+    }
     const stats = await gamificationService.getStats(user.id);
     if (!stats) {
       set.status = 404;
-      return { success: false, error: { code: 'NOT_FOUND', message: 'Пользователь не найден' } };
+      return {
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Пользователь не найден' },
+      };
     }
     return { success: true, data: stats };
-  })
-  .post('/streak', async ({ user, set }: AuthCtx) => {
-    if (!user) { set.status = 401; return { success: false, error: { code: 'UNAUTHORIZED' } }; }
+  }) as any)
+  .post('/streak', (async (ctx: any) => {
+    const { user, set } = ctx as AuthCtx;
+    if (!user) {
+      set.status = 401;
+      return { success: false, error: { code: 'UNAUTHORIZED' } };
+    }
     const result = await gamificationService.updateStreak(user.id);
     return { success: true, data: result };
-  })
+  }) as any)
   // Rate-limited award-xp as separate sub-instance
   .use(awardXpRoute);
