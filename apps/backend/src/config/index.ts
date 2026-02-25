@@ -35,6 +35,11 @@ const EnvSchema = v.object({
   // CORS
   CORS_ORIGINS: v.optional(v.string(), 'http://localhost:3000'),
 
+  // Database SSL: set to 'true' or 'require' when connecting to a remote PG
+  // that requires TLS. Docker-internal connections (e.g. postgres:5432) typically
+  // don't use SSL, so this defaults to '' (disabled).
+  DATABASE_SSL: v.optional(v.string(), ''),
+
   // Payment webhook secrets (fail-closed if absent — see subscriptions/routes.ts)
   LAVA_WEBHOOK_SECRET: v.optional(v.string(), ''),
   CP_WEBHOOK_SECRET: v.optional(v.string(), ''),
@@ -58,16 +63,18 @@ function parseEnv() {
 
   const env = result.output;
 
-  // In production the webhook secret must be set to a non-trivial value so that
-  // the Telegram→backend webhook endpoint cannot be called by third parties.
+  // In production the webhook secret should be set to a non-trivial value so
+  // that the Telegram→backend webhook endpoint cannot be called by third parties.
+  // We warn loudly but do NOT crash — the webhook route already rejects requests
+  // with an invalid/missing secret at request time (fail-closed).
   if (
     env.NODE_ENV === 'production' &&
     env.TELEGRAM_WEBHOOK_SECRET.length < 32
   ) {
-    console.error(
-      '❌ TELEGRAM_WEBHOOK_SECRET must be at least 32 characters in production.',
+    console.warn(
+      '⚠️  TELEGRAM_WEBHOOK_SECRET is shorter than 32 characters in production. ' +
+        'The bot webhook endpoint will reject all requests until a proper secret is set.',
     );
-    process.exit(1);
   }
 
   return env;

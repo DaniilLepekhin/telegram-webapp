@@ -123,12 +123,18 @@ jobs:
             # Остановить текущие контейнеры перед обновлением (избегаем конфликт портов)
             docker compose down --remove-orphans || true
 
-            # Запустить обновлённые контейнеры
-            docker compose up -d
+            # Запустить обновлённые контейнеры (--wait даёт compose время дождаться healthchecks)
+            docker compose up -d --wait --wait-timeout 120 || {
+              echo "=== docker compose up failed, dumping backend logs ==="
+              docker compose logs --tail=50 myapp-backend 2>/dev/null || docker compose logs --tail=50 backend 2>/dev/null || true
+              echo "=== docker compose ps ==="
+              docker compose ps -a
+              exit 1
+            }
 
             # Применить DB миграции
-            sleep 10
-            docker compose exec -T myapp-backend bun dist/migrate.js 2>/dev/null || echo "Migration skipped or pending"
+            sleep 5
+            docker compose exec -T myapp-backend bun dist/migrate.js 2>/dev/null || docker compose exec -T backend bun dist/migrate.js 2>/dev/null || echo "Migration skipped or pending"
 
             # Зарегистрировать Telegram webhook
             sleep 5

@@ -1,11 +1,16 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { config, isProd } from '../config/index.ts';
+import { config } from '../config/index.ts';
 import { logger } from '../utils/logger.ts';
 import * as schema from './schema.ts';
 
-// SSL: enforce TLS certificate validation in production
-const sslOptions = isProd ? ({ rejectUnauthorized: true } as const) : false;
+// SSL: only enable when DATABASE_SSL is explicitly set to 'true' or 'require'.
+// Docker-internal connections (postgres:5432) don't use SSL, so default is off.
+const sslEnabled =
+  config.DATABASE_SSL === 'true' || config.DATABASE_SSL === 'require';
+const sslOptions = sslEnabled
+  ? ({ rejectUnauthorized: config.DATABASE_SSL === 'require' } as const)
+  : false;
 
 // Connection pool for application queries
 const queryClient = postgres(config.DATABASE_URL, {
