@@ -3,18 +3,10 @@ import { gamificationService, ACHIEVEMENTS } from './service.ts';
 import { requireAuth } from '../../middlewares/auth.ts';
 import { rateLimit } from '../../middlewares/rateLimit.ts';
 
-export const gamificationModule = new Elysia({ prefix: '/gamification' })
-  // Public — no auth needed
-  .get('/achievements', () => {
-    return { success: true, data: ACHIEVEMENTS };
-  })
-  // Auth-required routes
+// ─── Rate-limited sub-app: only /award-xp (10 req/min per user) ──────────────
+// IMPORTANT: scoped to sub-instance so /stats and /streak are NOT affected.
+const awardXpRoute = new Elysia()
   .use(requireAuth)
-  .get('/stats', async ({ user, set }: any) => {
-    const stats = await gamificationService.getStats((user as { id: string }).id);
-    if (!stats) { set.status = 404; return { success: false, error: { code: 'NOT_FOUND', message: 'Пользователь не найден' } }; }
-    return { success: true, data: stats };
-  })
   .use(rateLimit({
     max: 10,
     windowMs: 60_000,
@@ -39,8 +31,26 @@ export const gamificationModule = new Elysia({ prefix: '/gamification' })
         actionType: t.String(),
       }),
     },
-  )
+  );
+
+export const gamificationModule = new Elysia({ prefix: '/gamification' })
+  // Public — no auth needed
+  .get('/achievements', () => {
+    return { success: true, data: ACHIEVEMENTS };
+  })
+  // Auth-required routes (no rate limit on stats/streak — they must be freely callable)
+  .use(requireAuth)
+  .get('/stats', async ({ user, set }: any) => {
+    const stats = await gamificationService.getStats((user as { id: string }).id);
+    if (!stats) {
+      set.status = 404;
+      return { success: false, error: { code: 'NOT_FOUND', message: 'Пользователь не найден' } };
+    }
+    return { success: true, data: stats };
+  })
   .post('/streak', async ({ user }: any) => {
     const result = await gamificationService.updateStreak((user as { id: string }).id);
     return { success: true, data: result };
-  });
+  })
+  // Rate-limited award-xp as separate sub-instance
+  .use(awardXpRoute);

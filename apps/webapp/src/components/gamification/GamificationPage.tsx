@@ -64,13 +64,15 @@ interface XpEvent {
 }
 
 export function GamificationPage() {
-  const { isAuthenticated, accessToken, isAuthReady } = useAuthStore();
+  const { isFreshAuth, isAuthReady, accessToken } = useAuthStore();
   const { haptic } = useTelegram();
   const qc = useQueryClient();
   const { ref: statsRef, inView } = useInView({ triggerOnce: true, threshold: 0.2 });
   const [activeTab, setActiveTab] = useState<Tab>('stats');
 
-  const enabled = isAuthReady && isAuthenticated && !!accessToken;
+  // isFreshAuth: only true after setUser() fires in this session — prevents 401 spam
+  // from stale sessionStorage token before ShowcaseHub.authenticate() completes
+  const enabled = isFreshAuth && !!accessToken;
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['gamification'],
@@ -264,7 +266,7 @@ export function GamificationPage() {
               </div>
 
               {/* Quick XP actions */}
-              {isAuthenticated && (
+              {isFreshAuth && (
                 <div className="px-4 mb-4">
                   <p className="text-xs text-white/40 uppercase tracking-wider mb-2">Быстрые действия</p>
                   <div className="space-y-2">

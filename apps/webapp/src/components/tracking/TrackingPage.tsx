@@ -21,11 +21,12 @@ export function TrackingPage() {
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const { isAuthenticated, accessToken, isAuthReady } = useAuthStore();
+  const { isFreshAuth, accessToken } = useAuthStore();
   const { haptic } = useTelegram();
   const qc = useQueryClient();
 
-  const enabled = isAuthReady && isAuthenticated && !!accessToken;
+  // isFreshAuth: only true after setUser() fires this session — no 401 from stale token
+  const enabled = isFreshAuth && !!accessToken;
 
   const { data: linksData, isLoading } = useQuery({
     queryKey: ['tracking-links'],

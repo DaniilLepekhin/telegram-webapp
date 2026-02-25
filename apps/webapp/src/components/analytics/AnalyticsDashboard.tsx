@@ -54,13 +54,14 @@ interface DashboardData {
 }
 
 export function AnalyticsDashboard() {
-  const { isAuthenticated, accessToken, isAuthReady } = useAuthStore();
+  const { isFreshAuth, accessToken } = useAuthStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ['analytics-dashboard'],
     queryFn: async () => { const r = await api.getDashboard(); return r.data as DashboardData; },
-    enabled: isAuthReady && isAuthenticated && !!accessToken,
-    refetchInterval: 60_000,
+    enabled: isFreshAuth && !!accessToken,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const summary = data?.summary;

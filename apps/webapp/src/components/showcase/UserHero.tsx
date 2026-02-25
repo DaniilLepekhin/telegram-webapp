@@ -12,7 +12,7 @@ interface UserHeroProps {
 }
 
 export function UserHero({ user }: UserHeroProps) {
-  const { isAuthenticated, accessToken, isAuthReady } = useAuthStore();
+  const { isFreshAuth, accessToken } = useAuthStore();
 
   const { data: gamification } = useQuery({
     queryKey: ['gamification'],
@@ -20,8 +20,9 @@ export function UserHero({ user }: UserHeroProps) {
       const r = await api.getGamificationStats();
       return r.data as { xp: number; level: number; xpToNextLevel: number; streak: number };
     },
-    enabled: isAuthReady && isAuthenticated && !!accessToken,
-    // Don't refetch on interval — data is updated after scenario completion via invalidateQueries
+    // isFreshAuth: only fires after setUser() succeeds in this session —
+    // prevents spurious 401s from stale sessionStorage token before re-auth completes
+    enabled: isFreshAuth && !!accessToken,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
@@ -89,7 +90,7 @@ export function UserHero({ user }: UserHeroProps) {
         </div>
 
         {/* XP Progress */}
-        {isAuthenticated && (
+        {isFreshAuth && (
           <div className="mt-3">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1 text-xs text-white/40">

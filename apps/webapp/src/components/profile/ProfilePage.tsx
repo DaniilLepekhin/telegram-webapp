@@ -55,12 +55,13 @@ interface Plan {
 
 export function ProfilePage() {
   const { user: tgUser, haptic } = useTelegram();
-  const { clearAuth, isAuthenticated, accessToken, isAuthReady } = useAuthStore();
+  const { clearAuth, isFreshAuth, isAuthReady, accessToken } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const { ref, inView } = useInView({ triggerOnce: true });
   const qc = useQueryClient();
 
-  const enabled = isAuthReady && isAuthenticated && !!accessToken;
+  // isFreshAuth: blocks protected queries until setUser() fires — no stale-token 401s
+  const enabled = isFreshAuth && !!accessToken;
 
   const { data: profile } = useQuery({
     queryKey: ['profile-me'],
