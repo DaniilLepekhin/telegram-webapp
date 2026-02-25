@@ -146,9 +146,15 @@ jobs:
               -d "allowed_updates=[\"message\",\"callback_query\",\"my_chat_member\"]" \
               -d "drop_pending_updates=false" | grep -q '"ok":true' && echo " webhook OK" || echo " webhook FAILED"
 
-            # Health checks (не блокируем pipeline если ещё стартует)
+            # Health checks + diagnostics
             curl -sf http://localhost:3102/health && echo " backend OK" || echo " backend starting..."
             curl -sf -o /dev/null http://localhost:3004 && echo " webapp OK" || echo " webapp starting..."
+
+            # Dump bot container logs for diagnostics (bot has no healthcheck so failures are silent)
+            echo "=== bot container status ==="
+            docker compose ps myapp-bot 2>/dev/null || docker compose ps bot 2>/dev/null || true
+            echo "=== bot container logs (last 30 lines) ==="
+            docker compose logs --tail=30 myapp-bot 2>/dev/null || docker compose logs --tail=30 bot 2>/dev/null || true
 
             # Cleanup старых слоёв
             docker image prune -f

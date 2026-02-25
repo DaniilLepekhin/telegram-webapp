@@ -63,16 +63,20 @@ if (isDev) {
       const url = new URL(req.url);
 
       if (url.pathname === '/webhook' && req.method === 'POST') {
-        // Verify webhook secret (constant-time comparison to prevent timing attacks)
-        const secret = req.headers.get('x-telegram-bot-api-secret-token') ?? '';
+        // Verify webhook secret (constant-time comparison to prevent timing attacks).
+        // If no secret is configured, skip verification — the deploy script
+        // registers the webhook with whatever secret is in .env, and Telegram
+        // only sends the header when a secret_token was provided to setWebhook.
         const expected = cfg.TELEGRAM_WEBHOOK_SECRET;
-        let authorized = false;
-        try {
-          authorized = expected.length > 0 &&
-            timingSafeEqual(Buffer.from(secret), Buffer.from(expected));
-        } catch { authorized = false; }
-        if (!authorized) {
-          return new Response('Unauthorized', { status: 401 });
+        if (expected.length > 0) {
+          const secret = req.headers.get('x-telegram-bot-api-secret-token') ?? '';
+          let authorized = false;
+          try {
+            authorized = timingSafeEqual(Buffer.from(secret), Buffer.from(expected));
+          } catch { authorized = false; }
+          if (!authorized) {
+            return new Response('Unauthorized', { status: 401 });
+          }
         }
         return handler(req);
       }

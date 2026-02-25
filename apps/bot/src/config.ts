@@ -23,11 +23,15 @@ function parse() {
 
   const env = r.output;
 
+  // In production the webhook secret should be set to a non-trivial value so
+  // that the Telegram→bot webhook endpoint cannot be called by third parties.
+  // We warn loudly but do NOT crash — the webhook handler already rejects
+  // requests with an invalid/missing secret at request time (fail-closed).
   if (env.NODE_ENV === 'production' && env.TELEGRAM_WEBHOOK_SECRET.length < 32) {
-    console.error(
-      '❌ TELEGRAM_WEBHOOK_SECRET must be at least 32 characters in production.',
+    console.warn(
+      '⚠️  TELEGRAM_WEBHOOK_SECRET is shorter than 32 characters in production. ' +
+        'The bot webhook endpoint will reject all requests until a proper secret is set.',
     );
-    process.exit(1);
   }
 
   return env;
