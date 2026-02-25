@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Plus, Link2, Copy, ExternalLink, QrCode, BarChart3,
+  Plus, Link2, Copy, QrCode, BarChart3,
   Trash2, X, Check, ArrowLeft, Globe, Smartphone, TrendingUp,
   MousePointerClick, Target, Zap,
 } from 'lucide-react';
@@ -36,7 +36,7 @@ export function TrackingPage() {
 
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
     queryKey: ['link-analytics', selectedLinkId],
-    queryFn: async () => { const r = await api.getLinkAnalytics(selectedLinkId!); return r.data as LinkAnalytics; },
+    queryFn: async () => { const id = selectedLinkId ?? ''; const r = await api.getLinkAnalytics(id); return r.data as LinkAnalytics; },
     enabled: enabled && !!selectedLinkId && view === 'analytics',
   });
 
