@@ -75,7 +75,7 @@ const app = new Elysia()
   // ─── API v1 ───────────────────────────────────────────────────────────────
   .group('/api/v1', (app) =>
     app
-      .use(rateLimit({ max: 300, windowMs: 60_000, keyPrefix: 'api' }))
+      .use(rateLimit({ max: 1000, windowMs: 60_000, keyPrefix: 'api' }))
       .use(authModule)
       .use(trackingModule)
       .use(gamificationModule)

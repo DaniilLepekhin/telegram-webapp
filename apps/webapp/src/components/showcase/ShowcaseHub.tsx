@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTelegram } from '@/hooks/useTelegram';
 import { useAuthStore } from '@/store/auth';
@@ -16,6 +16,10 @@ import { OnboardingScreen } from '../onboarding/OnboardingScreen';
 
 type View = 'hub' | 'scenario';
 
+// Module-level guards — survive component remounts (StrictMode, fast-refresh, etc.)
+// useRef resets to false on every new mount, causing duplicate auth/streak calls
+const _guard = { authAttempted: false, streakSent: false };
+
 export function ShowcaseHub() {
   const { user, initData, haptic, isReady } = useTelegram();
   const { setUser, setStreakUpdated } = useAuthStore();
@@ -26,14 +30,11 @@ export function ShowcaseHub() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authNonce, setAuthNonce] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  // Guards against duplicate auth/streak calls
-  const authAttempted = useRef(false);
-  const streakSent = useRef(false);
 
   // Authenticate once Telegram SDK is ready and initData is valid
   useEffect(() => {
     void authNonce;
-    if (!isReady || authAttempted.current) return;
+    if (!isReady || _guard.authAttempted) return;
 
     const safeInitData = initData.trim();
     if (safeInitData.length < 10) {
@@ -43,13 +44,14 @@ export function ShowcaseHub() {
     }
 
     setAuthError(null);
-    authAttempted.current = true;
+    _guard.authAttempted = true;
 
     const authenticate = async () => {
       try {
         const res = await api.loginWithTelegram(safeInitData);
         if (res.success && res.data) {
           const { user: userData, accessToken } = res.data as { user: User & { createdAt?: string }; accessToken: string };
+          // setUser updates api.token synchronously via _apiSetToken before returning
           setUser(userData, accessToken);
 
           // Show onboarding for new users (registered within last 2 minutes)
@@ -58,9 +60,9 @@ export function ShowcaseHub() {
             if (ageMs < 2 * 60 * 1000) setShowOnboarding(true);
           }
 
-          // Award streak XP once per session — guarded by ref
-          if (!streakSent.current) {
-            streakSent.current = true;
+          // Send streak update once per session — token is guaranteed fresh here
+          if (!_guard.streakSent) {
+            _guard.streakSent = true;
             setStreakUpdated();
             api.updateStreak().catch(() => {});
           }
@@ -68,6 +70,8 @@ export function ShowcaseHub() {
         }
       } catch (err) {
         console.error('Auth failed:', err);
+        // Reset guard so user can retry via authNonce
+        _guard.authAttempted = false;
         setAuthError('Не удалось войти. Открой приложение через Telegram.');
       } finally {
         setIsAuthLoading(false);
@@ -106,7 +110,7 @@ export function ShowcaseHub() {
       <ErrorScreen
         message={authError}
         onRetry={() => {
-          authAttempted.current = false;
+          _guard.authAttempted = false;
           setAuthError(null);
           setIsAuthLoading(true);
           setAuthNonce((n) => n + 1);
