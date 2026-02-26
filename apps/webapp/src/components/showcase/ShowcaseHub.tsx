@@ -12,6 +12,7 @@ import { UserHero } from './UserHero';
 import { GlobalStats } from './GlobalStats';
 import type { DemoScenario, User } from '@showcase/shared';
 import { OnboardingScreen } from '../onboarding/OnboardingScreen';
+import { Sparkles, ArrowRight } from 'lucide-react';
 
 type View = 'hub' | 'scenario';
 
@@ -53,9 +54,7 @@ export function ShowcaseHub() {
     setSelectedScenario(null);
   };
 
-  if (!isReady) {
-    return <LoadingScreen />;
-  }
+  if (!isReady) return <LoadingScreen />;
 
   if (showOnboarding) {
     return (
@@ -68,11 +67,13 @@ export function ShowcaseHub() {
 
   return (
     <div className="min-h-screen bg-surface-0 relative overflow-hidden">
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-600/8 rounded-full blur-[120px]" />
-      </div>
+      {/* Aurora background */}
+      <div className="aurora-bg" />
+
+      {/* Floating orbs */}
+      <div className="orb orb-violet w-[500px] h-[500px] -top-48 -left-24 animate-float" />
+      <div className="orb orb-cyan w-[300px] h-[300px] top-1/3 -right-20 animate-float" style={{ animationDelay: '-3s' }} />
+      <div className="orb orb-rose w-[200px] h-[200px] bottom-40 left-1/4 animate-float" style={{ animationDelay: '-5s' }} />
 
       <AnimatePresence mode="wait">
         {view === 'hub' ? (
@@ -88,18 +89,22 @@ export function ShowcaseHub() {
             <UserHero user={user} />
             <GlobalStats />
 
-            {/* Scenarios grid */}
-            <section className="px-4 mt-6">
-              <div className="flex items-center justify-between mb-4">
+            {/* Section header */}
+            <section className="px-4 mt-8">
+              <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-bold text-white">Demo Кейсы</h2>
-                  <p className="text-sm text-white/40 mt-0.5">Нажми — запустится интерактивный сценарий</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles className="w-4 h-4 text-neon-amber" />
+                    <h2 className="text-lg font-bold text-white tracking-tight">Demo-Кейсы</h2>
+                  </div>
+                  <p className="text-sm text-white/35">Интерактивные сценарии бизнес-задач</p>
                 </div>
                 {scenarios.length > 0 && (
-                  <span className="badge badge-primary">{scenarios.length} кейсов</span>
+                  <span className="badge badge-primary text-[10px]">{scenarios.length} кейсов</span>
                 )}
               </div>
 
+              {/* Scenario cards */}
               <div className="grid grid-cols-1 gap-3">
                 {scenarios.length > 0 ? (
                   scenarios.map((scenario, i) => (
@@ -111,23 +116,28 @@ export function ShowcaseHub() {
                     />
                   ))
                 ) : (
-                  ['s0', 's1', 's2', 's3'].map((id) => (
-                    <div key={id} className="glass-card p-4 h-28 shimmer" />
+                  ['sk-a', 'sk-b', 'sk-c', 'sk-d'].map((id) => (
+                    <div key={id} className="glass-card p-4 h-32 shimmer" />
                   ))
                 )}
               </div>
             </section>
 
-            {/* Bottom CTA */}
-            <div className="px-4 mt-8">
-              <div className="glass-card p-5 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-600/10 to-transparent" />
-                <p className="text-sm text-white/50 relative z-10">
-                  Хочешь такой же бот для своего бизнеса?
-                </p>
-                <p className="text-white font-semibold mt-1 relative z-10">
-                  Напиши @daniillepekhin — обсудим твой кейс
-                </p>
+            {/* Bottom CTA — holographic card */}
+            <div className="px-4 mt-8 mb-4">
+              <div className="holo-card p-6 text-center">
+                <div className="relative z-10">
+                  <div className="w-10 h-10 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-brand-500/30 to-neon-cyan/20 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-neon-cyan" />
+                  </div>
+                  <p className="text-white/50 text-sm">
+                    Хочешь такой же бот для своего бизнеса?
+                  </p>
+                  <p className="text-white font-semibold mt-1.5 flex items-center justify-center gap-2">
+                    Напиши @daniillepekhin
+                    <ArrowRight className="w-4 h-4 text-brand-400" />
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -141,10 +151,7 @@ export function ShowcaseHub() {
             className="relative z-10"
           >
             {selectedScenario && (
-              <ScenarioRunner
-                scenario={selectedScenario}
-                onBack={handleBackToHub}
-              />
+              <ScenarioRunner scenario={selectedScenario} onBack={handleBackToHub} />
             )}
           </motion.div>
         )}
@@ -155,14 +162,17 @@ export function ShowcaseHub() {
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-surface-0 flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-4 relative">
-          <div className="absolute inset-0 rounded-full border-2 border-brand-500/30 animate-ping" />
-          <div className="absolute inset-2 rounded-full border-2 border-t-brand-500 border-brand-500/20 animate-spin" />
-          <div className="absolute inset-4 rounded-full bg-brand-500/20" />
+    <div className="min-h-screen bg-surface-0 flex items-center justify-center relative">
+      <div className="aurora-bg" />
+      <div className="relative z-10 text-center">
+        {/* Pulsing orb loader */}
+        <div className="w-20 h-20 mx-auto mb-6 relative">
+          <div className="absolute inset-0 rounded-full bg-brand-500/20 animate-ping" />
+          <div className="absolute inset-2 rounded-full bg-gradient-to-br from-brand-500/40 to-neon-cyan/30 animate-pulse" />
+          <div className="absolute inset-4 rounded-full border border-brand-400/30 animate-spin" style={{ borderTopColor: 'rgba(108,92,231,0.8)' }} />
+          <div className="absolute inset-6 rounded-full bg-brand-500/10 backdrop-blur-sm" />
         </div>
-        <p className="text-white/40 text-sm animate-pulse">Загрузка...</p>
+        <p className="text-white/30 text-sm font-medium tracking-wide">Загрузка...</p>
       </div>
     </div>
   );

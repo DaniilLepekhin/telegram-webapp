@@ -115,27 +115,29 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-surface-0 relative">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-fuchsia-600/6 rounded-full blur-[100px]" />
-      </div>
+      <div className="aurora-bg" />
+      <div className="orb orb-rose w-[300px] h-[300px] -top-20 left-1/4" />
+      <div className="orb orb-violet w-[200px] h-[200px] bottom-60 -right-16" />
 
       <div className="relative z-10 pb-4">
         <div className="px-4 pt-4 pb-3">
-          <h1 className="text-xl font-bold text-white">Профиль</h1>
+          <h1 className="text-xl font-bold text-white tracking-tight">Профиль</h1>
         </div>
 
         {/* Avatar + Info */}
         <div className="px-4 mb-4">
-          <div className="glass-card p-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-fuchsia-400/40 to-transparent" />
+          <div className="holo-card p-5">
+            <div className="relative z-10">
 
             <div className="flex items-center gap-4">
               <div className="relative flex-shrink-0">
-                <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-2xl font-bold text-white shadow-glow">
-                  {tgUser?.photo_url
-                    ? <img src={tgUser.photo_url} alt="" className="w-full h-full rounded-3xl object-cover" />
-                    : (profile?.firstName?.[0] ?? tgUser?.first_name?.[0] ?? '?')
-                  }
+                <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 via-neon-violet to-neon-cyan p-[2px]">
+                  <div className="w-full h-full rounded-[22px] bg-surface-50 flex items-center justify-center text-2xl font-bold text-white overflow-hidden">
+                    {tgUser?.photo_url
+                      ? <img src={tgUser.photo_url} alt="" className="w-full h-full rounded-[22px] object-cover" />
+                      : <span className="gradient-text">{profile?.firstName?.[0] ?? tgUser?.first_name?.[0] ?? '?'}</span>
+                    }
+                  </div>
                 </div>
                 {isPro && (
                   <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
@@ -169,9 +171,9 @@ export function ProfilePage() {
             {/* Stats */}
             <div ref={ref} className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-white/5">
               {[
-                { label: 'XP', value: profile?.xp ?? 0, color: 'text-amber-400', icon: Zap },
-                { label: 'Стрик', value: profile?.streak ?? 0, color: 'text-orange-400', suffix: 'дн', icon: Star },
-                { label: 'Энергия', value: profile?.energyBalance ?? 0, color: 'text-cyan-400', icon: Zap },
+                { label: 'XP', value: profile?.xp ?? 0, color: 'text-neon-amber', icon: Zap },
+                { label: 'Стрик', value: profile?.streak ?? 0, color: 'text-neon-rose', suffix: 'дн', icon: Star },
+                { label: 'Энергия', value: profile?.energyBalance ?? 0, color: 'text-neon-cyan', icon: Zap },
               ].map((s) => {
                 const Icon = s.icon;
                 return (
@@ -187,6 +189,7 @@ export function ProfilePage() {
                 );
               })}
             </div>
+          </div>
           </div>
         </div>
 

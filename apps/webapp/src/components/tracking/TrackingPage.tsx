@@ -87,11 +87,9 @@ export function TrackingPage() {
 
   return (
     <div className="min-h-screen bg-surface-0 relative">
-      {/* Ambient */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-0 w-72 h-72 bg-cyan-600/6 rounded-full blur-[100px]" />
-        <div className="absolute bottom-40 right-0 w-48 h-48 bg-violet-600/5 rounded-full blur-[80px]" />
-      </div>
+      <div className="aurora-bg" />
+      <div className="orb orb-cyan w-[300px] h-[300px] -top-20 -left-16" />
+      <div className="orb orb-violet w-[200px] h-[200px] bottom-40 -right-16" />
 
       <div className="relative z-10">
         {/* Header */}

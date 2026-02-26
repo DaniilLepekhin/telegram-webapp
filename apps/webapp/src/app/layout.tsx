@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: 'Showcase Platform — Telegram Bot Cases',
   description: 'Демонстрация возможностей Telegram ботов и WebApp. 6 готовых кейсов: E-commerce, Club, Service, Education, Support, Funnels.',
   keywords: ['telegram bot', 'webapp', 'mini app', 'showcase', 'кейсы'],
-  robots: 'noindex,nofollow', // Private demo
+  robots: 'noindex,nofollow',
 };
 
 export const viewport: Viewport = {
@@ -24,22 +24,20 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#080812',
+  themeColor: '#06060e',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru" className={inter.variable}>
       <head>
-        {/* Telegram WebApp SDK — Bot API 9.1 */}
         <script src="https://telegram.org/js/telegram-web-app.js?59" async />
       </head>
-      <body className="bg-surface-0 text-white antialiased overflow-x-hidden">
+      <body className="bg-surface-0 text-white antialiased overflow-x-hidden grain">
         <Providers>
           <ErrorBoundary>
-            {/* TelegramInit is inside ErrorBoundary so SDK errors don't produce a blank screen */}
             <TelegramInit />
-            <main className="pb-24">
+            <main className="pb-28 relative z-10">
               {children}
             </main>
           </ErrorBoundary>

@@ -137,15 +137,15 @@ export function GamificationPage() {
 
   return (
     <div className="min-h-screen bg-surface-0 relative">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 right-1/4 w-80 h-80 bg-amber-600/6 rounded-full blur-[100px]" />
-      </div>
+      <div className="aurora-bg" />
+      <div className="orb orb-amber w-[300px] h-[300px] -top-20 right-0" />
+      <div className="orb orb-violet w-[200px] h-[200px] bottom-40 -left-16" />
 
       <div className="relative z-10 pb-4">
         {/* Header */}
         <div className="px-4 pt-4 pb-3">
-          <h1 className="text-xl font-bold text-white">Прокачка</h1>
-          <p className="text-sm text-white/40 mt-0.5">XP, уровни, достижения, лидерборд</p>
+          <h1 className="text-xl font-bold text-white tracking-tight">Прокачка</h1>
+          <p className="text-sm text-white/35 mt-0.5">XP, уровни, достижения, лидерборд</p>
         </div>
 
         {/* Tabs */}
@@ -163,8 +163,8 @@ export function GamificationPage() {
                 className={cn(
                   'flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center justify-center gap-1.5',
                   activeTab === id
-                    ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30'
-                    : 'text-white/40 hover:text-white/60',
+                    ? 'bg-brand-500/15 text-brand-300 border border-brand-500/25 shadow-[0_0_12px_-2px_rgba(108,92,231,0.25)]'
+                    : 'text-white/35 hover:text-white/50',
                 )}
               >
                 <Icon className="w-3.5 h-3.5" />

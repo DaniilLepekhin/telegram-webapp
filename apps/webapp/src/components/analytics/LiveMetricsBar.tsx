@@ -90,8 +90,8 @@ export function LiveMetricsBar() {
         >
           {/* Live indicator */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-            <span className="text-[10px] text-white/30 uppercase tracking-wider font-medium">Live</span>
+            <div className="w-1.5 h-1.5 bg-neon-mint rounded-full animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.5)]" />
+            <span className="text-[10px] text-neon-mint/60 uppercase tracking-wider font-medium">Live</span>
           </div>
 
           <div className="w-px h-3 bg-white/10" />
