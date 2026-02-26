@@ -2,13 +2,15 @@
 
 import { useTelegram } from '@/hooks/useTelegram';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingBag } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { EcomCart } from './EcomCart';
 import { EcomCatalog } from './EcomCatalog';
 import { EcomCheckout } from './EcomCheckout';
+import { EcomFavorites } from './EcomFavorites';
 import { EcomOrderSuccess } from './EcomOrderSuccess';
 import { EcomProductDetail } from './EcomProductDetail';
+import { useEcomFavorites } from './ecom-favorites-store';
 import { useEcomCart } from './ecom-store';
 import type { EcomView } from './ecom-types';
 
@@ -25,6 +27,7 @@ export function EcomDemo({ onBack }: EcomDemoProps) {
   const [history, setHistory] = useState<EcomView[]>([]);
   const itemCount = useEcomCart((s) => s.getItemCount());
   const clearCart = useEcomCart((s) => s.clearCart);
+  const favCount = useEcomFavorites((s) => s.count());
 
   const navigate = useCallback(
     (to: EcomView, productId?: string) => {
@@ -54,13 +57,17 @@ export function EcomDemo({ onBack }: EcomDemoProps) {
     setView('catalog');
   }, [haptic, clearCart]);
 
-  const headerTitle = {
+  const headerTitle: Record<EcomView, string> = {
     catalog: 'Demo Shop',
     product: 'Товар',
     cart: 'Корзина',
     checkout: 'Оформление',
     success: 'Заказ оформлен',
-  }[view];
+    favorites: 'Избранное',
+  };
+
+  const showHeaderActions =
+    view === 'catalog' || view === 'product' || view === 'favorites';
 
   return (
     <div className="min-h-screen bg-th-bg relative">
@@ -79,30 +86,57 @@ export function EcomDemo({ onBack }: EcomDemoProps) {
           </button>
 
           <h1 className="text-sm font-bold text-th absolute left-1/2 -translate-x-1/2">
-            {headerTitle}
+            {headerTitle[view]}
           </h1>
 
-          {/* Cart badge */}
-          {view !== 'cart' && view !== 'checkout' && view !== 'success' && (
-            <button
-              type="button"
-              onClick={() => navigate('cart')}
-              className="relative p-2"
-            >
-              <ShoppingBag className="w-5 h-5 text-th/50" />
-              {itemCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                >
-                  {itemCount > 9 ? '9+' : itemCount}
-                </motion.span>
-              )}
-            </button>
-          )}
+          {/* Header actions: favorites + cart */}
+          {showHeaderActions ? (
+            <div className="flex items-center gap-1">
+              {/* Favorites */}
+              <button
+                type="button"
+                onClick={() => navigate('favorites')}
+                className="relative p-2"
+              >
+                <Heart
+                  className={`w-5 h-5 transition-colors ${
+                    view === 'favorites'
+                      ? 'text-rose-500 fill-rose-500'
+                      : favCount > 0
+                        ? 'text-rose-400 fill-rose-400'
+                        : 'text-th/50'
+                  }`}
+                />
+                {favCount > 0 && view !== 'favorites' && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+                  >
+                    {favCount > 9 ? '9+' : favCount}
+                  </motion.span>
+                )}
+              </button>
 
-          {(view === 'cart' || view === 'checkout' || view === 'success') && (
+              {/* Cart */}
+              <button
+                type="button"
+                onClick={() => navigate('cart')}
+                className="relative p-2"
+              >
+                <ShoppingBag className="w-5 h-5 text-th/50" />
+                {itemCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                  >
+                    {itemCount > 9 ? '9+' : itemCount}
+                  </motion.span>
+                )}
+              </button>
+            </div>
+          ) : (
             <div className="w-9" />
           )}
         </div>
@@ -123,6 +157,17 @@ export function EcomDemo({ onBack }: EcomDemoProps) {
             <EcomProductDetail
               productId={selectedProductId}
               onGoToCart={() => navigate('cart')}
+            />
+          </ViewWrapper>
+        )}
+        {view === 'favorites' && (
+          <ViewWrapper key="favorites">
+            <EcomFavorites
+              onSelectProduct={(id) => navigate('product', id)}
+              onContinueShopping={() => {
+                setHistory([]);
+                setView('catalog');
+              }}
             />
           </ViewWrapper>
         )}

@@ -42,4 +42,10 @@ export interface DemoCartItem {
   quantity: number;
 }
 
-export type EcomView = 'catalog' | 'product' | 'cart' | 'checkout' | 'success';
+export type EcomView =
+  | 'catalog'
+  | 'product'
+  | 'cart'
+  | 'checkout'
+  | 'success'
+  | 'favorites';

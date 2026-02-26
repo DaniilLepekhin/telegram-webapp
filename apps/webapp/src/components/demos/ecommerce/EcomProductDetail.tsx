@@ -5,15 +5,18 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
   Check,
+  Heart,
   RotateCcw,
   Shield,
   ShoppingCart,
   Star,
   Truck,
+  Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { DEMO_PRODUCTS } from './ecom-data';
+import { useEcomFavorites } from './ecom-favorites-store';
 import { useEcomCart } from './ecom-store';
 
 interface EcomProductDetailProps {
@@ -21,10 +24,15 @@ interface EcomProductDetailProps {
   onGoToCart: () => void;
 }
 
-export function EcomProductDetail({ productId }: EcomProductDetailProps) {
+export function EcomProductDetail({
+  productId,
+  onGoToCart,
+}: EcomProductDetailProps) {
   const product = DEMO_PRODUCTS.find((p) => p.id === productId);
   const { haptic } = useTelegram();
   const addItem = useEcomCart((s) => s.addItem);
+  const toggleFavorite = useEcomFavorites((s) => s.toggle);
+  const isFavorite = useEcomFavorites((s) => s.isFavorite(productId));
 
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
     product?.sizes?.[2] ?? product?.sizes?.[0],
@@ -46,24 +54,41 @@ export function EcomProductDetail({ productId }: EcomProductDetailProps) {
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
 
+  const cartPayload = {
+    productId: product.id,
+    name: product.name,
+    price: product.price,
+    gradient: product.gradient,
+    icon: product.icon,
+    size: selectedSize,
+    color: selectedColor,
+  };
+
   const handleAddToCart = () => {
     haptic.notification('success');
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      gradient: product.gradient,
-      icon: product.icon,
-      size: selectedSize,
-      color: selectedColor,
-    });
+    addItem(cartPayload);
     setAdded(true);
     toast.success('Добавлено в корзину');
     setTimeout(() => setAdded(false), 1500);
   };
 
+  const handleBuyNow = () => {
+    haptic.notification('success');
+    addItem(cartPayload);
+    toast.success('Переходим к оформлению');
+    onGoToCart();
+  };
+
+  const handleToggleFavorite = () => {
+    haptic.impact('light');
+    toggleFavorite(product.id);
+    if (!isFavorite) {
+      toast.success('Добавлено в избранное');
+    }
+  };
+
   return (
-    <div className="pb-32">
+    <div className="pb-36">
       {/* Image */}
       <div
         className={cn(
@@ -97,6 +122,20 @@ export function EcomProductDetail({ productId }: EcomProductDetailProps) {
             </span>
           )}
         </div>
+
+        {/* Favorite heart on image */}
+        <button
+          type="button"
+          onClick={handleToggleFavorite}
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
+        >
+          <Heart
+            className={cn(
+              'w-5 h-5 transition-colors',
+              isFavorite ? 'text-rose-500 fill-rose-500' : 'text-white/80',
+            )}
+          />
+        </button>
       </div>
 
       {/* Info */}
@@ -232,31 +271,58 @@ export function EcomProductDetail({ productId }: EcomProductDetailProps) {
         </div>
       </div>
 
-      {/* Sticky bottom bar */}
+      {/* Sticky bottom bar — Add to cart + Buy now + Favorite */}
       <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-th-bg/80 backdrop-blur-xl border-t border-th-border/5">
-        <div className="flex gap-3 max-w-md mx-auto">
+        <div className="flex gap-2 max-w-md mx-auto">
+          {/* Favorite button */}
+          <button
+            type="button"
+            onClick={handleToggleFavorite}
+            className={cn(
+              'w-12 h-12 rounded-2xl flex items-center justify-center transition-all flex-shrink-0',
+              isFavorite ? 'bg-rose-500/15 border border-rose-500/30' : 'glass',
+            )}
+          >
+            <Heart
+              className={cn(
+                'w-5 h-5 transition-colors',
+                isFavorite ? 'text-rose-500 fill-rose-500' : 'text-th/40',
+              )}
+            />
+          </button>
+
+          {/* Add to cart */}
           <button
             type="button"
             onClick={handleAddToCart}
             disabled={added}
             className={cn(
-              'flex-1 py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all',
+              'flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all',
               added
                 ? 'bg-emerald-500/20 text-emerald-400'
-                : 'bg-gradient-to-r from-brand-500 to-neon-violet text-white shadow-glow-sm active:scale-[0.97]',
+                : 'glass text-th border border-th-border/10 active:scale-[0.97]',
             )}
           >
             {added ? (
               <>
-                <Check className="w-5 h-5" />
+                <Check className="w-4 h-4" />
                 Добавлено
               </>
             ) : (
               <>
-                <ShoppingCart className="w-5 h-5" />В корзину —{' '}
-                {product.price.toLocaleString('ru-RU')} ₽
+                <ShoppingCart className="w-4 h-4" />В корзину
               </>
             )}
+          </button>
+
+          {/* Buy now */}
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            className="flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-brand-500 to-neon-violet text-white shadow-glow-sm active:scale-[0.97] transition-transform"
+          >
+            <Zap className="w-4 h-4" />
+            Купить
           </button>
         </div>
       </div>
