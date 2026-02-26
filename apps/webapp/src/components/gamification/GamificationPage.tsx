@@ -136,7 +136,7 @@ export function GamificationPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-surface-0 relative">
+    <div className="min-h-screen bg-th-bg relative">
       <div className="aurora-bg" />
       <div className="orb orb-amber w-[300px] h-[300px] -top-20 right-0" />
       <div className="orb orb-violet w-[200px] h-[200px] bottom-40 -left-16" />
@@ -144,8 +144,8 @@ export function GamificationPage() {
       <div className="relative z-10 pb-4">
         {/* Header */}
         <div className="px-4 pt-4 pb-3">
-          <h1 className="text-xl font-bold text-white tracking-tight">Прокачка</h1>
-          <p className="text-sm text-white/35 mt-0.5">XP, уровни, достижения, лидерборд</p>
+          <h1 className="text-xl font-bold text-th tracking-tight">Прокачка</h1>
+          <p className="text-sm text-th/35 mt-0.5">XP, уровни, достижения, лидерборд</p>
         </div>
 
         {/* Tabs */}
@@ -164,7 +164,7 @@ export function GamificationPage() {
                   'flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center justify-center gap-1.5',
                   activeTab === id
                     ? 'bg-brand-500/15 text-brand-300 border border-brand-500/25 shadow-[0_0_12px_-2px_rgba(108,92,231,0.25)]'
-                    : 'text-white/35 hover:text-white/50',
+                    : 'text-th/35 hover:text-th/50',
                 )}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -194,22 +194,22 @@ export function GamificationPage() {
                   <div className="relative flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center font-bold text-white text-lg shadow-glow-sm">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center font-bold text-th-invert text-lg shadow-glow-sm">
                           {statsLoading ? '?' : level}
                         </div>
                         <div>
-                          <p className="font-bold text-white text-lg">{LEVEL_NAMES[level] ?? 'Новичок'}</p>
-                          <p className="text-xs text-white/40">Уровень {level}</p>
+                          <p className="font-bold text-th text-lg">{LEVEL_NAMES[level] ?? 'Новичок'}</p>
+                          <p className="text-xs text-th/40">Уровень {level}</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex flex-col items-center glass px-3 py-2 rounded-2xl">
                       <Flame className="w-5 h-5 text-orange-400 mb-0.5" />
-                      <span className="text-lg font-bold text-white leading-none">
+                      <span className="text-lg font-bold text-th leading-none">
                         {inView ? <CountUp end={streak} duration={1} /> : 0}
                       </span>
-                      <span className="text-[10px] text-white/40">дней</span>
+                      <span className="text-[10px] text-th/40">дней</span>
                     </div>
                   </div>
 
@@ -218,15 +218,15 @@ export function GamificationPage() {
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-1.5">
                         <Zap className="w-3.5 h-3.5 text-amber-400" />
-                        <span className="text-sm font-semibold text-white">
+                        <span className="text-sm font-semibold text-th">
                           {inView ? <CountUp end={xp} duration={1.5} separator=" " /> : 0} XP
                         </span>
                       </div>
-                      <span className="text-xs text-white/30">
+                      <span className="text-xs text-th/30">
                         {xpToNext > 0 ? `+${xpToNext} до ${LEVEL_NAMES[level + 1] ?? 'макс'}` : 'Макс уровень'}
                       </span>
                     </div>
-                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 bg-th-border/5 rounded-full overflow-hidden">
                       <motion.div
                         className="h-full rounded-full bg-gradient-to-r from-brand-500 via-violet-500 to-fuchsia-500"
                         initial={{ width: 0 }}
@@ -237,18 +237,18 @@ export function GamificationPage() {
                   </div>
 
                   {/* Stats row */}
-                  <div className="flex gap-6 mt-4 pt-4 border-t border-white/5">
+                  <div className="flex gap-6 mt-4 pt-4 border-t border-th-border/5">
                     <div>
-                      <p className="text-xs text-white/30">Лучший стрик</p>
-                      <p className="font-bold text-white">{stats?.longestStreak ?? 0} дн.</p>
+                      <p className="text-xs text-th/30">Лучший стрик</p>
+                      <p className="font-bold text-th">{stats?.longestStreak ?? 0} дн.</p>
                     </div>
                     <div>
-                      <p className="text-xs text-white/30">Энергия</p>
+                      <p className="text-xs text-th/30">Энергия</p>
                       <p className="font-bold text-amber-400">{stats?.energyBalance ?? 0}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-white/30">Достижений</p>
-                      <p className="font-bold text-white">{unlockedIds.size} / {allAchievements?.length ?? 10}</p>
+                      <p className="text-xs text-th/30">Достижений</p>
+                      <p className="font-bold text-th">{unlockedIds.size} / {allAchievements?.length ?? 10}</p>
                     </div>
                   </div>
                 </div>
@@ -257,7 +257,7 @@ export function GamificationPage() {
               {/* Quick XP actions */}
               {isFreshAuth && (
                 <div className="px-4 mb-4">
-                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2">Быстрые действия</p>
+                  <p className="text-xs text-th/40 uppercase tracking-wider mb-2">Быстрые действия</p>
                   <div className="space-y-2">
                     {quickActions.map((action) => (
                       <button
@@ -265,15 +265,15 @@ export function GamificationPage() {
                         type="button"
                         onClick={() => awardMutation.mutate({ amount: action.amount, reason: action.reason, actionType: action.type })}
                         disabled={awardMutation.isPending}
-                        className="w-full glass-card p-3.5 flex items-center justify-between group hover:bg-white/[0.06] transition-colors duration-150 disabled:opacity-50 active:scale-[0.98]"
+                        className="w-full glass-card p-3.5 flex items-center justify-between group hover:bg-th-border/[0.06] transition-colors duration-150 disabled:opacity-50 active:scale-[0.98]"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center">
                             <Zap className="w-4 h-4 text-amber-400" />
                           </div>
-                          <span className="text-sm text-white/80 font-medium">{action.label}</span>
+                          <span className="text-sm text-th/80 font-medium">{action.label}</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                        <ChevronRight className="w-4 h-4 text-th/20 group-hover:text-th/50 transition-colors" />
                       </button>
                     ))}
                   </div>
@@ -284,15 +284,15 @@ export function GamificationPage() {
               {activity && activity.length > 0 && (
                 <div className="px-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <Activity className="w-3.5 h-3.5 text-white/40" />
-                    <p className="text-xs text-white/40 uppercase tracking-wider">Недавняя активность</p>
+                    <Activity className="w-3.5 h-3.5 text-th/40" />
+                    <p className="text-xs text-th/40 uppercase tracking-wider">Недавняя активность</p>
                   </div>
                   <div className="space-y-2">
                     {activity.slice(0, 5).map((e) => (
                       <div key={e.id} className="glass rounded-xl px-3 py-2.5 flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-white/70 font-medium">{e.reason}</p>
-                          <p className="text-[10px] text-white/30">
+                          <p className="text-xs text-th/70 font-medium">{e.reason}</p>
+                          <p className="text-[10px] text-th/30">
                             {new Date(e.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
@@ -316,7 +316,7 @@ export function GamificationPage() {
               className="px-4"
             >
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-white/40 uppercase tracking-wider">Все достижения</p>
+                <p className="text-xs text-th/40 uppercase tracking-wider">Все достижения</p>
                 <span className="badge">
                   {unlockedIds.size}/{allAchievements?.length ?? '?'}
                 </span>
@@ -340,13 +340,13 @@ export function GamificationPage() {
                       )}
 
                       <div className="text-2xl mb-2">{isUnlocked ? ach.icon : '🔒'}</div>
-                      <p className="font-semibold text-white text-xs leading-tight">{ach.name}</p>
-                      <p className="text-[10px] text-white/40 mt-0.5 line-clamp-2">{ach.description}</p>
+                      <p className="font-semibold text-th text-xs leading-tight">{ach.name}</p>
+                      <p className="text-[10px] text-th/40 mt-0.5 line-clamp-2">{ach.description}</p>
 
                       <div className="flex items-center justify-between mt-2">
                         <span className={cn(
                           'text-[9px] font-medium px-1.5 py-0.5 rounded-full',
-                          isUnlocked ? `bg-gradient-to-r ${RARITY_COLORS[ach.rarity as keyof typeof RARITY_COLORS]} text-white` : 'bg-white/5 text-white/30'
+                          isUnlocked ? `bg-gradient-to-r ${RARITY_COLORS[ach.rarity as keyof typeof RARITY_COLORS]} text-th-invert` : 'bg-th-border/5 text-th/30'
                         )}>
                           {RARITY_LABELS[ach.rarity as keyof typeof RARITY_LABELS]}
                         </span>
@@ -354,7 +354,7 @@ export function GamificationPage() {
                       </div>
 
                       {isUnlocked && unlockedData?.unlockedAt && (
-                        <p className="text-[9px] text-white/20 mt-1">
+                        <p className="text-[9px] text-th/20 mt-1">
                           {new Date(unlockedData.unlockedAt).toLocaleDateString('ru-RU')}
                         </p>
                       )}
@@ -375,7 +375,7 @@ export function GamificationPage() {
               transition={{ duration: 0.12 }}
               className="px-4"
             >
-              <p className="text-xs text-white/40 uppercase tracking-wider mb-3">Топ по XP</p>
+              <p className="text-xs text-th/40 uppercase tracking-wider mb-3">Топ по XP</p>
 
               {lbLoading ? (
                 <div className="space-y-2">
@@ -401,28 +401,28 @@ export function GamificationPage() {
                         i === 0 && 'bg-amber-500/20 text-amber-400',
                         i === 1 && 'bg-slate-500/20 text-slate-400',
                         i === 2 && 'bg-amber-700/20 text-amber-700',
-                        i > 2 && 'bg-white/5 text-white/30',
+                        i > 2 && 'bg-th-border/5 text-th/30',
                       )}>
                         {i === 0 ? <Crown className="w-4 h-4" /> : i === 1 ? <Medal className="w-4 h-4" /> : i === 2 ? <Star className="w-4 h-4" /> : i + 1}
                       </div>
 
                       {/* Avatar */}
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center text-sm font-bold text-th-invert flex-shrink-0">
                         {entry.firstName[0]}
                       </div>
 
                       {/* Name */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">
+                        <p className="text-sm font-semibold text-th truncate">
                           {entry.firstName}{entry.username ? ` @${entry.username}` : ''}
                         </p>
-                        <p className="text-[10px] text-white/40">Ур. {entry.level} {LEVEL_NAMES[entry.level] ?? ''}</p>
+                        <p className="text-[10px] text-th/40">Ур. {entry.level} {LEVEL_NAMES[entry.level] ?? ''}</p>
                       </div>
 
                       {/* XP */}
                       <div className="text-right flex-shrink-0">
                         <p className="text-sm font-bold text-amber-400">{entry.xp.toLocaleString('ru-RU')}</p>
-                        <p className="text-[10px] text-white/30">XP</p>
+                        <p className="text-[10px] text-th/30">XP</p>
                       </div>
                     </div>
                   ))}

@@ -1,14 +1,30 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useThemeStore } from '@/store/theme';
 
 export function TelegramInit() {
+  const setTheme = useThemeStore((s) => s.setTheme);
+
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (!tg) return;
 
     // Inform Telegram the app is ready
     tg.ready();
+
+    // ── Theme init: localStorage (via zustand persist) takes priority,
+    //    then fall back to Telegram's colorScheme. The zustand store
+    //    rehydrates from localStorage synchronously, so if the user
+    //    previously picked a theme it's already applied. If not, use TG's.
+    const stored = localStorage.getItem('showcase-theme');
+    if (!stored) {
+      // No user preference yet — use Telegram's color scheme
+      const tgScheme = tg.colorScheme as 'dark' | 'light' | undefined;
+      if (tgScheme) {
+        setTheme(tgScheme);
+      }
+    }
 
     // Apply Telegram theme colors to CSS variables
     const applyTheme = () => {
@@ -70,7 +86,7 @@ export function TelegramInit() {
       tg.offEvent('contentSafeAreaChanged', applySafeArea);
       tg.offEvent('fullscreenChanged', applySafeArea);
     };
-  }, []);
+  }, [setTheme]);
 
   return null;
 }

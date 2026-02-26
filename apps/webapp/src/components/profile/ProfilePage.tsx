@@ -114,14 +114,14 @@ export function ProfilePage() {
   const proPlan = plans?.find((p) => p.id === 'pro');
 
   return (
-    <div className="min-h-screen bg-surface-0 relative">
+    <div className="min-h-screen bg-th-bg relative">
       <div className="aurora-bg" />
       <div className="orb orb-rose w-[300px] h-[300px] -top-20 left-1/4" />
       <div className="orb orb-violet w-[200px] h-[200px] bottom-60 -right-16" />
 
       <div className="relative z-10 pb-4">
         <div className="px-4 pt-4 pb-3">
-          <h1 className="text-xl font-bold text-white tracking-tight">Профиль</h1>
+          <h1 className="text-xl font-bold text-th tracking-tight">Профиль</h1>
         </div>
 
         {/* Avatar + Info */}
@@ -132,7 +132,7 @@ export function ProfilePage() {
             <div className="flex items-center gap-4">
               <div className="relative flex-shrink-0">
                 <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 via-neon-violet to-neon-cyan p-[2px]">
-                  <div className="w-full h-full rounded-[22px] bg-surface-50 flex items-center justify-center text-2xl font-bold text-white overflow-hidden">
+                  <div className="w-full h-full rounded-[22px] bg-th-raised flex items-center justify-center text-2xl font-bold text-th overflow-hidden">
                     {tgUser?.photo_url
                       ? <img src={tgUser.photo_url} alt="" className="w-full h-full rounded-[22px] object-cover" />
                       : <span className="gradient-text">{profile?.firstName?.[0] ?? tgUser?.first_name?.[0] ?? '?'}</span>
@@ -141,18 +141,18 @@ export function ProfilePage() {
                 </div>
                 {isPro && (
                   <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                    <Crown className="w-3.5 h-3.5 text-white" />
+                    <Crown className="w-3.5 h-3.5 text-th-invert" />
                   </div>
                 )}
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-white text-lg truncate">
+                <p className="font-bold text-th text-lg truncate">
                   {profile?.firstName ?? tgUser?.first_name ?? 'Пользователь'}{' '}
                   {profile?.lastName ?? tgUser?.last_name ?? ''}
                 </p>
                 {(profile?.username ?? tgUser?.username) && (
-                  <p className="text-white/40 text-sm">@{profile?.username ?? tgUser?.username}</p>
+                  <p className="text-th/40 text-sm">@{profile?.username ?? tgUser?.username}</p>
                 )}
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className={cn('badge text-xs', isPro ? 'badge-primary' : '')}>
@@ -169,7 +169,7 @@ export function ProfilePage() {
             </div>
 
             {/* Stats */}
-            <div ref={ref} className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-white/5">
+            <div ref={ref} className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-th-border/5">
               {[
                 { label: 'XP', value: profile?.xp ?? 0, color: 'text-neon-amber', icon: Zap },
                 { label: 'Стрик', value: profile?.streak ?? 0, color: 'text-neon-rose', suffix: 'дн', icon: Star },
@@ -182,7 +182,7 @@ export function ProfilePage() {
                       {inView ? <CountUp end={s.value} duration={1.2} separator=" " /> : 0}
                       {s.suffix && <span className="text-sm ml-0.5">{s.suffix}</span>}
                     </div>
-                    <p className="text-[10px] text-white/30 mt-0.5 flex items-center justify-center gap-1">
+                    <p className="text-[10px] text-th/30 mt-0.5 flex items-center justify-center gap-1">
                       <Icon className="w-3 h-3" />{s.label}
                     </p>
                   </div>
@@ -202,8 +202,8 @@ export function ProfilePage() {
                   <Crown className="w-5 h-5 text-amber-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-white">Showcase Pro</p>
-                  <p className="text-xs text-white/40">
+                  <p className="font-bold text-th">Showcase Pro</p>
+                  <p className="text-xs text-th/40">
                     {subStatus?.status === 'trial' ? 'Trial' : 'Активна'} до{' '}
                     {subStatus?.expiresAt ? new Date(subStatus.expiresAt).toLocaleDateString('ru-RU') : '—'}
                   </p>
@@ -217,14 +217,14 @@ export function ProfilePage() {
               <div className="relative">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-bold text-white">Showcase Pro</p>
-                    <p className="text-xs text-white/50 mt-0.5">
+                    <p className="font-bold text-th">Showcase Pro</p>
+                    <p className="text-xs text-th/50 mt-0.5">
                       {proPlan?.features?.slice(0, 2).join(' · ') ?? 'Неограниченные ссылки, A/B тесты'}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-white">₽{(proPlan?.price ?? 2990).toLocaleString('ru-RU')}</p>
-                    <p className="text-[10px] text-white/30">/мес</p>
+                    <p className="font-bold text-th">₽{(proPlan?.price ?? 2990).toLocaleString('ru-RU')}</p>
+                    <p className="text-[10px] text-th/30">/мес</p>
                   </div>
                 </div>
                 <button
@@ -249,22 +249,22 @@ export function ProfilePage() {
                   <Users className="w-4 h-4 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-white text-sm">Реферальная программа</p>
-                  <p className="text-xs text-white/40">
+                  <p className="font-semibold text-th text-sm">Реферальная программа</p>
+                  <p className="text-xs text-th/40">
                     Приглашено: {referralData.totalReferrals} • +{referralData.totalXpEarned} XP
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex-1 glass rounded-xl px-3 py-2 text-xs text-white/50 truncate font-mono">
+                <div className="flex-1 glass rounded-xl px-3 py-2 text-xs text-th/50 truncate font-mono">
                   {referralData.referralLink}
                 </div>
                 <button
                   type="button"
                   onClick={handleCopyReferral}
-                  className="w-9 h-9 glass rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-white/10 transition-colors"
+                  className="w-9 h-9 glass rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-th-border/10 transition-colors"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-white/50" />}
+                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-th/50" />}
                 </button>
               </div>
             </div>
@@ -274,7 +274,7 @@ export function ProfilePage() {
         {/* Account details */}
         <div className="px-4 mb-4">
           <div className="glass-card p-4">
-            <p className="text-xs text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <p className="text-xs text-th/40 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Activity className="w-3.5 h-3.5" /> Детали аккаунта
             </p>
             <div className="space-y-2">
@@ -285,8 +285,8 @@ export function ProfilePage() {
                 { label: 'Реф. код', value: profile?.referralCode ?? '—' },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between">
-                  <span className="text-xs text-white/40">{label}</span>
-                  <span className="text-xs text-white/70 font-mono">{value}</span>
+                  <span className="text-xs text-th/40">{label}</span>
+                  <span className="text-xs text-th/70 font-mono">{value}</span>
                 </div>
               ))}
             </div>

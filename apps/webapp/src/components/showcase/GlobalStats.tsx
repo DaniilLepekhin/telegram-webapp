@@ -40,7 +40,7 @@ export function GlobalStats() {
                 <div className={cn('font-bold text-lg leading-none tabular-nums', stat.color)}>
                   {inView ? <CountUp end={stat.value} duration={1.5} separator=" " /> : '—'}
                 </div>
-                <p className="text-[10px] text-white/30 mt-0.5 leading-tight truncate">{stat.label}</p>
+                <p className="text-[10px] text-th/30 mt-0.5 leading-tight truncate">{stat.label}</p>
               </div>
             </div>
           );

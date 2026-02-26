@@ -86,7 +86,7 @@ export function TrackingPage() {
   const selectedLink = links.find(l => l.id === selectedLinkId);
 
   return (
-    <div className="min-h-screen bg-surface-0 relative">
+    <div className="min-h-screen bg-th-bg relative">
       <div className="aurora-bg" />
       <div className="orb orb-cyan w-[300px] h-[300px] -top-20 -left-16" />
       <div className="orb orb-violet w-[200px] h-[200px] bottom-40 -right-16" />
@@ -99,16 +99,16 @@ export function TrackingPage() {
               <button
                 type="button"
                 onClick={() => setView('list')}
-                className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-1"
+                className="flex items-center gap-2 text-th/60 hover:text-th transition-colors mb-1"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-sm">Все ссылки</span>
               </button>
             ) : null}
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-bold text-th">
               {view === 'create' ? 'Новая ссылка' : view === 'analytics' ? `/${selectedLink?.slug ?? '…'}` : 'Трекинг-ссылки'}
             </h1>
-            <p className="text-sm text-white/40 mt-0.5">
+            <p className="text-sm text-th/40 mt-0.5">
               {view === 'list'
                 ? links.length > 0 ? `${links.length} ссыл${links.length === 1 ? 'ка' : links.length < 5 ? 'ки' : 'ок'} создано` : 'Нет активных ссылок'
                 : view === 'analytics' ? 'Детальная аналитика'
@@ -126,7 +126,7 @@ export function TrackingPage() {
             </motion.button>
           )}
           {view === 'create' && (
-            <button type="button" onClick={() => setView('list')} className="text-white/40 hover:text-white transition-colors">
+            <button type="button" onClick={() => setView('list')} className="text-th/40 hover:text-th transition-colors">
               <X className="w-5 h-5" />
             </button>
           )}
@@ -153,11 +153,11 @@ export function TrackingPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <div className={cn('w-2 h-2 rounded-full flex-shrink-0', link.isActive ? 'bg-emerald-400' : 'bg-white/20')} />
-                          <p className="font-semibold text-white truncate text-sm">/{link.slug}</p>
-                          {link.title && <span className="text-white/30 text-xs truncate">{link.title}</span>}
+                          <div className={cn('w-2 h-2 rounded-full flex-shrink-0', link.isActive ? 'bg-emerald-400' : 'bg-th/20')} />
+                          <p className="font-semibold text-th truncate text-sm">/{link.slug}</p>
+                          {link.title && <span className="text-th/30 text-xs truncate">{link.title}</span>}
                         </div>
-                        <p className="text-white/40 text-xs mt-0.5 truncate pl-4">{link.targetUrl}</p>
+                        <p className="text-th/40 text-xs mt-0.5 truncate pl-4">{link.targetUrl}</p>
                         {link.utmCampaign && (
                           <span className="badge mt-1 ml-4">{link.utmCampaign}</span>
                         )}
@@ -165,21 +165,21 @@ export function TrackingPage() {
                     </div>
 
                     {/* Stats row */}
-                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-white/5">
+                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-th-border/5">
                       <div className="flex items-center gap-1">
                         <span className="text-sm font-semibold text-cyan-400">{link.clickCount}</span>
-                        <span className="text-xs text-white/30">кл.</span>
+                        <span className="text-xs text-th/30">кл.</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-sm font-semibold text-emerald-400">{link.conversionCount}</span>
-                        <span className="text-xs text-white/30">конв.</span>
+                        <span className="text-xs text-th/30">конв.</span>
                       </div>
                       {link.clickCount > 0 && (
                         <div className="flex items-center gap-1">
                           <span className="text-sm font-semibold text-amber-400">
                             {Math.round((link.conversionCount / link.clickCount) * 100)}%
                           </span>
-                          <span className="text-xs text-white/30">CVR</span>
+                          <span className="text-xs text-th/30">CVR</span>
                         </div>
                       )}
 
@@ -191,17 +191,17 @@ export function TrackingPage() {
                         >
                           {copiedId === link.id
                             ? <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            : <Copy className="w-3.5 h-3.5 text-white/50" />}
+                            : <Copy className="w-3.5 h-3.5 text-th/50" />}
                         </ActionButton>
                         <ActionButton
                           onClick={() => { setSelectedLinkId(link.id); setView('analytics'); }}
                           title="Аналитика"
                         >
-                          <BarChart3 className="w-3.5 h-3.5 text-white/50" />
+                          <BarChart3 className="w-3.5 h-3.5 text-th/50" />
                         </ActionButton>
                         {link.qrCodeUrl && (
                           <ActionButton onClick={() => window.open(link.qrCodeUrl, '_blank')} title="QR-код">
-                            <QrCode className="w-3.5 h-3.5 text-white/50" />
+                            <QrCode className="w-3.5 h-3.5 text-th/50" />
                           </ActionButton>
                         )}
                         <ActionButton
@@ -209,7 +209,7 @@ export function TrackingPage() {
                           title="Удалить"
                           className="hover:bg-rose-500/20"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-white/30 hover:text-rose-400" />
+                          <Trash2 className="w-3.5 h-3.5 text-th/30 hover:text-rose-400" />
                         </ActionButton>
                       </div>
                     </div>
@@ -261,9 +261,9 @@ function EmptyLinksState({ onCreateClick }: { onCreateClick: () => void }) {
         </div>
       </div>
 
-      <h3 className="text-white font-semibold text-base mb-1">Нет трекинг-ссылок</h3>
-      <p className="text-white/40 text-sm mb-1">Создай ссылку с UTM-метками,</p>
-      <p className="text-white/30 text-xs mb-5">отслеживай клики, устройства и конверсии</p>
+      <h3 className="text-th font-semibold text-base mb-1">Нет трекинг-ссылок</h3>
+      <p className="text-th/40 text-sm mb-1">Создай ссылку с UTM-метками,</p>
+      <p className="text-th/30 text-xs mb-5">отслеживай клики, устройства и конверсии</p>
 
       {/* Feature hints */}
       <div className="grid grid-cols-3 gap-2 mb-6">
@@ -274,7 +274,7 @@ function EmptyLinksState({ onCreateClick }: { onCreateClick: () => void }) {
         ].map(({ icon: Icon, label, color }) => (
           <div key={label} className="glass rounded-xl p-2.5 flex flex-col items-center gap-1">
             <Icon className={cn('w-4 h-4', color)} />
-            <span className="text-[10px] text-white/40">{label}</span>
+            <span className="text-[10px] text-th/40">{label}</span>
           </div>
         ))}
       </div>
@@ -302,7 +302,7 @@ function ActionButton({ onClick, children, title, className }: {
       type="button"
       onClick={onClick}
       title={title}
-      className={cn('w-8 h-8 rounded-xl glass flex items-center justify-center transition-colors hover:bg-white/10', className)}
+      className={cn('w-8 h-8 rounded-xl glass flex items-center justify-center transition-colors hover:bg-th-border/10', className)}
     >
       {children}
     </button>
@@ -354,14 +354,14 @@ function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
     <form onSubmit={handleSubmit} className="space-y-3 pb-4">
       {baseFields.map(({ key, label, placeholder, type }) => (
         <div key={key}>
-          <label htmlFor={`field-${key}`} className="text-xs text-white/40 mb-1 block">{label}</label>
+          <label htmlFor={`field-${key}`} className="text-xs text-th/40 mb-1 block">{label}</label>
           <input
             id={`field-${key}`}
             type={type}
             value={form[key]}
             onChange={(e) => setForm(prev => ({ ...prev, [key]: e.target.value }))}
             placeholder={placeholder}
-            className="w-full glass rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 border border-white/[0.08] focus:border-brand-500/50 focus:outline-none transition-colors"
+            className="w-full glass rounded-xl px-4 py-3 text-sm text-th placeholder-th/20 border border-th-border/[0.08] focus:border-brand-500/50 focus:outline-none transition-colors"
           />
         </div>
       ))}
@@ -386,15 +386,15 @@ function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
           >
             {advancedFields.map(({ key, label, placeholder, type }) => (
               <div key={key}>
-                <label htmlFor={`adv-${key}`} className="text-xs text-white/40 mb-1 block">{label}</label>
-                <input
-                  id={`adv-${key}`}
-                  type={type}
-                  value={form[key]}
-                  onChange={(e) => setForm(prev => ({ ...prev, [key]: e.target.value }))}
-                  placeholder={placeholder}
-                  className="w-full glass rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 border border-white/[0.08] focus:border-brand-500/50 focus:outline-none transition-colors"
-                />
+              <label htmlFor={`adv-${key}`} className="text-xs text-th/40 mb-1 block">{label}</label>
+              <input
+                id={`adv-${key}`}
+                type={type}
+                value={form[key]}
+                onChange={(e) => setForm(prev => ({ ...prev, [key]: e.target.value }))}
+                placeholder={placeholder}
+                className="w-full glass rounded-xl px-4 py-3 text-sm text-th placeholder-th/20 border border-th-border/[0.08] focus:border-brand-500/50 focus:outline-none transition-colors"
+              />
               </div>
             ))}
           </motion.div>
@@ -402,7 +402,7 @@ function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
       </AnimatePresence>
 
       <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onCancel} className="flex-1 py-3 rounded-2xl glass border border-white/10 text-white/60 text-sm">
+        <button type="button" onClick={onCancel} className="flex-1 py-3 rounded-2xl glass border border-th-border/10 text-th/60 text-sm">
           Отмена
         </button>
         <button
@@ -431,8 +431,8 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
 
   if (!data) return (
     <div className="glass-card p-8 text-center">
-      <BarChart3 className="w-10 h-10 text-white/20 mx-auto mb-2" />
-      <p className="text-white/40 text-sm">Нет данных</p>
+      <BarChart3 className="w-10 h-10 text-th/20 mx-auto mb-2" />
+      <p className="text-th/40 text-sm">Нет данных</p>
     </div>
   );
 
@@ -443,7 +443,7 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
     <div className="space-y-4 pb-4">
       {/* Main stats */}
       <div className="glass-card p-4">
-        <p className="text-white/40 text-xs truncate mb-3">{link.targetUrl}</p>
+        <p className="text-th/40 text-xs truncate mb-3">{link.targetUrl}</p>
 
         <div className="grid grid-cols-4 gap-2">
           {[
@@ -457,7 +457,7 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
               <div key={m.label} className="text-center glass rounded-xl p-2">
                 <Icon className={cn('w-3.5 h-3.5 mx-auto mb-1', m.color)} />
                 <div className={cn('text-base font-bold', m.color)}>{m.value}</div>
-                <div className="text-[9px] text-white/30 leading-tight">{m.label}</div>
+                <div className="text-[9px] text-th/30 leading-tight">{m.label}</div>
               </div>
             );
           })}
@@ -467,7 +467,7 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
       {/* Funnel */}
       {stats.totalClicks > 0 && (
         <div className="glass-card p-4">
-          <h4 className="text-sm font-semibold text-white mb-3">Воронка конверсии</h4>
+          <h4 className="text-sm font-semibold text-th mb-3">Воронка конверсии</h4>
           <FunnelBar label="Переходы" value={stats.totalClicks} max={stats.totalClicks} color="bg-cyan-500" />
           <FunnelBar label="Уникальные" value={stats.uniqueClicks} max={stats.totalClicks} color="bg-violet-500" />
           <FunnelBar label="Конверсии" value={stats.conversions} max={stats.totalClicks} color="bg-emerald-500" />
@@ -477,7 +477,7 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
       {/* Countries */}
       {Object.keys(stats.byCountry ?? {}).length > 0 && (
         <div className="glass-card p-4">
-          <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-th mb-3 flex items-center gap-2">
             <Globe className="w-4 h-4 text-cyan-400" />
             По странам
           </h4>
@@ -490,10 +490,10 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
                 return (
                   <div key={country}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-white/70">{country}</span>
-                      <span className="text-xs font-semibold text-white">{count}</span>
+                      <span className="text-sm text-th/70">{country}</span>
+                      <span className="text-xs font-semibold text-th">{count}</span>
                     </div>
-                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1 bg-th-border/5 rounded-full overflow-hidden">
                       <motion.div
                         className="h-full bg-cyan-500/60 rounded-full"
                         initial={{ width: 0 }}
@@ -511,7 +511,7 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
       {/* Devices */}
       {Object.keys(stats.byDevice ?? {}).length > 0 && (
         <div className="glass-card p-4">
-          <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-th mb-3 flex items-center gap-2">
             <Smartphone className="w-4 h-4 text-violet-400" />
             По устройствам
           </h4>
@@ -523,10 +523,10 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
                 return (
                   <div key={device}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-white/70 capitalize">{device}</span>
-                      <span className="text-xs font-semibold text-white">{count}</span>
+                      <span className="text-sm text-th/70 capitalize">{device}</span>
+                      <span className="text-xs font-semibold text-th">{count}</span>
                     </div>
-                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1 bg-th-border/5 rounded-full overflow-hidden">
                       <motion.div
                         className="h-full bg-violet-500/60 rounded-full"
                         initial={{ width: 0 }}
@@ -549,10 +549,10 @@ function FunnelBar({ label, value, max, color }: { label: string; value: number;
   return (
     <div className="mb-2">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-white/50">{label}</span>
-        <span className="text-xs font-semibold text-white">{value} <span className="text-white/30">({Math.round(pct)}%)</span></span>
+        <span className="text-xs text-th/50">{label}</span>
+        <span className="text-xs font-semibold text-th">{value} <span className="text-th/30">({Math.round(pct)}%)</span></span>
       </div>
-      <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+      <div className="h-2 bg-th-border/5 rounded-full overflow-hidden">
         <motion.div
           className={cn('h-full rounded-full', color)}
           style={{ opacity: 0.7 }}

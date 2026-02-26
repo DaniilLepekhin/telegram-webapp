@@ -136,7 +136,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-surface-0 relative overflow-hidden">
+    <div className="min-h-screen bg-th-bg relative overflow-hidden">
       {/* Ambient gradient matching scenario */}
       <div className="fixed inset-0 pointer-events-none z-0 opacity-30">
         <div className={cn('absolute top-0 left-0 right-0 h-64 bg-gradient-to-b to-transparent', scenario.gradient)} style={{ opacity: 0.15 }} />
@@ -157,15 +157,15 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="text-xl">{scenario.icon}</span>
-              <h1 className="font-bold text-white">{scenario.title}</h1>
+              <h1 className="font-bold text-th">{scenario.title}</h1>
             </div>
-            <p className="text-xs text-white/40">{scenario.subtitle}</p>
+            <p className="text-xs text-th/40">{scenario.subtitle}</p>
           </div>
 
           {state === 'running' && (
             <div className="flex items-center gap-1.5 glass px-3 py-1.5 rounded-full">
               <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-xs text-white/60 font-mono">
+              <span className="text-xs text-th/60 font-mono">
                 {(elapsed / 1000).toFixed(1)}s
               </span>
             </div>
@@ -209,7 +209,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
 
             {/* Steps preview */}
             <div className="mt-6">
-              <p className="text-white/40 text-xs uppercase tracking-wider mb-3">Шаги сценария</p>
+              <p className="text-th/40 text-xs uppercase tracking-wider mb-3">Шаги сценария</p>
               <div className="space-y-2">
                 {scenario.steps.map((step, i) => {
                   const Icon = STEP_ICONS[step.type] ?? Bot;
@@ -228,10 +228,10 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                         <Icon className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{step.title}</p>
-                        <p className="text-xs text-white/40 truncate">{step.description}</p>
+                        <p className="text-sm font-medium text-th truncate">{step.title}</p>
+                        <p className="text-xs text-th/40 truncate">{step.description}</p>
                       </div>
-                      <div className="flex items-center gap-1 text-white/20">
+                      <div className="flex items-center gap-1 text-th/20">
                         <Clock className="w-3 h-3" />
                         <span className="text-[10px]">{(step.durationMs / 1000).toFixed(1)}s</span>
                       </div>
@@ -274,7 +274,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
             className="relative z-10 px-4 pb-8"
           >
             {/* Progress bar */}
-            <div className="h-1 bg-white/5 rounded-full mx-0 mb-6 overflow-hidden">
+            <div className="h-1 bg-th-border/5 rounded-full mx-0 mb-6 overflow-hidden">
               <motion.div
                 className={cn('h-full rounded-full bg-gradient-to-r', scenario.gradient)}
                 initial={{ width: '0%' }}
@@ -299,9 +299,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                     }}
                     className={cn(
                       'rounded-2xl p-4 border transition-all duration-500 relative overflow-hidden',
-                      isDone && 'bg-white/[0.04] border-white/[0.08]',
-                      isActive && 'border-white/20 shadow-glow-sm',
-                      isPending && 'glass border-white/[0.05]',
+                      isDone && 'bg-th-border/[0.04] border-th-border/[0.08]',
+                      isActive && 'border-th-border/20 shadow-glow-sm',
+                      isPending && 'glass border-th-border/[0.05]',
                     )}
                     style={isActive ? {
                       background: 'rgba(255,255,255,0.06)',
@@ -322,7 +322,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                         'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300',
                         isDone && 'bg-emerald-500/20',
                         isActive && `bg-gradient-to-br ${scenario.gradient}`,
-                        isPending && 'bg-white/5',
+                        isPending && 'bg-th-border/5',
                       )}>
                         {isDone ? (
                           <CheckCircle2 className="w-5 h-5 text-emerald-400" />
@@ -334,24 +334,24 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                             <Icon className="w-5 h-5 text-white" />
                           </motion.div>
                         ) : (
-                          <Icon className="w-5 h-5 text-white/30" />
+                          <Icon className="w-5 h-5 text-th/30" />
                         )}
                       </div>
 
                       <div className="flex-1">
                         <p className={cn(
                           'font-semibold text-sm',
-                          isDone && 'text-white/70',
-                          isActive && 'text-white',
-                          isPending && 'text-white/30',
+                          isDone && 'text-th/70',
+                          isActive && 'text-th',
+                          isPending && 'text-th/30',
                         )}>
                           {step.title}
                         </p>
                         <p className={cn(
                           'text-xs mt-0.5',
-                          isDone && 'text-white/40',
-                          isActive && 'text-white/60',
-                          isPending && 'text-white/20',
+                          isDone && 'text-th/40',
+                          isActive && 'text-th/60',
+                          isPending && 'text-th/20',
                         )}>
                           {step.description}
                         </p>
@@ -370,7 +370,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
 
                     {/* Active progress bar */}
                     {isActive && (
-                      <motion.div className="mt-3 h-0.5 bg-white/10 rounded-full overflow-hidden">
+                      <motion.div className="mt-3 h-0.5 bg-th-border/10 rounded-full overflow-hidden">
                         <motion.div
                           className={cn('h-full rounded-full bg-gradient-to-r', scenario.gradient)}
                           initial={{ width: '0%' }}
@@ -413,8 +413,8 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <h2 className="text-2xl font-bold text-white mt-4">Сценарий завершён!</h2>
-                <p className="text-white/50 text-sm mt-1">
+                <h2 className="text-2xl font-bold text-th mt-4">Сценарий завершён!</h2>
+                <p className="text-th/50 text-sm mt-1">
                   Время: {(elapsed / 1000).toFixed(1)} сек •{' '}
                   <span className="text-emerald-400">{scenario.steps.length} шагов</span>
                 </p>
@@ -434,8 +434,8 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                     <Zap className="w-5 h-5 text-amber-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">XP заработано</p>
-                    <p className="text-xs text-white/40">За завершение сценария</p>
+                    <p className="text-sm font-semibold text-th">XP заработано</p>
+                    <p className="text-xs text-th/40">За завершение сценария</p>
                   </div>
                 </div>
                 <span className="text-2xl font-bold text-amber-400">
@@ -451,7 +451,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
               transition={{ delay: 0.5 }}
               className="mb-4"
             >
-              <p className="text-white/40 text-xs uppercase tracking-wider mb-3">Результаты кейса</p>
+              <p className="text-th/40 text-xs uppercase tracking-wider mb-3">Результаты кейса</p>
               <div className="grid grid-cols-2 gap-3">
                 {scenario.metrics.map((m, i) => (
                   <motion.div
@@ -461,11 +461,11 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                     transition={{ delay: 0.5 + i * 0.1 }}
                     className="glass-card p-3"
                   >
-                    <div className="font-bold text-white text-base">{m.value}</div>
+                    <div className="font-bold text-th text-base">{m.value}</div>
                     {m.delta && (
                       <div className="text-xs text-emerald-400">{m.trend === 'up' ? '↑' : '↓'} {m.delta}</div>
                     )}
-                    <div className="text-white/40 text-[10px] mt-0.5">{m.label}</div>
+                    <div className="text-th/40 text-[10px] mt-0.5">{m.label}</div>
                   </motion.div>
                 ))}
               </div>
@@ -481,7 +481,7 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
               <button
                 type="button"
                 onClick={handleReset}
-                className="w-full py-3.5 rounded-2xl glass border border-white/10 text-white/70 font-medium text-sm hover:text-white hover:border-white/20 transition-all"
+                className="w-full py-3.5 rounded-2xl glass border border-th-border/10 text-th/70 font-medium text-sm hover:text-th hover:border-th-border/20 transition-all"
               >
                 Повторить сценарий
               </button>

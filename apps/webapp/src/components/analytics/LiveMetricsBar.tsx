@@ -94,21 +94,21 @@ export function LiveMetricsBar() {
             <span className="text-[10px] text-neon-mint/60 uppercase tracking-wider font-medium">Live</span>
           </div>
 
-          <div className="w-px h-3 bg-white/10" />
+          <div className="w-px h-3 bg-th/10" />
 
           {/* Event */}
           <span className="text-base">{current.icon}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-white/80 truncate">
-              <span className="font-medium text-white">{current.title}</span>
+            <p className="text-xs text-th/80 truncate">
+              <span className="font-medium text-th">{current.title}</span>
               {current.description && (
-                <span className="text-white/40"> — {current.description}</span>
+                <span className="text-th/40"> — {current.description}</span>
               )}
             </p>
           </div>
 
           {/* Timestamp */}
-          <span className="text-[10px] text-white/20 flex-shrink-0 font-mono">
+          <span className="text-[10px] text-th/20 flex-shrink-0 font-mono">
             {new Date(current.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
         </motion.div>

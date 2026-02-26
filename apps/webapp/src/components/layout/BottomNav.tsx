@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Home, BarChart2, Link2, Zap, User, Maximize2, Minimize2 } from 'lucide-react';
+import { Home, BarChart2, Link2, Zap, User, Maximize2, Minimize2, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTelegram } from '@/hooks/useTelegram';
+import { useThemeStore } from '@/store/theme';
 
 const TABS = [
   { href: '/',             icon: Home,     label: 'Кейсы'    },
@@ -18,6 +19,7 @@ const TABS = [
 export function BottomNav() {
   const pathname = usePathname();
   const { haptic, isFullscreen, requestFullscreen, exitFullscreen, tg } = useTelegram();
+  const { theme, toggleTheme } = useThemeStore();
   const canFullscreen = tg?.isVersionAtLeast('8.0') ?? false;
 
   return (
@@ -46,19 +48,37 @@ export function BottomNav() {
                 <Icon
                   className={cn(
                     'relative w-5 h-5 transition-colors duration-150',
-                    active ? 'text-brand-400 drop-shadow-[0_0_6px_rgba(108,92,231,0.5)]' : 'text-white/30',
+                    active ? 'text-brand-400 drop-shadow-[0_0_6px_rgba(108,92,231,0.5)]' : 'text-th/30',
                   )}
                   strokeWidth={active ? 2.2 : 1.5}
                 />
                 <span className={cn(
                   'relative text-[9px] font-semibold transition-colors duration-150',
-                  active ? 'text-brand-300' : 'text-white/25',
+                  active ? 'text-brand-300' : 'text-th/25',
                 )}>
                   {label}
                 </span>
               </Link>
             );
           })}
+
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              haptic.impact('light');
+              toggleTheme();
+            }}
+            className="relative flex flex-col items-center gap-[2px] min-w-[36px] py-1.5 rounded-xl"
+          >
+            {theme === 'dark'
+              ? <Sun className="w-4 h-4 text-th/30" strokeWidth={1.5} />
+              : <Moon className="w-4 h-4 text-th/30" strokeWidth={1.5} />
+            }
+            <span className="text-[8px] text-th/20 font-semibold">
+              {theme === 'dark' ? 'Свет' : 'Тьма'}
+            </span>
+          </button>
 
           {/* Fullscreen toggle */}
           {canFullscreen && (
@@ -71,10 +91,10 @@ export function BottomNav() {
               className="relative flex flex-col items-center gap-[2px] min-w-[36px] py-1.5 rounded-xl"
             >
               {isFullscreen
-                ? <Minimize2 className="w-4 h-4 text-white/30" strokeWidth={1.5} />
-                : <Maximize2 className="w-4 h-4 text-white/30" strokeWidth={1.5} />
+                ? <Minimize2 className="w-4 h-4 text-th/30" strokeWidth={1.5} />
+                : <Maximize2 className="w-4 h-4 text-th/30" strokeWidth={1.5} />
               }
-              <span className="text-[8px] text-white/20 font-semibold">
+              <span className="text-[8px] text-th/20 font-semibold">
                 {isFullscreen ? 'Выход' : 'Экран'}
               </span>
             </button>

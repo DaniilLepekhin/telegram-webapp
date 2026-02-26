@@ -31,7 +31,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   override render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-surface-0 flex items-center justify-center px-6">
+        <div className="min-h-screen bg-th-bg flex items-center justify-center px-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -40,14 +40,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-rose-500/15 flex items-center justify-center">
               <AlertTriangle className="w-8 h-8 text-rose-400" />
             </div>
-            <h2 className="text-white font-bold text-lg mb-2">Что-то пошло не так</h2>
-            <p className="text-white/40 text-sm mb-6">
+            <h2 className="text-th font-bold text-lg mb-2">Что-то пошло не так</h2>
+            <p className="text-th/40 text-sm mb-6">
               {this.state.error?.message ?? 'Неизвестная ошибка'}
             </p>
             <button
               type="button"
               onClick={this.handleReset}
-              className="flex items-center gap-2 mx-auto glass px-5 py-2.5 rounded-xl text-sm text-white/70 hover:text-white transition-colors"
+              className="flex items-center gap-2 mx-auto glass px-5 py-2.5 rounded-xl text-sm text-th/70 hover:text-th transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Попробовать снова

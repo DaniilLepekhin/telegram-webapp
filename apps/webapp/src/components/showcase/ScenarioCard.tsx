@@ -36,24 +36,24 @@ export function ScenarioCard({ scenario, onSelect }: ScenarioCardProps) {
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="font-bold text-white text-[15px] truncate tracking-tight">{scenario.title}</h3>
-              <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+              <h3 className="font-bold text-th text-[15px] truncate tracking-tight">{scenario.title}</h3>
+              <ChevronRight className="w-4 h-4 text-th/20 group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
             </div>
-            <p className="text-white/35 text-xs mt-0.5">{scenario.subtitle}</p>
-            <p className="text-white/50 text-sm mt-1.5 line-clamp-2 leading-relaxed">{scenario.description}</p>
+            <p className="text-th/35 text-xs mt-0.5">{scenario.subtitle}</p>
+            <p className="text-th/50 text-sm mt-1.5 line-clamp-2 leading-relaxed">{scenario.description}</p>
 
             {/* Metrics */}
             <div className="flex items-center gap-3 mt-3">
               {scenario.metrics.slice(0, 2).map((metric) => (
                 <div key={metric.label} className="flex items-center gap-1">
-                  <span className="text-xs font-semibold text-white/80 tabular-nums">{metric.value}</span>
+                  <span className="text-xs font-semibold text-th/80 tabular-nums">{metric.value}</span>
                   {metric.delta && metric.trend === 'up' && (
                     <span className="text-[10px] text-neon-mint flex items-center gap-0.5">
                       <TrendingUp className="w-2.5 h-2.5" />
                       {metric.delta}
                     </span>
                   )}
-                  <span className="text-[10px] text-white/25">{metric.label}</span>
+                  <span className="text-[10px] text-th/25">{metric.label}</span>
                 </div>
               ))}
             </div>

@@ -56,7 +56,7 @@ export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps
   };
 
   return (
-    <div className="min-h-screen bg-surface-0 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-th-bg flex flex-col relative overflow-hidden">
       {/* Ambient */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px]" />

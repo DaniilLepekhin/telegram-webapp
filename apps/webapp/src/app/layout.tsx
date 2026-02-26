@@ -29,11 +29,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={inter.variable}>
+    <html lang="ru" className={inter.variable} data-theme="dark">
       <head>
         <script src="https://telegram.org/js/telegram-web-app.js?59" async />
       </head>
-      <body className="bg-surface-0 text-white antialiased overflow-x-hidden grain">
+      <body className="bg-th-bg text-th antialiased overflow-x-hidden grain">
         <Providers>
           <ErrorBoundary>
             <TelegramInit />

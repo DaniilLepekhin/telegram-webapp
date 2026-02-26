@@ -44,7 +44,7 @@ export function UserHero({ user }: UserHeroProps) {
             {/* Avatar with gradient ring */}
             <div className="relative flex-shrink-0">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 via-neon-violet to-neon-cyan p-[2px]">
-                <div className="w-full h-full rounded-[14px] bg-surface-50 flex items-center justify-center text-xl font-bold overflow-hidden">
+                <div className="w-full h-full rounded-[14px] bg-th-raised flex items-center justify-center text-xl font-bold overflow-hidden">
                   {user?.photo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
@@ -54,8 +54,8 @@ export function UserHero({ user }: UserHeroProps) {
                 </div>
               </div>
               {user?.is_premium && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-glow-amber ring-2 ring-surface-0">
-                  <Star className="w-2.5 h-2.5 text-white" />
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-glow-amber ring-2 ring-th-bg">
+                  <Star className="w-2.5 h-2.5 text-th-invert" />
                 </div>
               )}
             </div>
@@ -63,7 +63,7 @@ export function UserHero({ user }: UserHeroProps) {
             {/* Name & level */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="font-bold text-white truncate text-base tracking-tight">
+                <p className="font-bold text-th truncate text-base tracking-tight">
                   {user?.first_name ?? 'Демо-пользователь'}
                 </p>
                 {user?.is_premium && (
@@ -71,8 +71,8 @@ export function UserHero({ user }: UserHeroProps) {
                 )}
               </div>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs text-white/40 font-medium">Ур. {level}</span>
-                <span className="text-xs text-white/15">/</span>
+                <span className="text-xs text-th/40 font-medium">Ур. {level}</span>
+                <span className="text-xs text-th/15">/</span>
                 <span className="text-xs gradient-text font-semibold">{levelName}</span>
               </div>
             </div>
@@ -81,7 +81,7 @@ export function UserHero({ user }: UserHeroProps) {
             {streak > 0 && (
               <div className="flex items-center gap-1.5 glass px-3 py-2 rounded-xl">
                 <Flame className="w-4 h-4 text-orange-400 drop-shadow-[0_0_4px_rgba(251,146,60,0.5)]" />
-                <span className="text-sm font-bold text-white tabular-nums">{streak}</span>
+                <span className="text-sm font-bold text-th tabular-nums">{streak}</span>
               </div>
             )}
           </div>
@@ -90,13 +90,13 @@ export function UserHero({ user }: UserHeroProps) {
           {isFreshAuth && (
             <div className="mt-4">
               <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-1.5 text-xs text-white/40">
+                <div className="flex items-center gap-1.5 text-xs text-th/40">
                   <Zap className="w-3 h-3 text-neon-amber" />
                   <span className="font-medium tabular-nums">{xp.toLocaleString('ru-RU')} XP</span>
                 </div>
-                <span className="text-[10px] text-white/25">{xpToNext.toLocaleString('ru-RU')} до {LEVEL_NAMES[level + 1] ?? 'макс'}</span>
+                <span className="text-[10px] text-th/25">{xpToNext.toLocaleString('ru-RU')} до {LEVEL_NAMES[level + 1] ?? 'макс'}</span>
               </div>
-              <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-th-border/[0.04] rounded-full overflow-hidden">
                 <motion.div
                   className="h-full rounded-full relative overflow-hidden"
                   style={{ background: 'linear-gradient(90deg, #6c5ce7, #a855f7, #22d3ee)' }}

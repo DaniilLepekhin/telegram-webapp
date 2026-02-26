@@ -5,6 +5,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        /* ── Semantic theme colors (dark/light via CSS variables) ──── */
+        th: {
+          DEFAULT: 'rgb(var(--c-text) / <alpha-value>)',
+          bg:      'rgb(var(--c-bg) / <alpha-value>)',
+          raised:  'rgb(var(--c-raised) / <alpha-value>)',
+          muted:   'rgb(var(--c-muted) / <alpha-value>)',
+          invert:  'rgb(var(--c-invert) / <alpha-value>)',
+          border:  'rgb(var(--c-border) / <alpha-value>)',
+        },
         brand: {
           50:  '#f0f0ff',
           100: '#dddcff',

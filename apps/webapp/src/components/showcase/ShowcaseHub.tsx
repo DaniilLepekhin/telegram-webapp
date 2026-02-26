@@ -66,7 +66,7 @@ export function ShowcaseHub() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-0 relative overflow-hidden">
+    <div className="min-h-screen bg-th-bg relative overflow-hidden">
       {/* Aurora background */}
       <div className="aurora-bg" />
 
@@ -95,9 +95,9 @@ export function ShowcaseHub() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Sparkles className="w-4 h-4 text-neon-amber" />
-                    <h2 className="text-lg font-bold text-white tracking-tight">Demo-Кейсы</h2>
+                    <h2 className="text-lg font-bold text-th tracking-tight">Demo-Кейсы</h2>
                   </div>
-                  <p className="text-sm text-white/35">Интерактивные сценарии бизнес-задач</p>
+                  <p className="text-sm text-th/35">Интерактивные сценарии бизнес-задач</p>
                 </div>
                 {scenarios.length > 0 && (
                   <span className="badge badge-primary text-[10px]">{scenarios.length} кейсов</span>
@@ -130,10 +130,10 @@ export function ShowcaseHub() {
                   <div className="w-10 h-10 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-brand-500/30 to-neon-cyan/20 flex items-center justify-center">
                     <Sparkles className="w-5 h-5 text-neon-cyan" />
                   </div>
-                  <p className="text-white/50 text-sm">
+                  <p className="text-th/50 text-sm">
                     Хочешь такой же бот для своего бизнеса?
                   </p>
-                  <p className="text-white font-semibold mt-1.5 flex items-center justify-center gap-2">
+                  <p className="text-th font-semibold mt-1.5 flex items-center justify-center gap-2">
                     Напиши @daniillepekhin
                     <ArrowRight className="w-4 h-4 text-brand-400" />
                   </p>
@@ -162,7 +162,7 @@ export function ShowcaseHub() {
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-surface-0 flex items-center justify-center relative">
+    <div className="min-h-screen bg-th-bg flex items-center justify-center relative">
       <div className="aurora-bg" />
       <div className="relative z-10 text-center">
         {/* Pulsing orb loader */}
@@ -172,7 +172,7 @@ function LoadingScreen() {
           <div className="absolute inset-4 rounded-full border border-brand-400/30 animate-spin" style={{ borderTopColor: 'rgba(108,92,231,0.8)' }} />
           <div className="absolute inset-6 rounded-full bg-brand-500/10 backdrop-blur-sm" />
         </div>
-        <p className="text-white/30 text-sm font-medium tracking-wide">Загрузка...</p>
+        <p className="text-th/30 text-sm font-medium tracking-wide">Загрузка...</p>
       </div>
     </div>
   );
