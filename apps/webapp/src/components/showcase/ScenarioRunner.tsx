@@ -19,7 +19,12 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import CountUp from 'react-countup';
+import { ClubDemo } from '../demos/club';
 import { EcomDemo } from '../demos/ecommerce';
+import { EducationDemo } from '../demos/education';
+import { FunnelDemo } from '../demos/funnel';
+import { ServiceDemo } from '../demos/service';
+import { SupportDemo } from '../demos/support';
 import { TetrisDemo } from '../demos/tetris';
 
 interface ScenarioRunnerProps {
@@ -168,6 +173,11 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
   // Interactive demos
   if (scenario.id === 'ecom') return <EcomDemo onBack={onBack} />;
   if (scenario.id === 'game') return <TetrisDemo onBack={onBack} />;
+  if (scenario.id === 'club') return <ClubDemo onBack={onBack} />;
+  if (scenario.id === 'service') return <ServiceDemo onBack={onBack} />;
+  if (scenario.id === 'education') return <EducationDemo onBack={onBack} />;
+  if (scenario.id === 'support') return <SupportDemo onBack={onBack} />;
+  if (scenario.id === 'funnel') return <FunnelDemo onBack={onBack} />;
 
   return (
     <div className="min-h-screen bg-th-bg relative overflow-hidden">
