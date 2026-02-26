@@ -2,13 +2,17 @@
 
 import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, MessageCircle, Package } from 'lucide-react';
+import { useState } from 'react';
 
 interface EcomOrderSuccessProps {
   onBackToShop: () => void;
 }
 
 export function EcomOrderSuccess({ onBackToShop }: EcomOrderSuccessProps) {
-  const orderNumber = `DEMO-${Math.floor(10000 + Math.random() * 90000)}`;
+  // useState so the number is computed once and stable across re-renders
+  const [orderNumber] = useState(
+    () => `DEMO-${Math.floor(10000 + Math.random() * 90000)}`,
+  );
 
   return (
     <div className="px-4 pt-8 pb-32 text-center">

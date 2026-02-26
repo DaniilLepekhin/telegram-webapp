@@ -146,10 +146,7 @@ export function EcomDemo({ onBack }: EcomDemoProps) {
       <AnimatePresence mode="wait">
         {view === 'catalog' && (
           <ViewWrapper key="catalog">
-            <EcomCatalog
-              onSelectProduct={(id) => navigate('product', id)}
-              onOpenCart={() => navigate('cart')}
-            />
+            <EcomCatalog onSelectProduct={(id) => navigate('product', id)} />
           </ViewWrapper>
         )}
         {view === 'product' && selectedProductId && (

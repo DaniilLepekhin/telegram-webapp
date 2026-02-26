@@ -14,18 +14,17 @@ interface TetrisDemoProps {
   onBack: () => void;
 }
 
-// High score stored in module scope (persists during session)
-let sessionBest = 0;
+// Object container allows const + mutation — persists across component mounts
+const sessionBestStore = { value: 0 };
 
 export function TetrisDemo({ onBack }: TetrisDemoProps) {
   const { haptic } = useTelegram();
   const [state, dispatch] = useReducer(reducer, undefined, createInitialState);
   const [started, setStarted] = useState(false);
+  // localBest is local state that triggers re-render when best improves
+  const [localBest, setLocalBest] = useState(sessionBestStore.value);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
-
-  // Update session best
-  if (state.score > sessionBest) sessionBest = state.score;
 
   const act = useCallback(
     (action: Action) => {
@@ -53,6 +52,14 @@ export function TetrisDemo({ onBack }: TetrisDemoProps) {
       if (tickRef.current) clearInterval(tickRef.current);
     };
   }, [started, state.isPaused, state.isOver, state.level]);
+
+  // Update session best — safe in effect, no render-time mutation
+  useEffect(() => {
+    if (state.score > sessionBestStore.value) {
+      sessionBestStore.value = state.score;
+      setLocalBest(state.score);
+    }
+  }, [state.score]);
 
   // Haptic on line clear (detect score jumps)
   const prevLinesRef = useRef(state.lines);
@@ -139,7 +146,7 @@ export function TetrisDemo({ onBack }: TetrisDemoProps) {
   };
 
   return (
-    <div className="min-h-screen bg-th-bg flex flex-col">
+    <div className="relative min-h-screen bg-th-bg flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-th-bg/80 backdrop-blur-xl border-b border-th-border/5">
         <div className="flex items-center justify-between px-4 py-3">
@@ -217,7 +224,7 @@ export function TetrisDemo({ onBack }: TetrisDemoProps) {
                 Best
               </p>
               <p className="text-[10px] font-bold text-amber-400 text-center leading-tight">
-                {sessionBest.toLocaleString('ru-RU')}
+                {localBest.toLocaleString('ru-RU')}
               </p>
             </div>
           </div>
@@ -271,8 +278,9 @@ export function TetrisDemo({ onBack }: TetrisDemoProps) {
                 </motion.div>
                 <h2 className="text-2xl font-black text-th mb-2">Tetris</h2>
                 <p className="text-sm text-th/40 mb-8 leading-relaxed">
-                  Тап — поворот · Свайп — движение{'\n'}Быстрый свайп вниз —
-                  сброс
+                  Тап — поворот · Свайп — движение
+                  <br />
+                  Быстрый свайп вниз — сброс
                 </p>
                 <button
                   type="button"

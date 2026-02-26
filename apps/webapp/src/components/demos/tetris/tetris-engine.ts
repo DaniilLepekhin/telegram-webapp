@@ -174,17 +174,6 @@ const SHAPES: Record<PieceType, number[][][]> = {
   ],
 };
 
-/** Neon color for each piece type (Nebula UI palette) */
-export const PIECE_COLORS: Record<PieceType, string> = {
-  I: '#06b6d4', // cyan
-  O: '#eab308', // yellow
-  T: '#a855f7', // purple
-  S: '#22c55e', // green
-  Z: '#ef4444', // red
-  J: '#3b82f6', // blue
-  L: '#f97316', // orange
-};
-
 /** Tailwind-friendly class names for ghost/preview rendering */
 export const PIECE_TW: Record<PieceType, string> = {
   I: 'bg-cyan-400',

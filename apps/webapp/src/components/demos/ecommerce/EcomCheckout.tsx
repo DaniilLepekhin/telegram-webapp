@@ -11,7 +11,7 @@ import {
   Star,
   Truck,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useEcomCart } from './ecom-store';
 
 interface EcomCheckoutProps {
@@ -54,6 +54,14 @@ export function EcomCheckout({ onSuccess }: EcomCheckoutProps) {
   });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [submitting, setSubmitting] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup pending payment timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const delivery = 350;
   const grandTotal = total + delivery;
@@ -63,8 +71,8 @@ export function EcomCheckout({ onSuccess }: EcomCheckoutProps) {
     e.preventDefault();
     haptic.notification('success');
     setSubmitting(true);
-    // Simulate payment processing
-    setTimeout(() => {
+    // Simulate payment processing — stored so unmount can cancel it
+    timeoutRef.current = setTimeout(() => {
       onSuccess();
     }, 1500);
   };

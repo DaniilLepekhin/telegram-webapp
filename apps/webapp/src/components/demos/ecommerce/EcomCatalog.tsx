@@ -12,7 +12,6 @@ import { useEcomCart } from './ecom-store';
 
 interface EcomCatalogProps {
   onSelectProduct: (id: string) => void;
-  onOpenCart: () => void;
 }
 
 export function EcomCatalog({ onSelectProduct }: EcomCatalogProps) {
