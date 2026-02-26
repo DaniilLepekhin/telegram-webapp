@@ -1,21 +1,35 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, CheckCircle2, Clock, Zap, BarChart3, Bot, Globe, CreditCard, Bell } from 'lucide-react';
-import CountUp from 'react-countup';
-import type { DemoScenario } from '@showcase/shared';
-import { cn } from '@/lib/utils';
 import { useTelegram } from '@/hooks/useTelegram';
-import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/auth';
+import type { DemoScenario } from '@showcase/shared';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  BarChart3,
+  Bell,
+  Bot,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Globe,
+  Zap,
+} from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import CountUp from 'react-countup';
+import { EcomDemo } from '../demos/ecommerce';
 
 interface ScenarioRunnerProps {
   scenario: DemoScenario;
   onBack: () => void;
 }
 
-const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const STEP_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   bot: Bot,
   webapp: Globe,
   payment: CreditCard,
@@ -52,7 +66,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [state]);
 
   // Cleanup timeouts on unmount
@@ -70,9 +86,13 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
     // measures the actual demo animation, not the network round-trip.
     if (isAuthenticated) {
       try {
-        const res = await api.runScenario(scenario.id) as { data?: { runId?: string } };
+        const res = (await api.runScenario(scenario.id)) as {
+          data?: { runId?: string };
+        };
         if (res?.data?.runId) runIdRef.current = res.data.runId;
-      } catch { /* non-critical */ }
+      } catch {
+        /* non-critical */
+      }
     }
 
     // Record start time after the async call so timer reflects animation time only.
@@ -87,39 +107,48 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
     scenario.steps.forEach((step, stepIndex) => {
       // Activate step
       const activateAt = cumulativeDelay;
-      timeouts.push(setTimeout(() => {
-        haptic.impact(stepIndex === 0 ? 'heavy' : 'light');
-        setCurrentStep(stepIndex);
-      }, activateAt));
+      timeouts.push(
+        setTimeout(() => {
+          haptic.impact(stepIndex === 0 ? 'heavy' : 'light');
+          setCurrentStep(stepIndex);
+        }, activateAt),
+      );
 
       // Complete step
       const completeAt = cumulativeDelay + step.durationMs;
-      timeouts.push(setTimeout(() => {
-        setCompletedSteps((prev) => new Set([...prev, stepIndex]));
-      }, completeAt));
+      timeouts.push(
+        setTimeout(() => {
+          setCompletedSteps((prev) => new Set([...prev, stepIndex]));
+        }, completeAt),
+      );
 
       cumulativeDelay = completeAt + 400;
     });
 
     // Final completion
     const finalAt = cumulativeDelay + 200;
-    timeouts.push(setTimeout(() => {
-      const timeMs = Date.now() - startTimeRef.current;
-      setState('complete');
-      haptic.notification('success');
+    timeouts.push(
+      setTimeout(() => {
+        const timeMs = Date.now() - startTimeRef.current;
+        setState('complete');
+        haptic.notification('success');
 
-      if (isAuthenticated && runIdRef.current) {
-        api.completeScenario(scenario.id, runIdRef.current, timeMs)
-          .then((res: unknown) => {
-            const r = res as { data?: { newXp?: number; xp?: number } } | null;
-            if (r?.data?.newXp !== undefined && r?.data?.xp !== undefined) {
+        if (isAuthenticated && runIdRef.current) {
+          api
+            .completeScenario(scenario.id, runIdRef.current, timeMs)
+            .then((res: unknown) => {
+              const r = res as {
+                data?: { newXp?: number; xp?: number };
+              } | null;
+              if (r?.data?.newXp !== undefined && r?.data?.xp !== undefined) {
                 // newXp is XP after award, xp is XP before — the delta is what was earned
                 setXpEarned(r.data.newXp - r.data.xp);
               }
-          })
-          .catch(() => {});
-      }
-    }, finalAt));
+            })
+            .catch(() => {});
+        }
+      }, finalAt),
+    );
 
     stepTimeoutsRef.current = timeouts;
   }, [scenario, haptic, isAuthenticated]);
@@ -135,11 +164,22 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
     setXpEarned(150);
   }, []);
 
+  // Interactive demo for E-commerce scenario
+  if (scenario.id === 'ecom') {
+    return <EcomDemo onBack={onBack} />;
+  }
+
   return (
     <div className="min-h-screen bg-th-bg relative overflow-hidden">
       {/* Ambient gradient matching scenario */}
       <div className="fixed inset-0 pointer-events-none z-0 opacity-30">
-        <div className={cn('absolute top-0 left-0 right-0 h-64 bg-gradient-to-b to-transparent', scenario.gradient)} style={{ opacity: 0.15 }} />
+        <div
+          className={cn(
+            'absolute top-0 left-0 right-0 h-64 bg-gradient-to-b to-transparent',
+            scenario.gradient,
+          )}
+          style={{ opacity: 0.15 }}
+        />
       </div>
 
       {/* Header */}
@@ -148,7 +188,10 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
           <motion.button
             type="button"
             whileTap={{ scale: 0.9 }}
-            onClick={() => { haptic.impact('light'); onBack(); }}
+            onClick={() => {
+              haptic.impact('light');
+              onBack();
+            }}
             className="w-9 h-9 rounded-xl glass flex items-center justify-center"
           >
             <ArrowLeft className="w-4 h-4 text-white/70" />
@@ -184,24 +227,43 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
             className="relative z-10 px-4 pb-8"
           >
             {/* Scenario hero */}
-            <div className={cn(
-              'rounded-3xl p-6 mt-2 relative overflow-hidden',
-              'bg-gradient-to-br', scenario.gradient
-            )}>
+            <div
+              className={cn(
+                'rounded-3xl p-6 mt-2 relative overflow-hidden',
+                'bg-gradient-to-br',
+                scenario.gradient,
+              )}
+            >
               <div className="absolute inset-0 opacity-20 noise" />
               <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-              <p className="text-white/90 text-sm leading-relaxed relative z-10">{scenario.description}</p>
+              <p className="text-white/90 text-sm leading-relaxed relative z-10">
+                {scenario.description}
+              </p>
 
               <div className="grid grid-cols-2 gap-3 mt-4 relative z-10">
                 {scenario.metrics.map((m) => (
-                  <div key={m.label} className="bg-black/20 rounded-2xl p-3 backdrop-blur-sm">
-                    <div className="font-bold text-white text-lg">{m.value}</div>
+                  <div
+                    key={m.label}
+                    className="bg-black/20 rounded-2xl p-3 backdrop-blur-sm"
+                  >
+                    <div className="font-bold text-white text-lg">
+                      {m.value}
+                    </div>
                     {m.delta && (
-                      <div className={cn('text-xs font-medium', m.trend === 'up' ? 'text-emerald-300' : 'text-rose-300')}>
+                      <div
+                        className={cn(
+                          'text-xs font-medium',
+                          m.trend === 'up'
+                            ? 'text-emerald-300'
+                            : 'text-rose-300',
+                        )}
+                      >
                         {m.trend === 'up' ? '↑' : '↓'} {m.delta}
                       </div>
                     )}
-                    <div className="text-white/50 text-[10px] mt-0.5">{m.label}</div>
+                    <div className="text-white/50 text-[10px] mt-0.5">
+                      {m.label}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -209,7 +271,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
 
             {/* Steps preview */}
             <div className="mt-6">
-              <p className="text-th/40 text-xs uppercase tracking-wider mb-3">Шаги сценария</p>
+              <p className="text-th/40 text-xs uppercase tracking-wider mb-3">
+                Шаги сценария
+              </p>
               <div className="space-y-2">
                 {scenario.steps.map((step, i) => {
                   const Icon = STEP_ICONS[step.type] ?? Bot;
@@ -221,19 +285,29 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                       transition={{ delay: i * 0.08 }}
                       className="glass rounded-2xl p-3 flex items-center gap-3"
                     >
-                      <div className={cn(
-                        'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
-                        'bg-gradient-to-br', scenario.gradient, 'opacity-80'
-                      )}>
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
+                          'bg-gradient-to-br',
+                          scenario.gradient,
+                          'opacity-80',
+                        )}
+                      >
                         <Icon className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-th truncate">{step.title}</p>
-                        <p className="text-xs text-th/40 truncate">{step.description}</p>
+                        <p className="text-sm font-medium text-th truncate">
+                          {step.title}
+                        </p>
+                        <p className="text-xs text-th/40 truncate">
+                          {step.description}
+                        </p>
                       </div>
                       <div className="flex items-center gap-1 text-th/20">
                         <Clock className="w-3 h-3" />
-                        <span className="text-[10px]">{(step.durationMs / 1000).toFixed(1)}s</span>
+                        <span className="text-[10px]">
+                          {(step.durationMs / 1000).toFixed(1)}s
+                        </span>
                       </div>
                     </motion.div>
                   );
@@ -251,8 +325,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
               onClick={handleStart}
               className={cn(
                 'w-full mt-6 py-4 rounded-2xl font-bold text-white text-base',
-                'bg-gradient-to-r', scenario.gradient,
-                'shadow-lg relative overflow-hidden group'
+                'bg-gradient-to-r',
+                scenario.gradient,
+                'shadow-lg relative overflow-hidden group',
               )}
             >
               <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors" />
@@ -276,9 +351,14 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
             {/* Progress bar */}
             <div className="h-1 bg-th-border/5 rounded-full mx-0 mb-6 overflow-hidden">
               <motion.div
-                className={cn('h-full rounded-full bg-gradient-to-r', scenario.gradient)}
+                className={cn(
+                  'h-full rounded-full bg-gradient-to-r',
+                  scenario.gradient,
+                )}
                 initial={{ width: '0%' }}
-                animate={{ width: `${(completedSteps.size / scenario.steps.length) * 100}%` }}
+                animate={{
+                  width: `${(completedSteps.size / scenario.steps.length) * 100}%`,
+                }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
               />
             </div>
@@ -303,33 +383,49 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                       isActive && 'border-th-border/20 shadow-glow-sm',
                       isPending && 'glass border-th-border/[0.05]',
                     )}
-                    style={isActive ? {
-                      background: 'rgba(255,255,255,0.06)',
-                      borderColor: 'rgba(255,255,255,0.15)',
-                    } : {}}
+                    style={
+                      isActive
+                        ? {
+                            background: 'rgba(255,255,255,0.06)',
+                            borderColor: 'rgba(255,255,255,0.15)',
+                          }
+                        : {}
+                    }
                   >
                     {/* Active glow */}
                     {isActive && (
                       <motion.div
-                        className={cn('absolute inset-0 opacity-20 bg-gradient-to-r to-transparent', scenario.gradient)}
+                        className={cn(
+                          'absolute inset-0 opacity-20 bg-gradient-to-r to-transparent',
+                          scenario.gradient,
+                        )}
                         animate={{ opacity: [0.1, 0.2, 0.1] }}
-                        transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Number.POSITIVE_INFINITY,
+                        }}
                       />
                     )}
 
                     <div className="relative flex items-center gap-4">
-                      <div className={cn(
-                        'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300',
-                        isDone && 'bg-emerald-500/20',
-                        isActive && `bg-gradient-to-br ${scenario.gradient}`,
-                        isPending && 'bg-th-border/5',
-                      )}>
+                      <div
+                        className={cn(
+                          'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300',
+                          isDone && 'bg-emerald-500/20',
+                          isActive && `bg-gradient-to-br ${scenario.gradient}`,
+                          isPending && 'bg-th-border/5',
+                        )}
+                      >
                         {isDone ? (
                           <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                         ) : isActive ? (
                           <motion.div
                             animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }}
+                            transition={{
+                              duration: 1,
+                              repeat: Number.POSITIVE_INFINITY,
+                              ease: 'linear',
+                            }}
                           >
                             <Icon className="w-5 h-5 text-white" />
                           </motion.div>
@@ -339,20 +435,24 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                       </div>
 
                       <div className="flex-1">
-                        <p className={cn(
-                          'font-semibold text-sm',
-                          isDone && 'text-th/70',
-                          isActive && 'text-th',
-                          isPending && 'text-th/30',
-                        )}>
+                        <p
+                          className={cn(
+                            'font-semibold text-sm',
+                            isDone && 'text-th/70',
+                            isActive && 'text-th',
+                            isPending && 'text-th/30',
+                          )}
+                        >
                           {step.title}
                         </p>
-                        <p className={cn(
-                          'text-xs mt-0.5',
-                          isDone && 'text-th/40',
-                          isActive && 'text-th/60',
-                          isPending && 'text-th/20',
-                        )}>
+                        <p
+                          className={cn(
+                            'text-xs mt-0.5',
+                            isDone && 'text-th/40',
+                            isActive && 'text-th/60',
+                            isPending && 'text-th/20',
+                          )}
+                        >
                           {step.description}
                         </p>
                       </div>
@@ -372,10 +472,16 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                     {isActive && (
                       <motion.div className="mt-3 h-0.5 bg-th-border/10 rounded-full overflow-hidden">
                         <motion.div
-                          className={cn('h-full rounded-full bg-gradient-to-r', scenario.gradient)}
+                          className={cn(
+                            'h-full rounded-full bg-gradient-to-r',
+                            scenario.gradient,
+                          )}
                           initial={{ width: '0%' }}
                           animate={{ width: '100%' }}
-                          transition={{ duration: step.durationMs / 1000, ease: 'linear' }}
+                          transition={{
+                            duration: step.durationMs / 1000,
+                            ease: 'linear',
+                          }}
                         />
                       </motion.div>
                     )}
@@ -402,7 +508,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                 transition={{ type: 'spring', stiffness: 260, damping: 20 }}
                 className={cn(
                   'w-24 h-24 mx-auto rounded-3xl flex items-center justify-center text-4xl',
-                  'bg-gradient-to-br', scenario.gradient, 'shadow-glow'
+                  'bg-gradient-to-br',
+                  scenario.gradient,
+                  'shadow-glow',
                 )}
               >
                 {scenario.icon}
@@ -413,10 +521,14 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <h2 className="text-2xl font-bold text-th mt-4">Сценарий завершён!</h2>
+                <h2 className="text-2xl font-bold text-th mt-4">
+                  Сценарий завершён!
+                </h2>
                 <p className="text-th/50 text-sm mt-1">
                   Время: {(elapsed / 1000).toFixed(1)} сек •{' '}
-                  <span className="text-emerald-400">{scenario.steps.length} шагов</span>
+                  <span className="text-emerald-400">
+                    {scenario.steps.length} шагов
+                  </span>
                 </p>
               </motion.div>
             </div>
@@ -434,7 +546,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                     <Zap className="w-5 h-5 text-amber-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-th">XP заработано</p>
+                    <p className="text-sm font-semibold text-th">
+                      XP заработано
+                    </p>
                     <p className="text-xs text-th/40">За завершение сценария</p>
                   </div>
                 </div>
@@ -451,7 +565,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
               transition={{ delay: 0.5 }}
               className="mb-4"
             >
-              <p className="text-th/40 text-xs uppercase tracking-wider mb-3">Результаты кейса</p>
+              <p className="text-th/40 text-xs uppercase tracking-wider mb-3">
+                Результаты кейса
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 {scenario.metrics.map((m, i) => (
                   <motion.div
@@ -463,9 +579,13 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                   >
                     <div className="font-bold text-th text-base">{m.value}</div>
                     {m.delta && (
-                      <div className="text-xs text-emerald-400">{m.trend === 'up' ? '↑' : '↓'} {m.delta}</div>
+                      <div className="text-xs text-emerald-400">
+                        {m.trend === 'up' ? '↑' : '↓'} {m.delta}
+                      </div>
                     )}
-                    <div className="text-th/40 text-[10px] mt-0.5">{m.label}</div>
+                    <div className="text-th/40 text-[10px] mt-0.5">
+                      {m.label}
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -490,7 +610,8 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
                 onClick={onBack}
                 className={cn(
                   'w-full py-3.5 rounded-2xl font-bold text-white text-sm',
-                  'bg-gradient-to-r', scenario.gradient
+                  'bg-gradient-to-r',
+                  scenario.gradient,
                 )}
               >
                 Другие кейсы →
