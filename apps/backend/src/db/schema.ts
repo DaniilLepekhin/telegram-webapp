@@ -66,6 +66,7 @@ export const scenarioIdEnum = pgEnum('scenario_id', [
   'education',
   'support',
   'funnel',
+  'game',
 ]);
 export const achievementRarityEnum = pgEnum('achievement_rarity', [
   'common',
