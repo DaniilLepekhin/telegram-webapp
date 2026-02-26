@@ -382,4 +382,66 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       },
     ],
   },
+  {
+    id: 'game',
+    title: 'Gaming & Gamification',
+    subtitle: 'Игры в Telegram',
+    description:
+      'Встроенные мини-игры для удержания аудитории, вирального роста и монетизации через внутриигровые покупки и рекламу.',
+    icon: '🎮',
+    gradient: 'from-green-500 via-emerald-500 to-teal-600',
+    tags: ['games', 'retention', 'viral', 'monetization'],
+    metrics: [
+      { label: 'DAU', value: '18 400', delta: '+4 200', trend: 'up' },
+      { label: 'Retention D7', value: '42%', delta: '+18%', trend: 'up' },
+      { label: 'Avg. session', value: '8.3 мин', delta: '+3.1', trend: 'up' },
+      { label: 'Виральность K', value: '1.4', delta: '+0.3', trend: 'up' },
+    ],
+    steps: [
+      {
+        id: 'launch',
+        title: 'Запуск игры',
+        description:
+          'Пользователь нажимает Play — WebApp открывается мгновенно',
+        type: 'webapp',
+        durationMs: 600,
+      },
+      {
+        id: 'gameplay',
+        title: 'Геймплей',
+        description: 'Интерактивная игра с тач-управлением и haptic-фидбеком',
+        type: 'webapp',
+        durationMs: 2000,
+      },
+      {
+        id: 'leaderboard',
+        title: 'Таблица лидеров',
+        description:
+          'Глобальный и среди друзей рейтинг с обновлением в реальном времени',
+        type: 'webapp',
+        durationMs: 800,
+      },
+      {
+        id: 'share',
+        title: 'Вирал-шаринг',
+        description: 'Кнопка "Бросить вызов другу" с deep-link на бота',
+        type: 'bot',
+        durationMs: 600,
+      },
+      {
+        id: 'monetize',
+        title: 'Монетизация',
+        description: 'Telegram Stars за бонусы, жизни и кастомизацию',
+        type: 'payment',
+        durationMs: 1000,
+      },
+      {
+        id: 'analytics',
+        title: 'Игровая аналитика',
+        description: 'Retention, session length, LTV, churn prediction',
+        type: 'analytics',
+        durationMs: 800,
+      },
+    ],
+  },
 ];

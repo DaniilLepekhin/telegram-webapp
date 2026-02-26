@@ -20,6 +20,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import CountUp from 'react-countup';
 import { EcomDemo } from '../demos/ecommerce';
+import { TetrisDemo } from '../demos/tetris';
 
 interface ScenarioRunnerProps {
   scenario: DemoScenario;
@@ -164,10 +165,9 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
     setXpEarned(150);
   }, []);
 
-  // Interactive demo for E-commerce scenario
-  if (scenario.id === 'ecom') {
-    return <EcomDemo onBack={onBack} />;
-  }
+  // Interactive demos
+  if (scenario.id === 'ecom') return <EcomDemo onBack={onBack} />;
+  if (scenario.id === 'game') return <TetrisDemo onBack={onBack} />;
 
   return (
     <div className="min-h-screen bg-th-bg relative overflow-hidden">

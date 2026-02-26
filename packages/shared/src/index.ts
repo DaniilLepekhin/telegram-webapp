@@ -55,7 +55,14 @@ export interface User {
 }
 
 // Demo Scenario types
-export type ScenarioId = 'ecom' | 'club' | 'service' | 'education' | 'support' | 'funnel';
+export type ScenarioId =
+  | 'ecom'
+  | 'club'
+  | 'service'
+  | 'education'
+  | 'support'
+  | 'funnel'
+  | 'game';
 
 export interface DemoScenario {
   id: ScenarioId;
@@ -175,7 +182,12 @@ export interface XpEvent {
 
 // Subscription types
 export type SubscriptionPlan = 'free' | 'pro' | 'enterprise';
-export type SubscriptionStatus = 'active' | 'trial' | 'past_due' | 'cancelled' | 'expired';
+export type SubscriptionStatus =
+  | 'active'
+  | 'trial'
+  | 'past_due'
+  | 'cancelled'
+  | 'expired';
 
 export interface Subscription {
   id: string;
@@ -237,9 +249,17 @@ export const LEVEL_THRESHOLDS = [
 ] as const;
 
 export const LEVEL_NAMES = [
-  'Новичок', 'Стартапер', 'Энтузиаст', 'Практик',
-  'Эксперт', 'Мастер', 'Архитектор', 'Визионер',
-  'Легенда', 'Создатель', 'Гуру',
+  'Новичок',
+  'Стартапер',
+  'Энтузиаст',
+  'Практик',
+  'Эксперт',
+  'Мастер',
+  'Архитектор',
+  'Визионер',
+  'Легенда',
+  'Создатель',
+  'Гуру',
 ] as const;
 
 export function getLevelFromXp(xp: number): number {
