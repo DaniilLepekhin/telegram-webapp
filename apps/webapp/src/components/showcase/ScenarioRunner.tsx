@@ -4,6 +4,7 @@ import { useTelegram } from '@/hooks/useTelegram';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth';
+import { useUIStore } from '@/store/ui';
 import type { DemoScenario } from '@showcase/shared';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -26,6 +27,16 @@ import { FunnelDemo } from '../demos/funnel';
 import { ServiceDemo } from '../demos/service';
 import { SupportDemo } from '../demos/support';
 import { TetrisDemo } from '../demos/tetris';
+
+/** Hides the showcase BottomNav while any full-screen demo is mounted. */
+function DemoShell({ children }: { children: React.ReactNode }) {
+  const setHideBottomNav = useUIStore((s) => s.setHideBottomNav);
+  useEffect(() => {
+    setHideBottomNav(true);
+    return () => setHideBottomNav(false);
+  }, [setHideBottomNav]);
+  return <>{children}</>;
+}
 
 interface ScenarioRunnerProps {
   scenario: DemoScenario;
@@ -170,14 +181,49 @@ export function ScenarioRunner({ scenario, onBack }: ScenarioRunnerProps) {
     setXpEarned(150);
   }, []);
 
-  // Interactive demos
-  if (scenario.id === 'ecom') return <EcomDemo onBack={onBack} />;
-  if (scenario.id === 'game') return <TetrisDemo onBack={onBack} />;
-  if (scenario.id === 'club') return <ClubDemo onBack={onBack} />;
-  if (scenario.id === 'service') return <ServiceDemo onBack={onBack} />;
-  if (scenario.id === 'education') return <EducationDemo onBack={onBack} />;
-  if (scenario.id === 'support') return <SupportDemo onBack={onBack} />;
-  if (scenario.id === 'funnel') return <FunnelDemo onBack={onBack} />;
+  // Interactive demos — DemoShell hides the showcase BottomNav while active
+  if (scenario.id === 'ecom')
+    return (
+      <DemoShell>
+        <EcomDemo onBack={onBack} />
+      </DemoShell>
+    );
+  if (scenario.id === 'game')
+    return (
+      <DemoShell>
+        <TetrisDemo onBack={onBack} />
+      </DemoShell>
+    );
+  if (scenario.id === 'club')
+    return (
+      <DemoShell>
+        <ClubDemo onBack={onBack} />
+      </DemoShell>
+    );
+  if (scenario.id === 'service')
+    return (
+      <DemoShell>
+        <ServiceDemo onBack={onBack} />
+      </DemoShell>
+    );
+  if (scenario.id === 'education')
+    return (
+      <DemoShell>
+        <EducationDemo onBack={onBack} />
+      </DemoShell>
+    );
+  if (scenario.id === 'support')
+    return (
+      <DemoShell>
+        <SupportDemo onBack={onBack} />
+      </DemoShell>
+    );
+  if (scenario.id === 'funnel')
+    return (
+      <DemoShell>
+        <FunnelDemo onBack={onBack} />
+      </DemoShell>
+    );
 
   return (
     <div className="min-h-screen bg-th-bg relative overflow-hidden">

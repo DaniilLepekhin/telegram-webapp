@@ -3,6 +3,7 @@
 import { useTelegram } from '@/hooks/useTelegram';
 import { cn } from '@/lib/utils';
 import { useThemeStore } from '@/store/theme';
+import { useUIStore } from '@/store/ui';
 import { motion } from 'framer-motion';
 import {
   BarChart2,
@@ -31,7 +32,10 @@ export function BottomNav() {
   const { haptic, isFullscreen, requestFullscreen, exitFullscreen, tg } =
     useTelegram();
   const { theme, toggleTheme } = useThemeStore();
+  const hideBottomNav = useUIStore((s) => s.hideBottomNav);
   const canFullscreen = tg?.isVersionAtLeast('8.0') ?? false;
+
+  if (hideBottomNav) return null;
 
   return (
     <nav
