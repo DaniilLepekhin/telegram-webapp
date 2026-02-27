@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
+import { MainWrapper } from '@/components/layout/MainWrapper';
 import { Providers } from '@/components/layout/Providers';
 import { TelegramInit } from '@/components/layout/TelegramInit';
 
@@ -40,7 +41,7 @@ export default function RootLayout({
         <Providers>
           <ErrorBoundary>
             <TelegramInit />
-            <main className="pb-28 relative z-10">{children}</main>
+            <MainWrapper>{children}</MainWrapper>
           </ErrorBoundary>
           <BottomNav />
         </Providers>
