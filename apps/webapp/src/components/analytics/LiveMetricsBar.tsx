@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { LiveEvent } from '@showcase/shared';
 import { useAuthStore } from '@/store/auth';
+import type { LiveEvent } from '@showcase/shared';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3100';
 
@@ -20,7 +20,9 @@ export function LiveMetricsBar() {
     if (unmountedRef.current) return;
 
     // Pass the JWT as a query param because EventSource cannot set headers.
-    const es = new EventSource(`${API_BASE}/api/v1/analytics/live?token=${encodeURIComponent(token)}`);
+    const es = new EventSource(
+      `${API_BASE}/api/v1/analytics/live?token=${encodeURIComponent(token)}`,
+    );
     esRef.current = es;
 
     es.onmessage = (e) => {
@@ -91,7 +93,9 @@ export function LiveMetricsBar() {
           {/* Live indicator */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <div className="w-1.5 h-1.5 bg-neon-mint rounded-full animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.5)]" />
-            <span className="text-[10px] text-neon-mint/60 uppercase tracking-wider font-medium">Live</span>
+            <span className="text-[10px] text-neon-mint/60 uppercase tracking-wider font-medium">
+              Live
+            </span>
           </div>
 
           <div className="w-px h-3 bg-th/10" />
@@ -109,7 +113,11 @@ export function LiveMetricsBar() {
 
           {/* Timestamp */}
           <span className="text-[10px] text-th/20 flex-shrink-0 font-mono">
-            {new Date(current.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {new Date(current.timestamp).toLocaleTimeString('ru-RU', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            })}
           </span>
         </motion.div>
       </AnimatePresence>

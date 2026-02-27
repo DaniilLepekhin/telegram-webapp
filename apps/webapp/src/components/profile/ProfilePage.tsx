@@ -1,16 +1,26 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LogOut, Crown, Users, Zap, Copy, Check, Activity, Star, Shield } from 'lucide-react';
+import { useTelegram } from '@/hooks/useTelegram';
+import { api } from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/auth';
+import { LEVEL_NAMES, getLevelFromXp } from '@showcase/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  Activity,
+  Check,
+  Copy,
+  Crown,
+  LogOut,
+  Shield,
+  Star,
+  Users,
+  Zap,
+} from 'lucide-react';
+import { useState } from 'react';
 import CountUp from 'react-countup';
 import { useInView } from 'react-intersection-observer';
-import { useState } from 'react';
 import { toast } from 'sonner';
-import { api } from '@/lib/api';
-import { useAuthStore } from '@/store/auth';
-import { useTelegram } from '@/hooks/useTelegram';
-import { LEVEL_NAMES, getLevelFromXp } from '@showcase/shared';
-import { cn } from '@/lib/utils';
 
 interface UserProfile {
   id: string;
@@ -63,25 +73,37 @@ export function ProfilePage() {
 
   const { data: profile } = useQuery({
     queryKey: ['profile-me'],
-    queryFn: async () => { const r = await api.getMe(); return r.data as UserProfile; },
+    queryFn: async () => {
+      const r = await api.getMe();
+      return r.data as UserProfile;
+    },
     enabled,
   });
 
   const { data: referralData } = useQuery({
     queryKey: ['referrals'],
-    queryFn: async () => { const r = await api.getReferrals(); return r.data as ReferralData; },
+    queryFn: async () => {
+      const r = await api.getReferrals();
+      return r.data as ReferralData;
+    },
     enabled,
   });
 
   const { data: subStatus } = useQuery({
     queryKey: ['subscription-status'],
-    queryFn: async () => { const r = await api.getSubscriptionStatus(); return r.data as SubscriptionStatus; },
+    queryFn: async () => {
+      const r = await api.getSubscriptionStatus();
+      return r.data as SubscriptionStatus;
+    },
     enabled,
   });
 
   const { data: plans } = useQuery({
     queryKey: ['plans'],
-    queryFn: async () => { const r = await api.getPlans(); return r.data as Plan[]; },
+    queryFn: async () => {
+      const r = await api.getPlans();
+      return r.data as Plan[];
+    },
     enabled: isAuthReady,
   });
 
@@ -128,68 +150,112 @@ export function ProfilePage() {
         <div className="px-4 mb-4">
           <div className="holo-card p-5">
             <div className="relative z-10">
-
-            <div className="flex items-center gap-4">
-              <div className="relative flex-shrink-0">
-                <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 via-neon-violet to-neon-cyan p-[2px]">
-                  <div className="w-full h-full rounded-[22px] bg-th-raised flex items-center justify-center text-2xl font-bold text-th overflow-hidden">
-                    {tgUser?.photo_url
-                      ? <img src={tgUser.photo_url} alt="" className="w-full h-full rounded-[22px] object-cover" />
-                      : <span className="gradient-text">{profile?.firstName?.[0] ?? tgUser?.first_name?.[0] ?? '?'}</span>
-                    }
+              <div className="flex items-center gap-4">
+                <div className="relative flex-shrink-0">
+                  <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-500 via-neon-violet to-neon-cyan p-[2px]">
+                    <div className="w-full h-full rounded-[22px] bg-th-raised flex items-center justify-center text-2xl font-bold text-th overflow-hidden">
+                      {tgUser?.photo_url ? (
+                        <img
+                          src={tgUser.photo_url}
+                          alt=""
+                          className="w-full h-full rounded-[22px] object-cover"
+                        />
+                      ) : (
+                        <span className="gradient-text">
+                          {profile?.firstName?.[0] ??
+                            tgUser?.first_name?.[0] ??
+                            '?'}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {isPro && (
-                  <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                    <Crown className="w-3.5 h-3.5 text-th-invert" />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-th text-lg truncate">
-                  {profile?.firstName ?? tgUser?.first_name ?? 'Пользователь'}{' '}
-                  {profile?.lastName ?? tgUser?.last_name ?? ''}
-                </p>
-                {(profile?.username ?? tgUser?.username) && (
-                  <p className="text-th/40 text-sm">@{profile?.username ?? tgUser?.username}</p>
-                )}
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className={cn('badge text-xs', isPro ? 'badge-primary' : '')}>
-                    {isPro ? 'Pro' : `Ур. ${level} • ${levelName}`}
-                  </span>
-                  {tgUser?.is_premium && <span className="badge text-xs">Telegram Premium</span>}
-                  {profile?.role === 'admin' && (
-                    <span className="badge text-xs flex items-center gap-1">
-                      <Shield className="w-3 h-3" />Admin
-                    </span>
+                  {isPro && (
+                    <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                      <Crown className="w-3.5 h-3.5 text-th-invert" />
+                    </div>
                   )}
                 </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-th text-lg truncate">
+                    {profile?.firstName ?? tgUser?.first_name ?? 'Пользователь'}{' '}
+                    {profile?.lastName ?? tgUser?.last_name ?? ''}
+                  </p>
+                  {(profile?.username ?? tgUser?.username) && (
+                    <p className="text-th/40 text-sm">
+                      @{profile?.username ?? tgUser?.username}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span
+                      className={cn(
+                        'badge text-xs',
+                        isPro ? 'badge-primary' : '',
+                      )}
+                    >
+                      {isPro ? 'Pro' : `Ур. ${level} • ${levelName}`}
+                    </span>
+                    {tgUser?.is_premium && (
+                      <span className="badge text-xs">Telegram Premium</span>
+                    )}
+                    {profile?.role === 'admin' && (
+                      <span className="badge text-xs flex items-center gap-1">
+                        <Shield className="w-3 h-3" />
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div
+                ref={ref}
+                className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-th-border/5"
+              >
+                {[
+                  {
+                    label: 'XP',
+                    value: profile?.xp ?? 0,
+                    color: 'text-neon-amber',
+                    icon: Zap,
+                  },
+                  {
+                    label: 'Стрик',
+                    value: profile?.streak ?? 0,
+                    color: 'text-neon-rose',
+                    suffix: 'дн',
+                    icon: Star,
+                  },
+                  {
+                    label: 'Энергия',
+                    value: profile?.energyBalance ?? 0,
+                    color: 'text-neon-cyan',
+                    icon: Zap,
+                  },
+                ].map((s) => {
+                  const Icon = s.icon;
+                  return (
+                    <div key={s.label} className="text-center">
+                      <div className={cn('text-xl font-bold', s.color)}>
+                        {inView ? (
+                          <CountUp end={s.value} duration={1.2} separator=" " />
+                        ) : (
+                          0
+                        )}
+                        {s.suffix && (
+                          <span className="text-sm ml-0.5">{s.suffix}</span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-th/30 mt-0.5 flex items-center justify-center gap-1">
+                        <Icon className="w-3 h-3" />
+                        {s.label}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-
-            {/* Stats */}
-            <div ref={ref} className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-th-border/5">
-              {[
-                { label: 'XP', value: profile?.xp ?? 0, color: 'text-neon-amber', icon: Zap },
-                { label: 'Стрик', value: profile?.streak ?? 0, color: 'text-neon-rose', suffix: 'дн', icon: Star },
-                { label: 'Энергия', value: profile?.energyBalance ?? 0, color: 'text-neon-cyan', icon: Zap },
-              ].map((s) => {
-                const Icon = s.icon;
-                return (
-                  <div key={s.label} className="text-center">
-                    <div className={cn('text-xl font-bold', s.color)}>
-                      {inView ? <CountUp end={s.value} duration={1.2} separator=" " /> : 0}
-                      {s.suffix && <span className="text-sm ml-0.5">{s.suffix}</span>}
-                    </div>
-                    <p className="text-[10px] text-th/30 mt-0.5 flex items-center justify-center gap-1">
-                      <Icon className="w-3 h-3" />{s.label}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
           </div>
         </div>
 
@@ -205,10 +271,16 @@ export function ProfilePage() {
                   <p className="font-bold text-th">Showcase Pro</p>
                   <p className="text-xs text-th/40">
                     {subStatus?.status === 'trial' ? 'Trial' : 'Активна'} до{' '}
-                    {subStatus?.expiresAt ? new Date(subStatus.expiresAt).toLocaleDateString('ru-RU') : '—'}
+                    {subStatus?.expiresAt
+                      ? new Date(subStatus.expiresAt).toLocaleDateString(
+                          'ru-RU',
+                        )
+                      : '—'}
                   </p>
                 </div>
-                <span className="badge badge-success">{subStatus?.status === 'trial' ? 'Trial' : 'Pro'}</span>
+                <span className="badge badge-success">
+                  {subStatus?.status === 'trial' ? 'Trial' : 'Pro'}
+                </span>
               </div>
             </div>
           ) : (
@@ -219,11 +291,14 @@ export function ProfilePage() {
                   <div>
                     <p className="font-bold text-th">Showcase Pro</p>
                     <p className="text-xs text-th/50 mt-0.5">
-                      {proPlan?.features?.slice(0, 2).join(' · ') ?? 'Неограниченные ссылки, A/B тесты'}
+                      {proPlan?.features?.slice(0, 2).join(' · ') ??
+                        'Неограниченные ссылки, A/B тесты'}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-th">₽{(proPlan?.price ?? 2990).toLocaleString('ru-RU')}</p>
+                    <p className="font-bold text-th">
+                      ₽{(proPlan?.price ?? 2990).toLocaleString('ru-RU')}
+                    </p>
                     <p className="text-[10px] text-th/30">/мес</p>
                   </div>
                 </div>
@@ -233,7 +308,9 @@ export function ProfilePage() {
                   disabled={startTrialMutation.isPending}
                   className="w-full mt-3 btn-glow py-3 text-sm disabled:opacity-50 active:scale-[0.97]"
                 >
-                  {startTrialMutation.isPending ? 'Активация...' : `Попробовать ${proPlan?.trialDays ?? 7} дней бесплатно`}
+                  {startTrialMutation.isPending
+                    ? 'Активация...'
+                    : `Попробовать ${proPlan?.trialDays ?? 7} дней бесплатно`}
                 </button>
               </div>
             </div>
@@ -249,9 +326,12 @@ export function ProfilePage() {
                   <Users className="w-4 h-4 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-th text-sm">Реферальная программа</p>
+                  <p className="font-semibold text-th text-sm">
+                    Реферальная программа
+                  </p>
                   <p className="text-xs text-th/40">
-                    Приглашено: {referralData.totalReferrals} • +{referralData.totalXpEarned} XP
+                    Приглашено: {referralData.totalReferrals} • +
+                    {referralData.totalXpEarned} XP
                   </p>
                 </div>
               </div>
@@ -264,7 +344,11 @@ export function ProfilePage() {
                   onClick={handleCopyReferral}
                   className="w-9 h-9 glass rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-th-border/10 transition-colors"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-th/50" />}
+                  {copied ? (
+                    <Check className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-4 h-4 text-th/50" />
+                  )}
                 </button>
               </div>
             </div>
@@ -281,7 +365,10 @@ export function ProfilePage() {
               {[
                 { label: 'ID', value: profile?.id?.slice(0, 8) ?? '—' },
                 { label: 'Telegram ID', value: String(tgUser?.id ?? '—') },
-                { label: 'Лучший стрик', value: `${profile?.longestStreak ?? 0} дней` },
+                {
+                  label: 'Лучший стрик',
+                  value: `${profile?.longestStreak ?? 0} дней`,
+                },
                 { label: 'Реф. код', value: profile?.referralCode ?? '—' },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between">

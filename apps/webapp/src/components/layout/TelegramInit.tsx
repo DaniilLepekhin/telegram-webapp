@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useThemeStore } from '@/store/theme';
+import { useEffect } from 'react';
 
 export function TelegramInit() {
   const setTheme = useThemeStore((s) => s.setTheme);
@@ -31,16 +31,29 @@ export function TelegramInit() {
       const theme = tg.themeParams;
       const root = document.documentElement;
       if (theme.bg_color) root.style.setProperty('--tg-bg', theme.bg_color);
-      if (theme.secondary_bg_color) root.style.setProperty('--tg-secondary-bg', theme.secondary_bg_color);
-      if (theme.text_color) root.style.setProperty('--tg-text', theme.text_color);
-      if (theme.hint_color) root.style.setProperty('--tg-hint', theme.hint_color);
-      if (theme.link_color) root.style.setProperty('--tg-link', theme.link_color);
-      if (theme.button_color) root.style.setProperty('--tg-button', theme.button_color);
-      if (theme.button_text_color) root.style.setProperty('--tg-button-text', theme.button_text_color);
-      if (theme.header_bg_color) root.style.setProperty('--tg-header-bg', theme.header_bg_color);
-      if (theme.bottom_bar_bg_color) root.style.setProperty('--tg-bottom-bar-bg', theme.bottom_bar_bg_color);
-      if (theme.accent_text_color) root.style.setProperty('--tg-accent', theme.accent_text_color);
-      if (theme.destructive_text_color) root.style.setProperty('--tg-destructive', theme.destructive_text_color);
+      if (theme.secondary_bg_color)
+        root.style.setProperty('--tg-secondary-bg', theme.secondary_bg_color);
+      if (theme.text_color)
+        root.style.setProperty('--tg-text', theme.text_color);
+      if (theme.hint_color)
+        root.style.setProperty('--tg-hint', theme.hint_color);
+      if (theme.link_color)
+        root.style.setProperty('--tg-link', theme.link_color);
+      if (theme.button_color)
+        root.style.setProperty('--tg-button', theme.button_color);
+      if (theme.button_text_color)
+        root.style.setProperty('--tg-button-text', theme.button_text_color);
+      if (theme.header_bg_color)
+        root.style.setProperty('--tg-header-bg', theme.header_bg_color);
+      if (theme.bottom_bar_bg_color)
+        root.style.setProperty('--tg-bottom-bar-bg', theme.bottom_bar_bg_color);
+      if (theme.accent_text_color)
+        root.style.setProperty('--tg-accent', theme.accent_text_color);
+      if (theme.destructive_text_color)
+        root.style.setProperty(
+          '--tg-destructive',
+          theme.destructive_text_color,
+        );
     };
 
     // Apply safe area insets to CSS variables (Bot API 8.0+)
@@ -56,9 +69,15 @@ export function TelegramInit() {
       }
       if (csa) {
         root.style.setProperty('--tg-content-safe-area-top', `${csa.top}px`);
-        root.style.setProperty('--tg-content-safe-area-bottom', `${csa.bottom}px`);
+        root.style.setProperty(
+          '--tg-content-safe-area-bottom',
+          `${csa.bottom}px`,
+        );
         root.style.setProperty('--tg-content-safe-area-left', `${csa.left}px`);
-        root.style.setProperty('--tg-content-safe-area-right', `${csa.right}px`);
+        root.style.setProperty(
+          '--tg-content-safe-area-right',
+          `${csa.right}px`,
+        );
       }
     };
 

@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@showcase/shared';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 // Imported lazily to avoid circular deps — api imports store, store imports api
 // We call api.setToken via dynamic import only in onRehydrateStorage
@@ -51,7 +51,14 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user, token) => {
         // Update api token synchronously, mark fresh auth for this session
         _apiSetToken?.(token);
-        set({ user, accessToken: token, isAuthenticated: true, isLoading: false, isAuthReady: true, isFreshAuth: true });
+        set({
+          user,
+          accessToken: token,
+          isAuthenticated: true,
+          isLoading: false,
+          isAuthReady: true,
+          isFreshAuth: true,
+        });
       },
       setAccessToken: (token) => {
         _apiSetToken?.(token);
@@ -59,7 +66,15 @@ export const useAuthStore = create<AuthState>()(
       },
       clearAuth: () => {
         _apiSetToken?.(null);
-        set({ user: null, accessToken: null, isAuthenticated: false, isLoading: false, streakUpdated: false, isAuthReady: true, isFreshAuth: false });
+        set({
+          user: null,
+          accessToken: null,
+          isAuthenticated: false,
+          isLoading: false,
+          streakUpdated: false,
+          isAuthReady: true,
+          isFreshAuth: false,
+        });
       },
       setLoading: (loading) => set({ isLoading: loading }),
       setAuthReady: () => set({ isAuthReady: true }),
@@ -73,7 +88,10 @@ export const useAuthStore = create<AuthState>()(
       // firing with a stale/expired token before re-auth completes.
       // user PII (name, username, photoUrl) is NOT persisted to sessionStorage
       // to reduce XSS exposure — it is re-populated on every auth via setUser().
-      partialize: (s) => ({ accessToken: s.accessToken, isAuthenticated: s.isAuthenticated }),
+      partialize: (s) => ({
+        accessToken: s.accessToken,
+        isAuthenticated: s.isAuthenticated,
+      }),
       onRehydrateStorage: () => (state) => {
         // Runs synchronously during store hydration — set api token BEFORE any React renders.
         // We still set the token so it's available if the token is still fresh enough,

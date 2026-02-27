@@ -1,9 +1,16 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
-import { Zap, Link2, BarChart3, Trophy, ChevronRight, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  BarChart3,
+  CheckCircle,
+  ChevronRight,
+  Link2,
+  Trophy,
+  Zap,
+} from 'lucide-react';
+import { useState } from 'react';
 
 interface OnboardingScreenProps {
   userName: string;
@@ -16,7 +23,8 @@ const SLIDES = [
     gradient: 'from-violet-600 to-indigo-600',
     title: 'Добро пожаловать!',
     subtitle: 'Showcase Platform',
-    description: 'Интерактивная платформа для демонстрации возможностей Telegram-ботов. Запускай сценарии, отслеживай метрики, прокачивайся.',
+    description:
+      'Интерактивная платформа для демонстрации возможностей Telegram-ботов. Запускай сценарии, отслеживай метрики, прокачивайся.',
     features: null,
   },
   {
@@ -26,10 +34,34 @@ const SLIDES = [
     subtitle: 'Весь функционал',
     description: null,
     features: [
-      { icon: Zap, label: 'Demo-сценарии', desc: '6 боевых кейсов с реальными метриками', color: 'text-amber-400', bg: 'bg-amber-500/10' },
-      { icon: Link2, label: 'Трекинг-ссылки', desc: 'UTM, A/B тесты, QR-коды, GeoIP', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-      { icon: BarChart3, label: 'Аналитика', desc: 'Live-метрики, дашборд, события', color: 'text-violet-400', bg: 'bg-violet-500/10' },
-      { icon: Trophy, label: 'Геймификация', desc: 'XP, уровни, стрики, достижения', color: 'text-amber-400', bg: 'bg-amber-500/10' },
+      {
+        icon: Zap,
+        label: 'Demo-сценарии',
+        desc: '6 боевых кейсов с реальными метриками',
+        color: 'text-amber-400',
+        bg: 'bg-amber-500/10',
+      },
+      {
+        icon: Link2,
+        label: 'Трекинг-ссылки',
+        desc: 'UTM, A/B тесты, QR-коды, GeoIP',
+        color: 'text-cyan-400',
+        bg: 'bg-cyan-500/10',
+      },
+      {
+        icon: BarChart3,
+        label: 'Аналитика',
+        desc: 'Live-метрики, дашборд, события',
+        color: 'text-violet-400',
+        bg: 'bg-violet-500/10',
+      },
+      {
+        icon: Trophy,
+        label: 'Геймификация',
+        desc: 'XP, уровни, стрики, достижения',
+        color: 'text-amber-400',
+        bg: 'bg-amber-500/10',
+      },
     ],
   },
   {
@@ -37,12 +69,16 @@ const SLIDES = [
     gradient: 'from-emerald-600 to-teal-600',
     title: 'Получи +50 XP',
     subtitle: 'Бонус за старт',
-    description: 'Запусти любой demo-сценарий и получи первые XP. Чем больше ты исследуешь — тем выше уровень и больше достижений.',
+    description:
+      'Запусти любой demo-сценарий и получи первые XP. Чем больше ты исследуешь — тем выше уровень и больше достижений.',
     features: null,
   },
 ] as const;
 
-export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps) {
+export function OnboardingScreen({
+  userName,
+  onComplete,
+}: OnboardingScreenProps) {
   const [slide, setSlide] = useState(0);
   const current = SLIDES[slide];
   const isLast = slide === SLIDES.length - 1;
@@ -68,8 +104,14 @@ export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps
         {(['welcome', 'features', 'bonus'] as const).map((id, i) => (
           <motion.div
             key={id}
-            animate={{ width: i === slide ? 24 : 6, opacity: i === slide ? 1 : 0.3 }}
-            className={cn('h-1.5 rounded-full', i === slide ? 'bg-brand-400' : 'bg-white/20')}
+            animate={{
+              width: i === slide ? 24 : 6,
+              opacity: i === slide ? 1 : 0.3,
+            }}
+            className={cn(
+              'h-1.5 rounded-full',
+              i === slide ? 'bg-brand-400' : 'bg-white/20',
+            )}
             transition={{ duration: 0.3 }}
           />
         ))}
@@ -93,10 +135,16 @@ export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 260,
+                      damping: 20,
+                      delay: 0.1,
+                    }}
                     className={cn(
                       'w-28 h-28 rounded-3xl flex items-center justify-center text-5xl mb-6',
-                      'bg-gradient-to-br shadow-glow', current.gradient
+                      'bg-gradient-to-br shadow-glow',
+                      current.gradient,
                     )}
                   >
                     {current.icon}
@@ -107,12 +155,18 @@ export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <p className="text-brand-400 text-sm font-semibold tracking-wider uppercase mb-2">{current.subtitle}</p>
-                    <h1 className="text-3xl font-bold text-white mb-2">{current.title}</h1>
+                    <p className="text-brand-400 text-sm font-semibold tracking-wider uppercase mb-2">
+                      {current.subtitle}
+                    </p>
+                    <h1 className="text-3xl font-bold text-white mb-2">
+                      {current.title}
+                    </h1>
                     <p className="text-xl font-semibold text-white/70 mb-4">
                       {userName ? `Привет, ${userName}!` : 'Привет!'}
                     </p>
-                    <p className="text-white/50 text-sm leading-relaxed">{current.description}</p>
+                    <p className="text-white/50 text-sm leading-relaxed">
+                      {current.description}
+                    </p>
                   </motion.div>
                 </div>
               </>
@@ -126,8 +180,12 @@ export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps
                   transition={{ delay: 0.1 }}
                   className="mb-8"
                 >
-                  <p className="text-brand-400 text-sm font-semibold tracking-wider uppercase mb-2">{current.subtitle}</p>
-                  <h1 className="text-2xl font-bold text-white">{current.title}</h1>
+                  <p className="text-brand-400 text-sm font-semibold tracking-wider uppercase mb-2">
+                    {current.subtitle}
+                  </p>
+                  <h1 className="text-2xl font-bold text-white">
+                    {current.title}
+                  </h1>
                 </motion.div>
 
                 <div className="space-y-3 flex-1">
@@ -141,12 +199,21 @@ export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps
                         transition={{ delay: 0.1 + i * 0.1 }}
                         className="glass-card p-4 flex items-center gap-4"
                       >
-                        <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0', f.bg)}>
+                        <div
+                          className={cn(
+                            'w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0',
+                            f.bg,
+                          )}
+                        >
                           <Icon className={cn('w-5 h-5', f.color)} />
                         </div>
                         <div>
-                          <p className="font-semibold text-white text-sm">{f.label}</p>
-                          <p className="text-white/40 text-xs mt-0.5">{f.desc}</p>
+                          <p className="font-semibold text-white text-sm">
+                            {f.label}
+                          </p>
+                          <p className="text-white/40 text-xs mt-0.5">
+                            {f.desc}
+                          </p>
                         </div>
                         <CheckCircle className="w-4 h-4 text-emerald-400/60 ml-auto flex-shrink-0" />
                       </motion.div>
@@ -158,46 +225,62 @@ export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps
 
             {slide === 2 && (
               <div className="flex-1 flex flex-col items-center justify-center text-center">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
-                    className={cn(
-                      'w-28 h-28 rounded-3xl flex items-center justify-center text-5xl mb-6',
-                      'bg-gradient-to-br shadow-glow', current.gradient
-                    )}
-                  >
-                    {current.icon}
-                  </motion.div>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 260,
+                    damping: 20,
+                    delay: 0.1,
+                  }}
+                  className={cn(
+                    'w-28 h-28 rounded-3xl flex items-center justify-center text-5xl mb-6',
+                    'bg-gradient-to-br shadow-glow',
+                    current.gradient,
+                  )}
+                >
+                  {current.icon}
+                </motion.div>
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <p className="text-emerald-400 text-sm font-semibold tracking-wider uppercase mb-2">{current.subtitle}</p>
-                    <h1 className="text-3xl font-bold text-white mb-4">{current.title}</h1>
-                    <p className="text-white/50 text-sm leading-relaxed">{current.description}</p>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <p className="text-emerald-400 text-sm font-semibold tracking-wider uppercase mb-2">
+                    {current.subtitle}
+                  </p>
+                  <h1 className="text-3xl font-bold text-white mb-4">
+                    {current.title}
+                  </h1>
+                  <p className="text-white/50 text-sm leading-relaxed">
+                    {current.description}
+                  </p>
 
-                    {/* XP preview */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.4 }}
-                      className="glass-card p-4 mt-6 flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                          <Zap className="w-5 h-5 text-amber-400" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-white font-semibold text-sm">Стартовый бонус</p>
-                          <p className="text-white/40 text-xs">За регистрацию</p>
-                        </div>
+                  {/* XP preview */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="glass-card p-4 mt-6 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                        <Zap className="w-5 h-5 text-amber-400" />
                       </div>
-                      <span className="text-2xl font-bold text-amber-400">+50 XP</span>
-                    </motion.div>
+                      <div className="text-left">
+                        <p className="text-white font-semibold text-sm">
+                          Стартовый бонус
+                        </p>
+                        <p className="text-white/40 text-xs">За регистрацию</p>
+                      </div>
+                    </div>
+                    <span className="text-2xl font-bold text-amber-400">
+                      +50 XP
+                    </span>
                   </motion.div>
+                </motion.div>
               </div>
             )}
           </motion.div>
@@ -213,7 +296,9 @@ export function OnboardingScreen({ userName, onComplete }: OnboardingScreenProps
           className={cn(
             'w-full py-4 rounded-2xl font-bold text-white text-base',
             'bg-gradient-to-r flex items-center justify-center gap-2',
-            isLast ? 'from-emerald-600 to-teal-600 shadow-glow-cyan' : 'from-violet-600 to-indigo-600 shadow-glow'
+            isLast
+              ? 'from-emerald-600 to-teal-600 shadow-glow-cyan'
+              : 'from-violet-600 to-indigo-600 shadow-glow',
           )}
         >
           {isLast ? (

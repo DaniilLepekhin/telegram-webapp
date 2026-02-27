@@ -1,11 +1,17 @@
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React from 'react';
 
-interface Props { children: React.ReactNode }
-interface State { hasError: boolean; error?: Error; resetKey: number }
+interface Props {
+  children: React.ReactNode;
+}
+interface State {
+  hasError: boolean;
+  error?: Error;
+  resetKey: number;
+}
 
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -25,7 +31,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
     // Incrementing resetKey forces React to unmount and remount the subtree,
     // which clears any component-level error state that would otherwise cause
     // an immediate re-throw and an infinite reset loop.
-    this.setState((prev) => ({ hasError: false, error: undefined, resetKey: prev.resetKey + 1 }));
+    this.setState((prev) => ({
+      hasError: false,
+      error: undefined,
+      resetKey: prev.resetKey + 1,
+    }));
   };
 
   override render() {
@@ -40,7 +50,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-rose-500/15 flex items-center justify-center">
               <AlertTriangle className="w-8 h-8 text-rose-400" />
             </div>
-            <h2 className="text-th font-bold text-lg mb-2">Что-то пошло не так</h2>
+            <h2 className="text-th font-bold text-lg mb-2">
+              Что-то пошло не так
+            </h2>
             <p className="text-th/40 text-sm mb-6">
               {this.state.error?.message ?? 'Неизвестная ошибка'}
             </p>
@@ -58,6 +70,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
     }
 
     // resetKey forces a full remount of children after reset
-    return <React.Fragment key={this.state.resetKey}>{this.props.children}</React.Fragment>;
+    return (
+      <React.Fragment key={this.state.resetKey}>
+        {this.props.children}
+      </React.Fragment>
+    );
   }
 }

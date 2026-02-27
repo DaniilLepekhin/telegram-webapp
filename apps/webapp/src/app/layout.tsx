@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Providers } from '@/components/layout/Providers';
-import { TelegramInit } from '@/components/layout/TelegramInit';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
+import { Providers } from '@/components/layout/Providers';
+import { TelegramInit } from '@/components/layout/TelegramInit';
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -14,7 +14,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Showcase Platform — Telegram Bot Cases',
-  description: 'Демонстрация возможностей Telegram ботов и WebApp. 6 готовых кейсов: E-commerce, Club, Service, Education, Support, Funnels.',
+  description:
+    'Демонстрация возможностей Telegram ботов и WebApp. 6 готовых кейсов: E-commerce, Club, Service, Education, Support, Funnels.',
   keywords: ['telegram bot', 'webapp', 'mini app', 'showcase', 'кейсы'],
   robots: 'noindex,nofollow',
 };
@@ -27,7 +28,9 @@ export const viewport: Viewport = {
   themeColor: '#06060e',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: { children: React.ReactNode }) {
   return (
     <html lang="ru" className={inter.variable} data-theme="dark">
       <head>
@@ -37,9 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <ErrorBoundary>
             <TelegramInit />
-            <main className="pb-28 relative z-10">
-              {children}
-            </main>
+            <main className="pb-28 relative z-10">{children}</main>
           </ErrorBoundary>
           <BottomNav />
         </Providers>

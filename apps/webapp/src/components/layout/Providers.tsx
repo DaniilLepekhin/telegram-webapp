@@ -1,10 +1,10 @@
 'use client';
 
+import { ApiError } from '@/lib/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import { Toaster } from 'sonner';
-import { ApiError } from '@/lib/api';
 import { AuthInit } from './AuthInit';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -24,7 +24,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
               const message = error instanceof Error ? error.message : '';
               // 401/403 — never retry, token is invalid
               if (status === 401 || status === 403) return false;
-              if (message.includes('401') || message.includes('403')) return false;
+              if (message.includes('401') || message.includes('403'))
+                return false;
               // Other 4xx — client error, don't retry
               if (status >= 400 && status < 500) return false;
               // 5xx — retry once (backend restart / transient)
@@ -53,7 +54,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           },
         }}
       />
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+      {process.env.NODE_ENV === 'development' && (
+        <ReactQueryDevtools initialIsOpen={false} />
+      )}
     </QueryClientProvider>
   );
 }

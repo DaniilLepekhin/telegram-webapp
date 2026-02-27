@@ -1,18 +1,30 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Plus, Link2, Copy, QrCode, BarChart3,
-  Trash2, X, Check, ArrowLeft, Globe, Smartphone, TrendingUp,
-  MousePointerClick, Target, Zap,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
-import { useAuthStore } from '@/store/auth';
 import { useTelegram } from '@/hooks/useTelegram';
+import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/auth';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  BarChart3,
+  Check,
+  Copy,
+  Globe,
+  Link2,
+  MousePointerClick,
+  Plus,
+  QrCode,
+  Smartphone,
+  Target,
+  Trash2,
+  TrendingUp,
+  X,
+  Zap,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 type View = 'list' | 'create' | 'analytics';
 
@@ -30,13 +42,20 @@ export function TrackingPage() {
 
   const { data: linksData, isLoading } = useQuery({
     queryKey: ['tracking-links'],
-    queryFn: async () => { const r = await api.getMyLinks(); return r.data as TrackingLink[]; },
+    queryFn: async () => {
+      const r = await api.getMyLinks();
+      return r.data as TrackingLink[];
+    },
     enabled,
   });
 
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
     queryKey: ['link-analytics', selectedLinkId],
-    queryFn: async () => { const id = selectedLinkId ?? ''; const r = await api.getLinkAnalytics(id); return r.data as LinkAnalytics; },
+    queryFn: async () => {
+      const id = selectedLinkId ?? '';
+      const r = await api.getLinkAnalytics(id);
+      return r.data as LinkAnalytics;
+    },
     enabled: enabled && !!selectedLinkId && view === 'analytics',
   });
 
@@ -59,7 +78,10 @@ export function TrackingPage() {
       toast.success('Ссылка удалена');
       setDeletingId(null);
     },
-    onError: (e: Error) => { toast.error(e.message); setDeletingId(null); },
+    onError: (e: Error) => {
+      toast.error(e.message);
+      setDeletingId(null);
+    },
   });
 
   const handleCopy = async (url: string, id: string) => {
@@ -83,7 +105,7 @@ export function TrackingPage() {
   };
 
   const links = linksData ?? [];
-  const selectedLink = links.find(l => l.id === selectedLinkId);
+  const selectedLink = links.find((l) => l.id === selectedLinkId);
 
   return (
     <div className="min-h-screen bg-th-bg relative">
@@ -106,19 +128,29 @@ export function TrackingPage() {
               </button>
             ) : null}
             <h1 className="text-xl font-bold text-th">
-              {view === 'create' ? 'Новая ссылка' : view === 'analytics' ? `/${selectedLink?.slug ?? '…'}` : 'Трекинг-ссылки'}
+              {view === 'create'
+                ? 'Новая ссылка'
+                : view === 'analytics'
+                  ? `/${selectedLink?.slug ?? '…'}`
+                  : 'Трекинг-ссылки'}
             </h1>
             <p className="text-sm text-th/40 mt-0.5">
               {view === 'list'
-                ? links.length > 0 ? `${links.length} ссыл${links.length === 1 ? 'ка' : links.length < 5 ? 'ки' : 'ок'} создано` : 'Нет активных ссылок'
-                : view === 'analytics' ? 'Детальная аналитика'
-                : 'UTM параметры + A/B'}
+                ? links.length > 0
+                  ? `${links.length} ссыл${links.length === 1 ? 'ка' : links.length < 5 ? 'ки' : 'ок'} создано`
+                  : 'Нет активных ссылок'
+                : view === 'analytics'
+                  ? 'Детальная аналитика'
+                  : 'UTM параметры + A/B'}
             </p>
           </div>
           {view === 'list' && (
             <motion.button
               whileTap={{ scale: 0.92 }}
-              onClick={() => { haptic.impact('medium'); setView('create'); }}
+              onClick={() => {
+                haptic.impact('medium');
+                setView('create');
+              }}
               className="btn-glow px-4 py-2 text-sm flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
@@ -126,7 +158,11 @@ export function TrackingPage() {
             </motion.button>
           )}
           {view === 'create' && (
-            <button type="button" onClick={() => setView('list')} className="text-th/40 hover:text-th transition-colors">
+            <button
+              type="button"
+              onClick={() => setView('list')}
+              className="text-th/40 hover:text-th transition-colors"
+            >
               <X className="w-5 h-5" />
             </button>
           )}
@@ -135,7 +171,14 @@ export function TrackingPage() {
         <AnimatePresence mode="wait">
           {/* ─── LIST ─── */}
           {view === 'list' && (
-            <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="px-4 space-y-3">
+            <motion.div
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+              className="px-4 space-y-3"
+            >
               {isLoading ? (
                 <>
                   <div className="glass-card p-4 h-24 shimmer" />
@@ -148,18 +191,36 @@ export function TrackingPage() {
                 links.map((link) => (
                   <div
                     key={link.id}
-                    className={cn('glass-card p-4 transition-opacity duration-150', deletingId === link.id && 'opacity-0 scale-95')}
+                    className={cn(
+                      'glass-card p-4 transition-opacity duration-150',
+                      deletingId === link.id && 'opacity-0 scale-95',
+                    )}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <div className={cn('w-2 h-2 rounded-full flex-shrink-0', link.isActive ? 'bg-emerald-400' : 'bg-th/20')} />
-                          <p className="font-semibold text-th truncate text-sm">/{link.slug}</p>
-                          {link.title && <span className="text-th/30 text-xs truncate">{link.title}</span>}
+                          <div
+                            className={cn(
+                              'w-2 h-2 rounded-full flex-shrink-0',
+                              link.isActive ? 'bg-emerald-400' : 'bg-th/20',
+                            )}
+                          />
+                          <p className="font-semibold text-th truncate text-sm">
+                            /{link.slug}
+                          </p>
+                          {link.title && (
+                            <span className="text-th/30 text-xs truncate">
+                              {link.title}
+                            </span>
+                          )}
                         </div>
-                        <p className="text-th/40 text-xs mt-0.5 truncate pl-4">{link.targetUrl}</p>
+                        <p className="text-th/40 text-xs mt-0.5 truncate pl-4">
+                          {link.targetUrl}
+                        </p>
                         {link.utmCampaign && (
-                          <span className="badge mt-1 ml-4">{link.utmCampaign}</span>
+                          <span className="badge mt-1 ml-4">
+                            {link.utmCampaign}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -167,17 +228,24 @@ export function TrackingPage() {
                     {/* Stats row */}
                     <div className="flex items-center gap-4 mt-3 pt-3 border-t border-th-border/5">
                       <div className="flex items-center gap-1">
-                        <span className="text-sm font-semibold text-cyan-400">{link.clickCount}</span>
+                        <span className="text-sm font-semibold text-cyan-400">
+                          {link.clickCount}
+                        </span>
                         <span className="text-xs text-th/30">кл.</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-sm font-semibold text-emerald-400">{link.conversionCount}</span>
+                        <span className="text-sm font-semibold text-emerald-400">
+                          {link.conversionCount}
+                        </span>
                         <span className="text-xs text-th/30">конв.</span>
                       </div>
                       {link.clickCount > 0 && (
                         <div className="flex items-center gap-1">
                           <span className="text-sm font-semibold text-amber-400">
-                            {Math.round((link.conversionCount / link.clickCount) * 100)}%
+                            {Math.round(
+                              (link.conversionCount / link.clickCount) * 100,
+                            )}
+                            %
                           </span>
                           <span className="text-xs text-th/30">CVR</span>
                         </div>
@@ -186,21 +254,36 @@ export function TrackingPage() {
                       {/* Actions */}
                       <div className="flex items-center gap-1.5 ml-auto">
                         <ActionButton
-                          onClick={() => handleCopy(`${typeof window !== 'undefined' ? window.location.origin : ''}/t/${link.slug}`, link.id)}
+                          onClick={() =>
+                            handleCopy(
+                              `${typeof window !== 'undefined' ? window.location.origin : ''}/t/${link.slug}`,
+                              link.id,
+                            )
+                          }
                           title="Копировать"
                         >
-                          {copiedId === link.id
-                            ? <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            : <Copy className="w-3.5 h-3.5 text-th/50" />}
+                          {copiedId === link.id ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5 text-th/50" />
+                          )}
                         </ActionButton>
                         <ActionButton
-                          onClick={() => { setSelectedLinkId(link.id); setView('analytics'); }}
+                          onClick={() => {
+                            setSelectedLinkId(link.id);
+                            setView('analytics');
+                          }}
                           title="Аналитика"
                         >
                           <BarChart3 className="w-3.5 h-3.5 text-th/50" />
                         </ActionButton>
                         {link.qrCodeUrl && (
-                          <ActionButton onClick={() => window.open(link.qrCodeUrl, '_blank')} title="QR-код">
+                          <ActionButton
+                            onClick={() =>
+                              window.open(link.qrCodeUrl, '_blank')
+                            }
+                            title="QR-код"
+                          >
                             <QrCode className="w-3.5 h-3.5 text-th/50" />
                           </ActionButton>
                         )}
@@ -221,7 +304,14 @@ export function TrackingPage() {
 
           {/* ─── CREATE ─── */}
           {view === 'create' && (
-            <motion.div key="create" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="px-4">
+            <motion.div
+              key="create"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+              className="px-4"
+            >
               <CreateLinkForm
                 onSubmit={(data) => createMutation.mutate(data)}
                 onCancel={() => setView('list')}
@@ -232,8 +322,18 @@ export function TrackingPage() {
 
           {/* ─── ANALYTICS ─── */}
           {view === 'analytics' && (
-            <motion.div key="analytics" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} className="px-4">
-              <LinkAnalyticsView data={analyticsData} isLoading={analyticsLoading} />
+            <motion.div
+              key="analytics"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+              className="px-4"
+            >
+              <LinkAnalyticsView
+                data={analyticsData}
+                isLoading={analyticsLoading}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -261,9 +361,13 @@ function EmptyLinksState({ onCreateClick }: { onCreateClick: () => void }) {
         </div>
       </div>
 
-      <h3 className="text-th font-semibold text-base mb-1">Нет трекинг-ссылок</h3>
+      <h3 className="text-th font-semibold text-base mb-1">
+        Нет трекинг-ссылок
+      </h3>
       <p className="text-th/40 text-sm mb-1">Создай ссылку с UTM-метками,</p>
-      <p className="text-th/30 text-xs mb-5">отслеживай клики, устройства и конверсии</p>
+      <p className="text-th/30 text-xs mb-5">
+        отслеживай клики, устройства и конверсии
+      </p>
 
       {/* Feature hints */}
       <div className="grid grid-cols-3 gap-2 mb-6">
@@ -272,7 +376,10 @@ function EmptyLinksState({ onCreateClick }: { onCreateClick: () => void }) {
           { icon: Globe, label: 'Гео', color: 'text-emerald-400' },
           { icon: TrendingUp, label: 'CVR', color: 'text-amber-400' },
         ].map(({ icon: Icon, label, color }) => (
-          <div key={label} className="glass rounded-xl p-2.5 flex flex-col items-center gap-1">
+          <div
+            key={label}
+            className="glass rounded-xl p-2.5 flex flex-col items-center gap-1"
+          >
             <Icon className={cn('w-4 h-4', color)} />
             <span className="text-[10px] text-th/40">{label}</span>
           </div>
@@ -291,7 +398,12 @@ function EmptyLinksState({ onCreateClick }: { onCreateClick: () => void }) {
 }
 
 // ─── Action Button ─────────────────────────────────────────────────────────────
-function ActionButton({ onClick, children, title, className }: {
+function ActionButton({
+  onClick,
+  children,
+  title,
+  className,
+}: {
   onClick: () => void;
   children: React.ReactNode;
   title: string;
@@ -302,7 +414,10 @@ function ActionButton({ onClick, children, title, className }: {
       type="button"
       onClick={onClick}
       title={title}
-      className={cn('w-8 h-8 rounded-xl glass flex items-center justify-center transition-colors hover:bg-th-border/10', className)}
+      className={cn(
+        'w-8 h-8 rounded-xl glass flex items-center justify-center transition-colors hover:bg-th-border/10',
+        className,
+      )}
     >
       {children}
     </button>
@@ -310,15 +425,24 @@ function ActionButton({ onClick, children, title, className }: {
 }
 
 // ─── Create Link Form ─────────────────────────────────────────────────────────
-function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
+function CreateLinkForm({
+  onSubmit,
+  onCancel,
+  isLoading,
+}: {
   onSubmit: (d: Record<string, unknown>) => void;
   onCancel: () => void;
   isLoading: boolean;
 }) {
   const [form, setForm] = useState({
-    targetUrl: '', slug: '', title: '',
-    utmSource: '', utmMedium: '', utmCampaign: '',
-    maxClicks: '', expiresAt: '',
+    targetUrl: '',
+    slug: '',
+    title: '',
+    utmSource: '',
+    utmMedium: '',
+    utmCampaign: '',
+    maxClicks: '',
+    expiresAt: '',
   });
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -332,34 +456,73 @@ function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
       utmSource: form.utmSource || undefined,
       utmMedium: form.utmMedium || undefined,
       utmCampaign: form.utmCampaign || undefined,
-      maxClicks: form.maxClicks ? Number.parseInt(form.maxClicks, 10) : undefined,
+      maxClicks: form.maxClicks
+        ? Number.parseInt(form.maxClicks, 10)
+        : undefined,
       expiresAt: form.expiresAt || undefined,
     });
   };
 
   const baseFields = [
-    { key: 'targetUrl', label: 'URL назначения *', placeholder: 'https://t.me/your_channel', type: 'url' },
-    { key: 'title', label: 'Название (опционально)', placeholder: 'Летняя кампания', type: 'text' },
-    { key: 'slug', label: 'Slug (авто если пусто)', placeholder: 'my-campaign', type: 'text' },
+    {
+      key: 'targetUrl',
+      label: 'URL назначения *',
+      placeholder: 'https://t.me/your_channel',
+      type: 'url',
+    },
+    {
+      key: 'title',
+      label: 'Название (опционально)',
+      placeholder: 'Летняя кампания',
+      type: 'text',
+    },
+    {
+      key: 'slug',
+      label: 'Slug (авто если пусто)',
+      placeholder: 'my-campaign',
+      type: 'text',
+    },
   ] as const;
 
   const advancedFields = [
-    { key: 'utmSource', label: 'UTM Source', placeholder: 'telegram', type: 'text' },
+    {
+      key: 'utmSource',
+      label: 'UTM Source',
+      placeholder: 'telegram',
+      type: 'text',
+    },
     { key: 'utmMedium', label: 'UTM Medium', placeholder: 'bot', type: 'text' },
-    { key: 'utmCampaign', label: 'UTM Campaign', placeholder: 'summer2025', type: 'text' },
-    { key: 'maxClicks', label: 'Лимит кликов', placeholder: '1000', type: 'number' },
+    {
+      key: 'utmCampaign',
+      label: 'UTM Campaign',
+      placeholder: 'summer2025',
+      type: 'text',
+    },
+    {
+      key: 'maxClicks',
+      label: 'Лимит кликов',
+      placeholder: '1000',
+      type: 'number',
+    },
   ] as const;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 pb-4">
       {baseFields.map(({ key, label, placeholder, type }) => (
         <div key={key}>
-          <label htmlFor={`field-${key}`} className="text-xs text-th/40 mb-1 block">{label}</label>
+          <label
+            htmlFor={`field-${key}`}
+            className="text-xs text-th/40 mb-1 block"
+          >
+            {label}
+          </label>
           <input
             id={`field-${key}`}
             type={type}
             value={form[key]}
-            onChange={(e) => setForm(prev => ({ ...prev, [key]: e.target.value }))}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, [key]: e.target.value }))
+            }
             placeholder={placeholder}
             className="w-full glass rounded-xl px-4 py-3 text-sm text-th placeholder-th/20 border border-th-border/[0.08] focus:border-brand-500/50 focus:outline-none transition-colors"
           />
@@ -369,7 +532,7 @@ function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
       {/* Advanced toggle */}
       <button
         type="button"
-        onClick={() => setShowAdvanced(v => !v)}
+        onClick={() => setShowAdvanced((v) => !v)}
         className="text-xs text-brand-400/70 hover:text-brand-400 transition-colors flex items-center gap-1"
       >
         <Zap className="w-3 h-3" />
@@ -386,15 +549,22 @@ function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
           >
             {advancedFields.map(({ key, label, placeholder, type }) => (
               <div key={key}>
-              <label htmlFor={`adv-${key}`} className="text-xs text-th/40 mb-1 block">{label}</label>
-              <input
-                id={`adv-${key}`}
-                type={type}
-                value={form[key]}
-                onChange={(e) => setForm(prev => ({ ...prev, [key]: e.target.value }))}
-                placeholder={placeholder}
-                className="w-full glass rounded-xl px-4 py-3 text-sm text-th placeholder-th/20 border border-th-border/[0.08] focus:border-brand-500/50 focus:outline-none transition-colors"
-              />
+                <label
+                  htmlFor={`adv-${key}`}
+                  className="text-xs text-th/40 mb-1 block"
+                >
+                  {label}
+                </label>
+                <input
+                  id={`adv-${key}`}
+                  type={type}
+                  value={form[key]}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, [key]: e.target.value }))
+                  }
+                  placeholder={placeholder}
+                  className="w-full glass rounded-xl px-4 py-3 text-sm text-th placeholder-th/20 border border-th-border/[0.08] focus:border-brand-500/50 focus:outline-none transition-colors"
+                />
               </div>
             ))}
           </motion.div>
@@ -402,7 +572,11 @@ function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
       </AnimatePresence>
 
       <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onCancel} className="flex-1 py-3 rounded-2xl glass border border-th-border/10 text-th/60 text-sm">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 py-3 rounded-2xl glass border border-th-border/10 text-th/60 text-sm"
+        >
           Отмена
         </button>
         <button
@@ -418,7 +592,10 @@ function CreateLinkForm({ onSubmit, onCancel, isLoading }: {
 }
 
 // ─── Link Analytics View ──────────────────────────────────────────────────────
-function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoading: boolean }) {
+function LinkAnalyticsView({
+  data,
+  isLoading,
+}: { data?: LinkAnalytics; isLoading: boolean }) {
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -429,15 +606,19 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
     );
   }
 
-  if (!data) return (
-    <div className="glass-card p-8 text-center">
-      <BarChart3 className="w-10 h-10 text-th/20 mx-auto mb-2" />
-      <p className="text-th/40 text-sm">Нет данных</p>
-    </div>
-  );
+  if (!data)
+    return (
+      <div className="glass-card p-8 text-center">
+        <BarChart3 className="w-10 h-10 text-th/20 mx-auto mb-2" />
+        <p className="text-th/40 text-sm">Нет данных</p>
+      </div>
+    );
 
   const { link, stats } = data;
-  const cvr = stats.totalClicks > 0 ? Math.round((stats.conversions / stats.totalClicks) * 100) : 0;
+  const cvr =
+    stats.totalClicks > 0
+      ? Math.round((stats.conversions / stats.totalClicks) * 100)
+      : 0;
 
   return (
     <div className="space-y-4 pb-4">
@@ -447,17 +628,41 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
 
         <div className="grid grid-cols-4 gap-2">
           {[
-            { label: 'Кликов', value: stats.totalClicks, color: 'text-cyan-400', icon: MousePointerClick },
-            { label: 'Уникальных', value: stats.uniqueClicks, color: 'text-violet-400', icon: Target },
-            { label: 'Конверсий', value: stats.conversions, color: 'text-emerald-400', icon: TrendingUp },
-            { label: 'CVR', value: `${cvr}%`, color: 'text-amber-400', icon: Zap },
-          ].map(m => {
+            {
+              label: 'Кликов',
+              value: stats.totalClicks,
+              color: 'text-cyan-400',
+              icon: MousePointerClick,
+            },
+            {
+              label: 'Уникальных',
+              value: stats.uniqueClicks,
+              color: 'text-violet-400',
+              icon: Target,
+            },
+            {
+              label: 'Конверсий',
+              value: stats.conversions,
+              color: 'text-emerald-400',
+              icon: TrendingUp,
+            },
+            {
+              label: 'CVR',
+              value: `${cvr}%`,
+              color: 'text-amber-400',
+              icon: Zap,
+            },
+          ].map((m) => {
             const Icon = m.icon;
             return (
               <div key={m.label} className="text-center glass rounded-xl p-2">
                 <Icon className={cn('w-3.5 h-3.5 mx-auto mb-1', m.color)} />
-                <div className={cn('text-base font-bold', m.color)}>{m.value}</div>
-                <div className="text-[9px] text-th/30 leading-tight">{m.label}</div>
+                <div className={cn('text-base font-bold', m.color)}>
+                  {m.value}
+                </div>
+                <div className="text-[9px] text-th/30 leading-tight">
+                  {m.label}
+                </div>
               </div>
             );
           })}
@@ -467,10 +672,27 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
       {/* Funnel */}
       {stats.totalClicks > 0 && (
         <div className="glass-card p-4">
-          <h4 className="text-sm font-semibold text-th mb-3">Воронка конверсии</h4>
-          <FunnelBar label="Переходы" value={stats.totalClicks} max={stats.totalClicks} color="bg-cyan-500" />
-          <FunnelBar label="Уникальные" value={stats.uniqueClicks} max={stats.totalClicks} color="bg-violet-500" />
-          <FunnelBar label="Конверсии" value={stats.conversions} max={stats.totalClicks} color="bg-emerald-500" />
+          <h4 className="text-sm font-semibold text-th mb-3">
+            Воронка конверсии
+          </h4>
+          <FunnelBar
+            label="Переходы"
+            value={stats.totalClicks}
+            max={stats.totalClicks}
+            color="bg-cyan-500"
+          />
+          <FunnelBar
+            label="Уникальные"
+            value={stats.uniqueClicks}
+            max={stats.totalClicks}
+            color="bg-violet-500"
+          />
+          <FunnelBar
+            label="Конверсии"
+            value={stats.conversions}
+            max={stats.totalClicks}
+            color="bg-emerald-500"
+          />
         </div>
       )}
 
@@ -486,12 +708,15 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
               .sort(([, a], [, b]) => b - a)
               .slice(0, 5)
               .map(([country, count]) => {
-                const pct = stats.totalClicks > 0 ? (count / stats.totalClicks) * 100 : 0;
+                const pct =
+                  stats.totalClicks > 0 ? (count / stats.totalClicks) * 100 : 0;
                 return (
                   <div key={country}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm text-th/70">{country}</span>
-                      <span className="text-xs font-semibold text-th">{count}</span>
+                      <span className="text-xs font-semibold text-th">
+                        {count}
+                      </span>
                     </div>
                     <div className="h-1 bg-th-border/5 rounded-full overflow-hidden">
                       <motion.div
@@ -519,12 +744,17 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
             {Object.entries(stats.byDevice as Record<string, number>)
               .sort(([, a], [, b]) => b - a)
               .map(([device, count]) => {
-                const pct = stats.totalClicks > 0 ? (count / stats.totalClicks) * 100 : 0;
+                const pct =
+                  stats.totalClicks > 0 ? (count / stats.totalClicks) * 100 : 0;
                 return (
                   <div key={device}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-th/70 capitalize">{device}</span>
-                      <span className="text-xs font-semibold text-th">{count}</span>
+                      <span className="text-sm text-th/70 capitalize">
+                        {device}
+                      </span>
+                      <span className="text-xs font-semibold text-th">
+                        {count}
+                      </span>
                     </div>
                     <div className="h-1 bg-th-border/5 rounded-full overflow-hidden">
                       <motion.div
@@ -544,13 +774,20 @@ function LinkAnalyticsView({ data, isLoading }: { data?: LinkAnalytics; isLoadin
   );
 }
 
-function FunnelBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+function FunnelBar({
+  label,
+  value,
+  max,
+  color,
+}: { label: string; value: number; max: number; color: string }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
     <div className="mb-2">
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-th/50">{label}</span>
-        <span className="text-xs font-semibold text-th">{value} <span className="text-th/30">({Math.round(pct)}%)</span></span>
+        <span className="text-xs font-semibold text-th">
+          {value} <span className="text-th/30">({Math.round(pct)}%)</span>
+        </span>
       </div>
       <div className="h-2 bg-th-border/5 rounded-full overflow-hidden">
         <motion.div
