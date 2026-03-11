@@ -1,8 +1,9 @@
+import { getLevelFromXp } from '@showcase/shared';
 import { eq, sql } from 'drizzle-orm';
+import type { User as GrammyUser } from 'grammy/types';
 import { nanoid } from 'nanoid';
 import { db, schema } from '../utils/db.ts';
 import { getRedis } from '../utils/redis.ts';
-import type { User as GrammyUser } from 'grammy/types';
 
 const { users, referrals, xpHistory } = schema;
 
@@ -22,7 +23,11 @@ const LEVEL_REWARDS: Record<number, { xp: number; energy: number }> = {
  * Cycle detection prevents an infinite loop if the referredById chain
  * somehow forms a cycle in the DB (e.g. from a bad data migration).
  */
-async function processReferralChain(newUserId: string, directReferrerId: string, newUserName: string): Promise<void> {
+async function processReferralChain(
+  newUserId: string,
+  directReferrerId: string,
+  newUserName: string,
+): Promise<void> {
   const MAX_LEVELS = 5;
   let currentId: string | null = directReferrerId;
   let level = 1;
@@ -31,7 +36,9 @@ async function processReferralChain(newUserId: string, directReferrerId: string,
 
   while (currentId && level <= MAX_LEVELS) {
     if (visited.has(currentId)) {
-      console.warn(`[Referral] cycle detected at ${currentId} for newUser ${newUserId} — aborting chain`);
+      console.warn(
+        `[Referral] cycle detected at ${currentId} for newUser ${newUserId} — aborting chain`,
+      );
       break;
     }
     visited.add(currentId);
@@ -41,14 +48,18 @@ async function processReferralChain(newUserId: string, directReferrerId: string,
 
     let inserted: { id: string }[] = [];
     try {
-      inserted = await db.insert(referrals).values({
-        referrerId: currentId,
-        referredId: newUserId,
-        level,
-        xpRewarded: reward.xp,
-        energyRewarded: reward.energy,
-        isRewarded: true,
-      }).onConflictDoNothing().returning({ id: referrals.id });
+      inserted = await db
+        .insert(referrals)
+        .values({
+          referrerId: currentId,
+          referredId: newUserId,
+          level,
+          xpRewarded: reward.xp,
+          energyRewarded: reward.energy,
+          isRewarded: true,
+        })
+        .onConflictDoNothing()
+        .returning({ id: referrals.id });
     } catch {
       break; // unique constraint on referredId — already processed
     }
@@ -58,25 +69,38 @@ async function processReferralChain(newUserId: string, directReferrerId: string,
     // and both award XP, because onConflictDoNothing does not abort the loop.
     if (inserted.length === 0) break;
 
-    // Award XP
+    // Award XP and recompute level
     await db.insert(xpHistory).values({
       userId: currentId,
       amount: reward.xp,
-      reason: level === 1
-        ? `Реферал L1: @${newUserName}`
-        : `Реферал L${level} (через цепочку)`,
+      reason:
+        level === 1
+          ? `Реферал L1: @${newUserName}`
+          : `Реферал L${level} (через цепочку)`,
       actionType: 'referral',
     });
-    await db
+    // Read new XP total to compute the correct level after increment
+    const [updated] = await db
       .update(users)
       .set({ xp: sql`${users.xp} + ${reward.xp}`, updatedAt: new Date() })
-      .where(eq(users.id, currentId));
+      .where(eq(users.id, currentId))
+      .returning({ newXp: users.xp });
+    if (updated) {
+      const newLevel = getLevelFromXp(updated.newXp);
+      await db
+        .update(users)
+        .set({ level: newLevel })
+        .where(eq(users.id, currentId));
+    }
 
     // Award energy
     if (reward.energy > 0) {
       await db
         .update(users)
-        .set({ energyBalance: sql`${users.energyBalance} + ${reward.energy}`, updatedAt: new Date() })
+        .set({
+          energyBalance: sql`${users.energyBalance} + ${reward.energy}`,
+          updatedAt: new Date(),
+        })
         .where(eq(users.id, currentId));
     }
 
@@ -93,14 +117,21 @@ async function processReferralChain(newUserId: string, directReferrerId: string,
 }
 
 export const userService = {
-  async upsert(tgUser: GrammyUser, startParam?: string): Promise<typeof users.$inferSelect> {
+  async upsert(
+    tgUser: GrammyUser,
+    startParam?: string,
+  ): Promise<typeof users.$inferSelect> {
     const redis = getRedis();
     const cacheKey = `bot:user:${tgUser.id}`;
 
     // Cache check — guard against corrupted Redis data
     const cached = await redis.get(cacheKey);
     if (cached) {
-      try { return JSON.parse(cached); } catch { /* stale/corrupt — fall through to DB */ }
+      try {
+        return JSON.parse(cached);
+      } catch {
+        /* stale/corrupt — fall through to DB */
+      }
     }
 
     // Resolve referrer
@@ -154,7 +185,9 @@ export const userService = {
     return `https://t.me/${botUsername}?start=ref_${refCode}`;
   },
 
-  async getReferralStats(userId: string): Promise<{ count: number; totalXp: number }> {
+  async getReferralStats(
+    userId: string,
+  ): Promise<{ count: number; totalXp: number }> {
     const refs = await db
       .select({ xpRewarded: referrals.xpRewarded })
       .from(referrals)

@@ -1,4 +1,13 @@
 import { clearAuth, registerApiSetToken, useAuthStore } from '@/store/auth';
+import type {
+  Achievement,
+  ApiResponse,
+  DemoScenario,
+  GamificationStats,
+  TrackingLink,
+  User,
+  XpEvent,
+} from '@showcase/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3100';
 
@@ -121,156 +130,146 @@ class ApiClient {
 
   // Auth
   async loginWithTelegram(initData: string) {
-    return this.request<{
-      success: boolean;
-      data: { user: unknown; accessToken: string };
-    }>('/api/v1/auth/telegram', {
-      method: 'POST',
-      body: JSON.stringify({ initData }),
-    });
+    return this.request<ApiResponse<{ user: User; accessToken: string }>>(
+      '/api/v1/auth/telegram',
+      {
+        method: 'POST',
+        body: JSON.stringify({ initData }),
+      },
+    );
   }
 
   async logout() {
-    return this.request('/api/v1/auth/logout', { method: 'POST' });
+    return this.request<ApiResponse>('/api/v1/auth/logout', { method: 'POST' });
   }
 
   // Showcase
   async getScenarios() {
-    return this.request<{ success: boolean; data: unknown[] }>(
+    return this.request<ApiResponse<DemoScenario[]>>(
       '/api/v1/showcase/scenarios',
     );
   }
 
   async runScenario(id: string) {
-    return this.request<{ success: boolean; data: unknown }>(
-      `/api/v1/showcase/scenarios/${id}/run`,
-      { method: 'POST' },
-    );
-  }
-
-  async completeScenario(id: string, runId: string, timeMs: number) {
-    return this.request(`/api/v1/showcase/scenarios/${id}/complete`, {
+    return this.request<ApiResponse>(`/api/v1/showcase/scenarios/${id}/run`, {
       method: 'POST',
-      body: JSON.stringify({ runId, timeMs }),
     });
   }
 
-  async getGlobalMetrics() {
-    return this.request<{ success: boolean; data: unknown }>(
-      '/api/v1/showcase/metrics',
+  async completeScenario(id: string, runId: string, timeMs: number) {
+    return this.request<ApiResponse>(
+      `/api/v1/showcase/scenarios/${id}/complete`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ runId, timeMs }),
+      },
     );
+  }
+
+  async getGlobalMetrics() {
+    return this.request<ApiResponse>('/api/v1/showcase/metrics');
   }
 
   // Gamification
   async getGamificationStats() {
-    return this.request<{ success: boolean; data: unknown }>(
+    return this.request<ApiResponse<GamificationStats>>(
       '/api/v1/gamification/stats',
     );
   }
 
   async awardXp(amount: number, reason: string, actionType: string) {
-    return this.request('/api/v1/gamification/award-xp', {
+    return this.request<ApiResponse<XpEvent>>('/api/v1/gamification/award-xp', {
       method: 'POST',
       body: JSON.stringify({ amount, reason, actionType }),
     });
   }
 
   async updateStreak() {
-    return this.request('/api/v1/gamification/streak', { method: 'POST' });
+    return this.request<ApiResponse>('/api/v1/gamification/streak', {
+      method: 'POST',
+    });
   }
 
   async getAllAchievements() {
-    return this.request<{ success: boolean; data: unknown[] }>(
+    return this.request<ApiResponse<Achievement[]>>(
       '/api/v1/gamification/achievements',
     );
   }
 
   // Users
   async getMe() {
-    return this.request<{ success: boolean; data: unknown }>(
-      '/api/v1/users/me',
-    );
+    return this.request<ApiResponse<User>>('/api/v1/users/me');
   }
 
   async getLeaderboard(limit = 20) {
-    return this.request<{ success: boolean; data: unknown[] }>(
+    return this.request<ApiResponse<User[]>>(
       `/api/v1/users/leaderboard?limit=${limit}`,
     );
   }
 
   async getReferrals() {
-    return this.request<{ success: boolean; data: unknown }>(
-      '/api/v1/users/referrals',
-    );
+    return this.request<ApiResponse>('/api/v1/users/referrals');
   }
 
   async getActivity() {
-    return this.request<{ success: boolean; data: unknown[] }>(
-      '/api/v1/users/activity',
-    );
+    return this.request<ApiResponse>('/api/v1/users/activity');
   }
 
   // Subscriptions
   async getPlans() {
-    return this.request<{ success: boolean; data: unknown[] }>(
-      '/api/v1/subscriptions/plans',
-    );
+    return this.request<ApiResponse>('/api/v1/subscriptions/plans');
   }
 
   async getSubscriptionStatus() {
-    return this.request<{ success: boolean; data: unknown }>(
-      '/api/v1/subscriptions/status',
-    );
+    return this.request<ApiResponse>('/api/v1/subscriptions/status');
   }
 
   async startSubscription(plan: string, trial = true) {
-    return this.request('/api/v1/subscriptions/start', {
+    return this.request<ApiResponse>('/api/v1/subscriptions/start', {
       method: 'POST',
       body: JSON.stringify({ plan, trial }),
     });
   }
 
   async cancelSubscription() {
-    return this.request('/api/v1/subscriptions/cancel', { method: 'POST' });
+    return this.request<ApiResponse>('/api/v1/subscriptions/cancel', {
+      method: 'POST',
+    });
   }
 
   // Analytics
   async trackEvent(type: string, payload?: Record<string, unknown>) {
     if (!this.token) return; // skip if not authenticated
-    return this.request('/api/v1/analytics/events', {
+    return this.request<ApiResponse>('/api/v1/analytics/events', {
       method: 'POST',
       body: JSON.stringify({ type, payload }),
     }).catch(() => {}); // silent fail for analytics
   }
 
   async getDashboard() {
-    return this.request<{ success: boolean; data: unknown }>(
-      '/api/v1/analytics/dashboard',
-    );
+    return this.request<ApiResponse>('/api/v1/analytics/dashboard');
   }
 
   // Tracking
   async createLink(data: Record<string, unknown>) {
-    return this.request('/api/v1/tracking/links', {
+    return this.request<ApiResponse<TrackingLink>>('/api/v1/tracking/links', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   async getMyLinks() {
-    return this.request<{ success: boolean; data: unknown[] }>(
-      '/api/v1/tracking/links',
-    );
+    return this.request<ApiResponse<TrackingLink[]>>('/api/v1/tracking/links');
   }
 
   async getLinkAnalytics(id: string) {
-    return this.request<{ success: boolean; data: unknown }>(
-      `/api/v1/tracking/links/${id}/analytics`,
-    );
+    return this.request<ApiResponse>(`/api/v1/tracking/links/${id}/analytics`);
   }
 
   async deleteLink(id: string) {
-    return this.request(`/api/v1/tracking/links/${id}`, { method: 'DELETE' });
+    return this.request<ApiResponse>(`/api/v1/tracking/links/${id}`, {
+      method: 'DELETE',
+    });
   }
 }
 

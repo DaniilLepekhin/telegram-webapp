@@ -78,4 +78,24 @@ jspm_packages/
 
 # Temporary files
 *.tmp
-*.temp 
+*.temp
+
+# Legacy / removed files (kept locally but not tracked)
+backend/
+frontend/
+nginx/webapp.conf
+nginx.conf
+nginx-telegram-webapp.conf
+nginx-youbetter.conf
+telegram-bot-handler.js
+simple-bot-test.js
+setup-webapp-button.js
+run-bot.sh
+telegram-bot.service
+telegram-webapp.tar.gz
+telegram-webapp-updated.tar.gz
+create_tracking_tables.sql
+create_advanced_tracking_tables.sql
+add_last_member_update.sql
+docker-compose.yml.bak
+docker-compose.yml.backup

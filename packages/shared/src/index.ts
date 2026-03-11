@@ -102,7 +102,7 @@ export interface TrackingLink {
   utmCampaign?: string;
   utmContent?: string;
   utmTerm?: string;
-  abTestGroup?: string;
+  abTestGroups?: Array<{ name: string; weight: number; url?: string }>;
   qrCodeUrl?: string;
   clickCount: number;
   conversionCount: number;
@@ -185,6 +185,7 @@ export type SubscriptionPlan = 'free' | 'pro' | 'enterprise';
 export type SubscriptionStatus =
   | 'active'
   | 'trial'
+  | 'pending'
   | 'past_due'
   | 'cancelled'
   | 'expired';

@@ -124,17 +124,17 @@ jobs:
             docker compose down --remove-orphans || true
 
             # Запустить обновлённые контейнеры (--wait даёт compose время дождаться healthchecks)
-            docker compose up -d --wait --wait-timeout 120 || {
-              echo "=== docker compose up failed, dumping backend logs ==="
-              docker compose logs --tail=50 myapp-backend 2>/dev/null || docker compose logs --tail=50 backend 2>/dev/null || true
-              echo "=== docker compose ps ==="
-              docker compose ps -a
-              exit 1
-            }
+              docker compose up -d --wait --wait-timeout 120 || {
+                echo "=== docker compose up failed, dumping backend logs ==="
+                docker compose logs --tail=50 backend 2>/dev/null || true
+                echo "=== docker compose ps ==="
+                docker compose ps -a
+                exit 1
+              }
 
             # Применить DB миграции
             sleep 5
-            docker compose exec -T myapp-backend bun dist/migrate.js 2>/dev/null || docker compose exec -T backend bun dist/migrate.js 2>/dev/null || echo "Migration skipped or pending"
+            docker compose exec -T backend bun dist/migrate.js 2>/dev/null || echo "Migration skipped or pending"
 
             # Зарегистрировать Telegram webhook
             sleep 5
@@ -150,11 +150,11 @@ jobs:
             curl -sf http://localhost:3102/health && echo " backend OK" || echo " backend starting..."
             curl -sf -o /dev/null http://localhost:3004 && echo " webapp OK" || echo " webapp starting..."
 
-            # Dump bot container logs for diagnostics (bot has no healthcheck so failures are silent)
+            # Dump bot container logs for diagnostics
             echo "=== bot container status ==="
-            docker compose ps myapp-bot 2>/dev/null || docker compose ps bot 2>/dev/null || true
+            docker compose ps bot 2>/dev/null || true
             echo "=== bot container logs (last 30 lines) ==="
-            docker compose logs --tail=30 myapp-bot 2>/dev/null || docker compose logs --tail=30 bot 2>/dev/null || true
+            docker compose logs --tail=30 bot 2>/dev/null || true
 
             # Cleanup старых слоёв
             docker image prune -f

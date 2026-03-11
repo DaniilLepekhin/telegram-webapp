@@ -75,7 +75,7 @@ export function ProfilePage() {
     queryKey: ['profile-me'],
     queryFn: async () => {
       const r = await api.getMe();
-      return r.data as UserProfile;
+      return r.data as unknown as UserProfile;
     },
     enabled,
   });
@@ -93,7 +93,7 @@ export function ProfilePage() {
     queryKey: ['subscription-status'],
     queryFn: async () => {
       const r = await api.getSubscriptionStatus();
-      return r.data as SubscriptionStatus;
+      return r.data as unknown as SubscriptionStatus;
     },
     enabled,
   });
@@ -102,7 +102,7 @@ export function ProfilePage() {
     queryKey: ['plans'],
     queryFn: async () => {
       const r = await api.getPlans();
-      return r.data as Plan[];
+      return r.data as unknown as Plan[];
     },
     enabled: isAuthReady,
   });

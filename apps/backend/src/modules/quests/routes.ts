@@ -57,7 +57,7 @@ const progressRoute = new Elysia()
     },
   );
 
-type ResetBody = { period: 'daily' | 'weekly' };
+type ResetBody = { period: 'daily' | 'weekly'; targetUserId?: string };
 
 export const questsModule = new Elysia({ prefix: '/quests' })
   // ─── Public: list all quest definitions ──────────────────────────────────
@@ -90,15 +90,19 @@ export const questsModule = new Elysia({ prefix: '/quests' })
         set.status = 401;
         return { success: false, error: { code: 'UNAUTHORIZED' } };
       }
-      await questsService.resetPeriodicQuests(user.id, body.period);
+      // Admins may supply targetUserId to reset another user's quests;
+      // otherwise fall back to the authenticated user's own ID.
+      const targetId = body.targetUserId ?? user.id;
+      await questsService.resetPeriodicQuests(targetId, body.period);
       return {
         success: true,
-        data: { message: `Квесты ${body.period} сброшены` },
+        data: { message: `Квесты ${body.period} сброшены`, targetUserId: targetId },
       };
     }) as any,
     {
       body: t.Object({
         period: t.Union([t.Literal('daily'), t.Literal('weekly')]),
+        targetUserId: t.Optional(t.String({ minLength: 1 })),
       }),
     },
   )
