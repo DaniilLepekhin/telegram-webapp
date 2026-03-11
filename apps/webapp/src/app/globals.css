@@ -62,6 +62,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  height: 100%;
+}
+
 html,
 body {
   margin: 0;
@@ -69,7 +73,9 @@ body {
   background: rgb(var(--c-bg));
   color: rgb(var(--c-text));
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
+  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
   transition: background 0.25s ease, color 0.25s ease;
@@ -107,8 +113,8 @@ body {
       rgba(255, 255, 255, 0.05) 0%,
       rgba(255, 255, 255, 0.015) 100%
     );
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
     border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 16px -2px
       rgba(0, 0, 0, 0.4);
@@ -158,8 +164,8 @@ body {
       rgba(255, 255, 255, 0.08) 0%,
       rgba(255, 255, 255, 0.025) 100%
     );
-    backdrop-filter: blur(32px) saturate(1.6);
-    -webkit-backdrop-filter: blur(32px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
@@ -171,8 +177,8 @@ body {
       rgba(255, 255, 255, 0.04) 0%,
       rgba(255, 255, 255, 0.01) 100%
     );
-    backdrop-filter: blur(24px) saturate(1.5);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
     overflow: hidden;
     isolation: isolate;
   }
@@ -383,6 +389,8 @@ body {
         transparent 50%
       );
     z-index: 0;
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   /* ─── Grain Texture Overlay ────────────────────────────────────────────────── */
@@ -394,6 +402,8 @@ body {
     background-size: 128px 128px;
     z-index: 100;
     mix-blend-mode: overlay;
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   /* ─── Section Divider (subtle gradient line) ────────────────────────────────── */
@@ -420,11 +430,13 @@ body {
       rgba(15, 15, 34, 0.85) 0%,
       rgba(6, 6, 14, 0.95) 100%
     );
-    backdrop-filter: blur(32px) saturate(1.8);
-    -webkit-backdrop-filter: blur(32px) saturate(1.8);
+    backdrop-filter: blur(16px) saturate(1.6);
+    -webkit-backdrop-filter: blur(16px) saturate(1.6);
     border: 1px solid rgba(255, 255, 255, 0.06);
     box-shadow: 0 -4px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0
       rgba(255, 255, 255, 0.05);
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   /* Active tab glow indicator */
