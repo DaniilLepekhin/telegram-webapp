@@ -175,9 +175,13 @@ export interface Achievement {
 }
 
 export interface XpEvent {
+  id: string;
   amount: number;
   reason: string;
-  timestamp: Date;
+  actionType: string;
+  createdAt: Date;
+  /** @deprecated use createdAt */
+  timestamp?: Date;
 }
 
 // Subscription types

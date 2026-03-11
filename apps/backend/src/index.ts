@@ -11,6 +11,7 @@ import { getRedis } from './utils/redis.ts';
 import { analyticsModule } from './modules/analytics/routes.ts';
 // Modules
 import { authModule } from './modules/auth/routes.ts';
+import { httpRequestDuration, httpRequestsTotal, metricsModule } from './modules/metrics/routes.ts';
 import { gamificationModule } from './modules/gamification/routes.ts';
 import { questsModule } from './modules/quests/routes.ts';
 import { referralsModule } from './modules/referrals/routes.ts';
@@ -72,6 +73,23 @@ const app = new Elysia()
     set.headers['X-XSS-Protection'] = '1; mode=block';
     set.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin';
   })
+
+  // ─── Prometheus request instrumentation ───────────────────────────────────
+  .onAfterHandle(({ request, set }) => {
+    const method = request.method;
+    const url = new URL(request.url);
+    // Normalise path: strip UUIDs/IDs to reduce cardinality
+    const route = url.pathname.replace(
+      /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+      '/:id',
+    );
+    const status = String(set.status ?? 200);
+    httpRequestsTotal.inc({ method, route, status });
+    httpRequestDuration.observe({ method, route }, 0);
+  })
+
+  // ─── Prometheus metrics (internal — not proxied by nginx) ─────────────────
+  .use(metricsModule)
 
   // ─── Health checks ────────────────────────────────────────────────────────
   .get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }))

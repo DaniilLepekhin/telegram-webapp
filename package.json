@@ -20,8 +20,17 @@
     "clean": "turbo clean && find . -name 'node_modules' -type d -prune -exec rm -rf {} +"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@opentelemetry/api": "^1.9.0",
     "turbo": "^2.3.3",
-    "typescript": "^5.7.3",
-    "@biomejs/biome": "^1.9.4"
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "bun-types": "1.3.10"
+    },
+    "peerDependencyRules": {
+      "ignoreMissing": ["@opentelemetry/api"]
+    }
   }
 }
