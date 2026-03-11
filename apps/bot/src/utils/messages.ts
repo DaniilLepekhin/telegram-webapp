@@ -1,5 +1,6 @@
 export const msg = {
-  welcome: (firstName: string) => `
+  welcome: (firstName: string) =>
+    `
 ✨ <b>Привет, ${firstName}!</b>
 
 Я — демо-бот Daniil Lepekhin. Показываю, что умеют современные Telegram-боты.
@@ -15,7 +16,8 @@ export const msg = {
 <b>Открой WebApp</b> — каждый кейс можно запустить как интерактивное демо за 60–90 секунд 👇
   `.trim(),
 
-  howItWorks: () => `
+  howItWorks: () =>
+    `
 💡 <b>Как это работает?</b>
 
 1. Выбираешь нишу — e-commerce, клуб, сервис, обучение
@@ -27,7 +29,8 @@ export const msg = {
 👇 Открой платформу и убедись сам:
   `.trim(),
 
-  caseEcom: () => `
+  caseEcom: () =>
+    `
 🛍️ <b>E-Commerce Bot — кейс</b>
 
 <b>Что умеет:</b>
@@ -46,7 +49,8 @@ export const msg = {
 <i>Среднее время внедрения: 2–3 недели</i>
   `.trim(),
 
-  caseClub: () => `
+  caseClub: () =>
+    `
 🏆 <b>Club & Community — кейс</b>
 
 <b>Что умеет:</b>
@@ -65,7 +69,8 @@ export const msg = {
 <i>Используется в клубе с 2400+ участниками</i>
   `.trim(),
 
-  caseService: () => `
+  caseService: () =>
+    `
 ⚡ <b>Service Automation — кейс</b>
 
 <b>Что умеет:</b>
@@ -84,7 +89,8 @@ export const msg = {
 <i>ROI внедрения: 380% за первый квартал</i>
   `.trim(),
 
-  referralInfo: (code: string, link: string, count: number) => `
+  referralInfo: (_code: string, link: string, count: number) =>
+    `
 👥 <b>Твоя реферальная программа</b>
 
 🔗 Твоя ссылка:
@@ -98,7 +104,8 @@ export const msg = {
 <i>Поделись ссылкой — оба получите бонус!</i>
   `.trim(),
 
-  proFeatures: () => `
+  proFeatures: () =>
+    `
 ⭐ <b>Showcase Pro — что входит:</b>
 
 ✅ Неограниченные трекинг-ссылки
@@ -116,7 +123,8 @@ export const msg = {
 <i>Окупается с первого клиента 🚀</i>
   `.trim(),
 
-  achievementUnlocked: (name: string, icon: string, xp: number) => `
+  achievementUnlocked: (name: string, icon: string, xp: number) =>
+    `
 🏆 <b>Достижение разблокировано!</b>
 
 ${icon} <b>${name}</b>
@@ -125,7 +133,8 @@ ${icon} <b>${name}</b>
 <i>Открой WebApp, чтобы увидеть все свои достижения</i>
   `.trim(),
 
-  streakNotification: (days: number) => `
+  streakNotification: (days: number) =>
+    `
 🔥 <b>Стрик ${days} ${getDaysWord(days)}!</b>
 
 Ты ${days} ${getDaysWord(days)} подряд пользуешься платформой.

@@ -1,10 +1,10 @@
-import { Bot, webhookCallback } from 'grammy';
 import { timingSafeEqual } from 'node:crypto';
+import { Bot, webhookCallback } from 'grammy';
 import { cfg, isDev } from './config.ts';
-import { registerCommands } from './handlers/commands.ts';
 import { registerCallbacks } from './handlers/callbacks.ts';
-import { scheduler } from './utils/redis.ts';
+import { registerCommands } from './handlers/commands.ts';
 import { funnelService } from './services/funnelService.ts';
+import { scheduler } from './utils/redis.ts';
 
 // ─── Bot Init ─────────────────────────────────────────────────────────────────
 const bot = new Bot(cfg.TELEGRAM_BOT_TOKEN);
@@ -30,15 +30,21 @@ bot.catch((err) => {
 });
 
 // ─── Scheduler polling (every 5s) ─────────────────────────────────────────────
-// biome-ignore lint/style/useConst: reassigned in shutdown handler
 let schedulerRunning = true;
 const schedulerInterval = setInterval(async () => {
   if (!schedulerRunning) return;
   await scheduler.poll(async (task) => {
-    const payload = task.payload as { userId: string; chatId: number; userName?: string };
+    const payload = task.payload as {
+      userId: string;
+      chatId: number;
+      userName?: string;
+    };
     await funnelService.processScheduledTask(
       bot.api,
-      { type: task.type, payload: { userId: payload.userId, chatId: payload.chatId } },
+      {
+        type: task.type,
+        payload: { userId: payload.userId, chatId: payload.chatId },
+      },
       payload.userName ?? 'друг',
     );
   });
@@ -53,7 +59,9 @@ if (isDev) {
   });
 } else {
   // Webhook mode for production
-  console.log(`🤖 Bot starting in webhook mode on port ${cfg.BOT_WEBHOOK_PORT}...`);
+  console.log(
+    `🤖 Bot starting in webhook mode on port ${cfg.BOT_WEBHOOK_PORT}...`,
+  );
 
   const handler = webhookCallback(bot, 'bun');
 
@@ -69,11 +77,17 @@ if (isDev) {
         // only sends the header when a secret_token was provided to setWebhook.
         const expected = cfg.TELEGRAM_WEBHOOK_SECRET;
         if (expected.length > 0) {
-          const secret = req.headers.get('x-telegram-bot-api-secret-token') ?? '';
+          const secret =
+            req.headers.get('x-telegram-bot-api-secret-token') ?? '';
           let authorized = false;
           try {
-            authorized = timingSafeEqual(Buffer.from(secret), Buffer.from(expected));
-          } catch { authorized = false; }
+            authorized = timingSafeEqual(
+              Buffer.from(secret),
+              Buffer.from(expected),
+            );
+          } catch {
+            authorized = false;
+          }
           if (!authorized) {
             return new Response('Unauthorized', { status: 401 });
           }
