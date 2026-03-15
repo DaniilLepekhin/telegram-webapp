@@ -1,4 +1,4 @@
-import { InlineKeyboard, Keyboard } from 'grammy';
+import { InlineKeyboard } from 'grammy';
 import { cfg } from '../config.ts';
 
 export const kb = {
@@ -43,7 +43,10 @@ export const kb = {
   // Referral
   referral: (link: string) =>
     new InlineKeyboard()
-      .url('📤 Поделиться ссылкой', `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Смотри, какой крутой инструмент для Telegram-ботов!')}`)
+      .url(
+        '📤 Поделиться ссылкой',
+        `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Смотри, какой крутой инструмент для Telegram-ботов!')}`,
+      )
       .row()
       .text('📊 Моя статистика рефералов', 'referral_stats'),
 

@@ -5,7 +5,10 @@ let _redis: Redis | null = null;
 
 export function getRedis(): Redis {
   if (!_redis) {
-    _redis = new Redis(cfg.REDIS_URL, { maxRetriesPerRequest: 3, lazyConnect: true });
+    _redis = new Redis(cfg.REDIS_URL, {
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+    });
     _redis.on('error', (e) => console.error('[Redis]', e.message));
   }
   return _redis;
@@ -24,18 +27,34 @@ const POLL_SCRIPT = `
 `;
 
 export const scheduler = {
-  async schedule(taskType: string, payload: unknown, delayMs: number): Promise<void> {
+  async schedule(
+    taskType: string,
+    payload: unknown,
+    delayMs: number,
+  ): Promise<void> {
     const redis = getRedis();
     const score = Date.now() + delayMs;
-    const value = JSON.stringify({ type: taskType, payload, id: crypto.randomUUID() });
+    const value = JSON.stringify({
+      type: taskType,
+      payload,
+      id: crypto.randomUUID(),
+    });
     await redis.zadd('bot:scheduler', score, value);
   },
 
-  async poll(handler: (task: { type: string; payload: unknown }) => Promise<void>): Promise<void> {
+  async poll(
+    handler: (task: { type: string; payload: unknown }) => Promise<void>,
+  ): Promise<void> {
     const redis = getRedis();
     const now = Date.now();
     // Atomically pop up to 10 due tasks — safe for multi-instance deploys
-    const rawTasks = await redis.eval(POLL_SCRIPT, 1, 'bot:scheduler', now, 10) as string[];
+    const rawTasks = (await redis.eval(
+      POLL_SCRIPT,
+      1,
+      'bot:scheduler',
+      now,
+      10,
+    )) as string[];
     if (!rawTasks || rawTasks.length === 0) return;
 
     for (const t of rawTasks) {
@@ -62,7 +81,11 @@ export const scheduler = {
   },
 
   /** Mark a (taskType, userId) pair as scheduled. Call this alongside schedule(). */
-  async markScheduled(taskType: string, userId: string, ttlSecs = 86400): Promise<void> {
+  async markScheduled(
+    taskType: string,
+    userId: string,
+    ttlSecs = 86400,
+  ): Promise<void> {
     const redis = getRedis();
     const key = `bot:scheduled:${taskType}`;
     await redis.sadd(key, userId);

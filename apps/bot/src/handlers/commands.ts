@@ -1,7 +1,7 @@
 import type { Bot, Context } from 'grammy';
+import { userService } from '../services/userService.ts';
 import { kb } from '../utils/keyboard.ts';
 import { msg } from '../utils/messages.ts';
-import { userService } from '../services/userService.ts';
 import { scheduler } from '../utils/redis.ts';
 
 // Cache bot username so we don't hit the Telegram API on every /ref and /pro call
@@ -45,7 +45,11 @@ export function registerCommands(bot: Bot<Context>) {
       await scheduler.markScheduled('nurture_1h', userId);
     }
     if (!has1d) {
-      await scheduler.schedule('nurture_1d', { userId, chatId }, 24 * 60 * 60_000);
+      await scheduler.schedule(
+        'nurture_1d',
+        { userId, chatId },
+        24 * 60 * 60_000,
+      );
       await scheduler.markScheduled('nurture_1d', userId, 25 * 60 * 60); // TTL slightly longer than delay
     }
   });
@@ -67,7 +71,10 @@ export function registerCommands(bot: Bot<Context>) {
 
     // referralCode may be null for users created before the referral system was added.
     if (!user.referralCode) {
-      await ctx.reply('❌ Реферальный код не найден. Попробуй перезапустить бота командой /start.', { parse_mode: 'HTML' });
+      await ctx.reply(
+        '❌ Реферальный код не найден. Попробуй перезапустить бота командой /start.',
+        { parse_mode: 'HTML' },
+      );
       return;
     }
 
@@ -87,11 +94,14 @@ export function registerCommands(bot: Bot<Context>) {
 
     await ctx.reply(
       `📊 <b>Твой профиль</b>\n\n` +
-      `⚡ XP: <b>${user.xp}</b> (уровень ${user.level})\n` +
-      `🔥 Стрик: <b>${user.streak} дн.</b>\n` +
-      `💎 Энергия: <b>${user.energyBalance}</b>\n\n` +
-      `<i>Все детали — в WebApp 👇</i>`,
-      { parse_mode: 'HTML', reply_markup: kb.openWebApp('📊 Полная статистика') },
+        `⚡ XP: <b>${user.xp}</b> (уровень ${user.level})\n` +
+        `🔥 Стрик: <b>${user.streak} дн.</b>\n` +
+        `💎 Энергия: <b>${user.energyBalance}</b>\n\n` +
+        `<i>Все детали — в WebApp 👇</i>`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: kb.openWebApp('📊 Полная статистика'),
+      },
     );
   });
 
@@ -108,12 +118,12 @@ export function registerCommands(bot: Bot<Context>) {
   bot.command('help', async (ctx) => {
     await ctx.reply(
       `📖 <b>Доступные команды:</b>\n\n` +
-      `/start — запустить бота\n` +
-      `/demo — посмотреть demo-кейсы\n` +
-      `/ref — реферальная программа\n` +
-      `/stats — твой профиль и XP\n` +
-      `/pro — подписка Pro\n` +
-      `/help — эта справка`,
+        `/start — запустить бота\n` +
+        `/demo — посмотреть demo-кейсы\n` +
+        `/ref — реферальная программа\n` +
+        `/stats — твой профиль и XP\n` +
+        `/pro — подписка Pro\n` +
+        `/help — эта справка`,
       { parse_mode: 'HTML', reply_markup: kb.openWebApp() },
     );
   });

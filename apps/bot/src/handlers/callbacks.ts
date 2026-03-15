@@ -1,9 +1,9 @@
 import type { Bot, Context } from 'grammy';
 import { InlineKeyboard } from 'grammy';
+import { cfg } from '../config.ts';
+import { userService } from '../services/userService.ts';
 import { kb } from '../utils/keyboard.ts';
 import { msg } from '../utils/messages.ts';
-import { userService } from '../services/userService.ts';
-import { cfg } from '../config.ts';
 
 export function registerCallbacks(bot: Bot<Context>) {
   // ─── Cases menu ───────────────────────────────────────────────────────────
@@ -79,10 +79,15 @@ export function registerCallbacks(bot: Bot<Context>) {
       const stats = await userService.getReferralStats(user.id);
       await ctx.editMessageText(
         `📊 <b>Твои рефералы</b>\n\n👤 Приглашено: <b>${stats.count}</b>\n⚡ Заработано XP: <b>${stats.totalXp}</b>`,
-        { parse_mode: 'HTML', reply_markup: new InlineKeyboard().text('« Назад', 'back_main') },
+        {
+          parse_mode: 'HTML',
+          reply_markup: new InlineKeyboard().text('« Назад', 'back_main'),
+        },
       );
     } catch {
-      await ctx.answerCallbackQuery('Не удалось загрузить статистику. Попробуй позже.');
+      await ctx.answerCallbackQuery(
+        'Не удалось загрузить статистику. Попробуй позже.',
+      );
     }
   });
 
@@ -91,7 +96,10 @@ export function registerCallbacks(bot: Bot<Context>) {
     await ctx.answerCallbackQuery();
     await ctx.editMessageText(msg.proFeatures(), {
       parse_mode: 'HTML',
-      reply_markup: new InlineKeyboard().url('💬 Написать @daniillepekhin', 'https://t.me/daniillepekhin').row().text('« Назад', 'back_main'),
+      reply_markup: new InlineKeyboard()
+        .url('💬 Написать @daniillepekhin', 'https://t.me/daniillepekhin')
+        .row()
+        .text('« Назад', 'back_main'),
     });
   });
 }

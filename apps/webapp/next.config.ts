@@ -1,5 +1,5 @@
-import type { NextConfig } from 'next';
 import path from 'node:path';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -20,7 +20,11 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: [
           { key: 'X-Frame-Options', value: 'ALLOWALL' }, // Allow Telegram webview
-          { key: 'Content-Security-Policy', value: "frame-ancestors 'self' https://web.telegram.org https://telegram.org" },
+          {
+            key: 'Content-Security-Policy',
+            value:
+              "frame-ancestors 'self' https://web.telegram.org https://telegram.org",
+          },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
         ],
       },

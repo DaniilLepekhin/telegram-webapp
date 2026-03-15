@@ -89,7 +89,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-showcase}:${POSTGRES_PASSWORD}@postgres:5432/showcase
       REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}
-      WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET is required in production}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET is required in production}
       WEBAPP_URL: ${WEBAPP_URL:?WEBAPP_URL is required}
       WEBHOOK_URL: ${WEBHOOK_URL:-}
     depends_on:
@@ -111,12 +111,12 @@ services:
     logging: *default-logging
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${WEBAPP_URL}/api
+      NEXT_PUBLIC_API_URL: ${WEBAPP_URL}
       NEXT_PUBLIC_BOT_USERNAME: ${BOT_USERNAME:-showcase_bot}
     depends_on:
       - backend
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api/health || exit 1']
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/ -S 2>&1 | grep -q "200 OK" || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3

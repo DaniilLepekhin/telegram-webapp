@@ -1,11 +1,20 @@
 import type { Api } from 'grammy';
-import { kb } from '../utils/keyboard.ts';
 
 /** Returns a human-readable month name in the genitive case (e.g. "февраля") for the next calendar month. */
 function nextMonthLabel(): string {
   const months = [
-    'февраля', 'марта', 'апреля', 'мая', 'июня',
-    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря', 'января',
+    'февраля',
+    'марта',
+    'апреля',
+    'мая',
+    'июня',
+    'июля',
+    'августа',
+    'сентября',
+    'октября',
+    'ноября',
+    'декабря',
+    'января',
   ];
   const next = new Date();
   next.setMonth(next.getMonth() + 1);
@@ -59,7 +68,8 @@ export const funnelService = {
     task: { type: string; payload: { userId: string; chatId: number } },
     userName: string,
   ): Promise<void> {
-    const sequence = NURTURE_SEQUENCES[task.type as keyof typeof NURTURE_SEQUENCES];
+    const sequence =
+      NURTURE_SEQUENCES[task.type as keyof typeof NURTURE_SEQUENCES];
     if (!sequence) return;
 
     try {

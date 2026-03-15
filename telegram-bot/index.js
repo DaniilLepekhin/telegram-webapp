@@ -1,1 +1,1 @@
-console.log("Telegram bot started");
+console.log('Telegram bot started');

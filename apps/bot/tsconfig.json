@@ -14,6 +14,10 @@
     },
     "baseUrl": "."
   },
-  "include": ["src/**/*", "../../packages/shared/src/**/*", "../backend/src/db/schema.ts"],
+  "include": [
+    "src/**/*",
+    "../../packages/shared/src/**/*",
+    "../backend/src/db/schema.ts"
+  ],
   "exclude": ["node_modules"]
 }
